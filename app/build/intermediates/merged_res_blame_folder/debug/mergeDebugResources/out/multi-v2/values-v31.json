@@ -1,0 +1,47 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.pyera.app-mergeDebugResources-78:/values-v31/values-v31.xml",
+            "map": [
+                {
+                    "source": "C:\\Users\\crit\\.gradle\\caches\\9.0-milestone-1\\transforms\\88229d557656c8236f90f301d617395a\\transformed\\core-splashscreen-1.0.1\\res\\values-v31\\values-v31.xml",
+                    "from": {
+                        "startLines": "2,9",
+                        "startColumns": "4,4",
+                        "startOffsets": "55,473",
+                        "endLines": "8,13",
+                        "endColumns": "12,12",
+                        "endOffsets": "468,697"
+                    },
+                    "to": {
+                        "startLines": "22,29",
+                        "startColumns": "4,4",
+                        "startOffsets": "782,1200",
+                        "endLines": "28,33",
+                        "endColumns": "12,12",
+                        "endOffsets": "1195,1424"
+                    }
+                },
+                {
+                    "source": "C:\\coding\\Pyera\\app\\src\\main\\res\\values-v31\\themes.xml",
+                    "from": {
+                        "startLines": "3",
+                        "startColumns": "4",
+                        "startOffsets": "112",
+                        "endLines": "22",
+                        "endColumns": "12",
+                        "endOffsets": "1095"
+                    },
+                    "to": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endLines": "21",
+                        "endColumns": "12",
+                        "endOffsets": "777"
+                    }
+                }
+            ]
+        }
+    ]
+}

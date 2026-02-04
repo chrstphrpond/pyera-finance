@@ -1,0 +1,369 @@
+package com.pyera.app.ui.auth
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.pyera.app.data.biometric.BiometricAuthManager
+import com.pyera.app.data.biometric.BiometricAuthResult
+import com.pyera.app.data.biometric.BiometricCapability
+import com.pyera.app.data.repository.AuthRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+
+@HiltViewModel
+class AuthViewModel @Inject constructor(
+    private val repository: AuthRepository,
+    private val biometricAuthManager: BiometricAuthManager
+) : ViewModel() {
+
+    private val _uiState = MutableStateFlow(AuthUiState())
+    val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
+
+    init {
+        // Check biometric state on initialization
+        checkBiometricState()
+    }
+
+    /**
+     * Check if biometric authentication is available and enabled
+     */
+    private fun checkBiometricState() {
+        val isAvailable = biometricAuthManager.isBiometricAvailable()
+        val isEnabled = repository.isBiometricEnabled()
+        val hasCredentials = repository.hasStoredCredentials()
+        
+        _uiState.update { 
+            it.copy(
+                isBiometricAvailable = isAvailable,
+                isBiometricEnabled = isEnabled,
+                hasStoredCredentials = hasCredentials
+            )
+        }
+    }
+
+    /**
+     * Check if biometric login can be used (available, enabled, and has stored credentials)
+     */
+    fun canUseBiometricLogin(): Boolean {
+        return _uiState.value.isBiometricAvailable && 
+               _uiState.value.isBiometricEnabled && 
+               _uiState.value.hasStoredCredentials
+    }
+
+    /**
+     * Perform biometric login using stored credentials
+     */
+    fun biometricLogin() {
+        if (!canUseBiometricLogin()) {
+            _uiState.update { 
+                it.copy(
+                    biometricAuthState = BiometricAuthState.Error("Biometric login not available")
+                )
+            }
+            return
+        }
+
+        viewModelScope.launch {
+            _uiState.update { 
+                it.copy(
+                    authState = AuthState.Loading,
+                    biometricAuthState = BiometricAuthState.Authenticating
+                )
+            }
+
+            val email = repository.getStoredEmail()
+            val password = repository.getStoredPassword()
+
+            if (email.isNullOrBlank() || password.isNullOrBlank()) {
+                _uiState.update { 
+                    it.copy(
+                        authState = AuthState.Idle,
+                        biometricAuthState = BiometricAuthState.Error("Stored credentials not found")
+                    )
+                }
+                return@launch
+            }
+
+            val result = repository.login(email, password)
+            
+            _uiState.update { 
+                if (result.isSuccess) {
+                    it.copy(
+                        authState = AuthState.Success,
+                        biometricAuthState = BiometricAuthState.Success
+                    )
+                } else {
+                    it.copy(
+                        authState = AuthState.Error(
+                            result.exceptionOrNull()?.message ?: "Biometric login failed"
+                        ),
+                        biometricAuthState = BiometricAuthState.Error("Login failed")
+                    )
+                }
+            }
+        }
+    }
+
+    /**
+     * Handle biometric authentication result from the UI layer
+     */
+    fun onBiometricAuthResult(result: BiometricAuthResult) {
+        when (result) {
+            is BiometricAuthResult.Success -> {
+                biometricLogin()
+            }
+            is BiometricAuthResult.Cancelled -> {
+                _uiState.update { 
+                    it.copy(
+                        biometricAuthState = BiometricAuthState.Cancelled
+                    )
+                }
+            }
+            is BiometricAuthResult.Error -> {
+                _uiState.update { 
+                    it.copy(
+                        biometricAuthState = BiometricAuthState.Error(result.errorMessage)
+                    )
+                }
+            }
+            is BiometricAuthResult.Failed -> {
+                _uiState.update { 
+                    it.copy(
+                        biometricAuthState = BiometricAuthState.Error(result.message)
+                    )
+                }
+            }
+        }
+    }
+
+    /**
+     * Enable biometric authentication and store credentials
+     */
+    fun enableBiometric(email: String, password: String) {
+        val result = repository.storeCredentials(email, password)
+        result.fold(
+            onSuccess = {
+                repository.setBiometricEnabled(true)
+                _uiState.update { 
+                    it.copy(
+                        isBiometricEnabled = true,
+                        hasStoredCredentials = true,
+                        showBiometricPrompt = false
+                    )
+                }
+            },
+            onFailure = { error ->
+                _uiState.update { 
+                    it.copy(
+                        authState = AuthState.Error("Failed to store credentials: ${error.message}")
+                    )
+                }
+            }
+        )
+    }
+
+    /**
+     * Disable biometric authentication and clear stored credentials
+     */
+    fun disableBiometric() {
+        repository.setBiometricEnabled(false)
+        repository.clearStoredCredentials()
+        _uiState.update { 
+            it.copy(
+                isBiometricEnabled = false,
+                hasStoredCredentials = false
+            )
+        }
+    }
+
+    /**
+     * Show the biometric enable prompt after successful login
+     */
+    fun showBiometricEnablePrompt(email: String, password: String) {
+        // Only show if biometric is available and not already enabled
+        if (_uiState.value.isBiometricAvailable && !_uiState.value.isBiometricEnabled) {
+            _uiState.update { 
+                it.copy(
+                    showBiometricPrompt = true,
+                    pendingEmail = email,
+                    pendingPassword = password
+                )
+            }
+        }
+    }
+
+    /**
+     * Dismiss the biometric enable prompt
+     */
+    fun dismissBiometricPrompt() {
+        _uiState.update { 
+            it.copy(
+                showBiometricPrompt = false,
+                pendingEmail = null,
+                pendingPassword = null
+            )
+        }
+    }
+
+    /**
+     * Clear biometric auth state (after handling)
+     */
+    fun clearBiometricState() {
+        _uiState.update { 
+            it.copy(biometricAuthState = BiometricAuthState.Idle)
+        }
+    }
+
+    fun login(email: String, pass: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(authState = AuthState.Loading) }
+            val result = repository.login(email, pass)
+            
+            _uiState.update { state ->
+                if (result.isSuccess) {
+                    // Check if we should show biometric prompt
+                    if (state.isBiometricAvailable && !state.isBiometricEnabled) {
+                        state.copy(
+                            authState = AuthState.Success,
+                            showBiometricPrompt = true,
+                            pendingEmail = email,
+                            pendingPassword = pass
+                        )
+                    } else {
+                        state.copy(authState = AuthState.Success)
+                    }
+                } else {
+                    state.copy(
+                        authState = AuthState.Error(
+                            result.exceptionOrNull()?.message ?: "Login failed"
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+    fun register(email: String, pass: String, name: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(authState = AuthState.Loading) }
+            val result = repository.register(email, pass, name)
+            
+            _uiState.update { 
+                if (result.isSuccess) {
+                    it.copy(authState = AuthState.Success)
+                } else {
+                    it.copy(
+                        authState = AuthState.Error(
+                            result.exceptionOrNull()?.message ?: "Registration failed"
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+    fun signInWithGoogle(idToken: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(authState = AuthState.Loading) }
+            val result = repository.signInWithGoogle(idToken)
+            
+            _uiState.update { 
+                if (result.isSuccess) {
+                    it.copy(authState = AuthState.Success)
+                } else {
+                    it.copy(
+                        authState = AuthState.Error(
+                            result.exceptionOrNull()?.message ?: "Google sign-in failed"
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+    fun togglePasswordVisibility() {
+        _uiState.update { it.copy(isPasswordVisible = !it.isPasswordVisible) }
+    }
+
+    fun toggleConfirmPasswordVisibility() {
+        _uiState.update { it.copy(isConfirmPasswordVisible = !it.isConfirmPasswordVisible) }
+    }
+
+    fun toggleRememberMe() {
+        _uiState.update { it.copy(rememberMe = !it.rememberMe) }
+    }
+
+    fun toggleTermsAccepted() {
+        _uiState.update { it.copy(termsAccepted = !it.termsAccepted) }
+    }
+
+    fun clearError() {
+        _uiState.update { it.copy(authState = AuthState.Idle) }
+    }
+
+    fun resetState() {
+        _uiState.value = AuthUiState(
+            isBiometricAvailable = biometricAuthManager.isBiometricAvailable(),
+            isBiometricEnabled = repository.isBiometricEnabled(),
+            hasStoredCredentials = repository.hasStoredCredentials()
+        )
+    }
+}
+
+data class AuthUiState(
+    val authState: AuthState = AuthState.Idle,
+    val biometricAuthState: BiometricAuthState = BiometricAuthState.Idle,
+    val isPasswordVisible: Boolean = false,
+    val isConfirmPasswordVisible: Boolean = false,
+    val rememberMe: Boolean = false,
+    val termsAccepted: Boolean = false,
+    val isBiometricAvailable: Boolean = false,
+    val isBiometricEnabled: Boolean = false,
+    val hasStoredCredentials: Boolean = false,
+    val showBiometricPrompt: Boolean = false,
+    val pendingEmail: String? = null,
+    val pendingPassword: String? = null
+)
+
+sealed class AuthState {
+    object Idle : AuthState()
+    object Loading : AuthState()
+    object Success : AuthState()
+    data class Error(val message: String) : AuthState()
+}
+
+sealed class BiometricAuthState {
+    object Idle : BiometricAuthState()
+    object Authenticating : BiometricAuthState()
+    object Success : BiometricAuthState()
+    data class Error(val message: String) : BiometricAuthState()
+    object Cancelled : BiometricAuthState()
+}
+
+/**
+ * Password strength levels for validation
+ */
+enum class PasswordStrength {
+    EMPTY, WEAK, MEDIUM, STRONG
+}
+
+fun calculatePasswordStrength(password: String): PasswordStrength {
+    if (password.isEmpty()) return PasswordStrength.EMPTY
+    
+    var score = 0
+    if (password.length >= 8) score++
+    if (password.any { it.isUpperCase() }) score++
+    if (password.any { it.isLowerCase() }) score++
+    if (password.any { it.isDigit() }) score++
+    if (password.any { !it.isLetterOrDigit() }) score++
+    
+    return when (score) {
+        0, 1, 2 -> PasswordStrength.WEAK
+        3 -> PasswordStrength.MEDIUM
+        else -> PasswordStrength.STRONG
+    }
+}

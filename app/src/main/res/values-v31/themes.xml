@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Android 12+ specific splash screen theme -->
+    <style name="Theme.Pyera.Starting" parent="Theme.SplashScreen">
+        <!-- Window background - gradient image -->
+        <item name="windowSplashScreenBackground">@drawable/bg_gradient_green_gradient_background</item>
+        
+        <!-- Animated icon - White logo -->
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_logo_white</item>
+        
+        <!-- Animation duration (max 1000ms for Android 12+) -->
+        <item name="windowSplashScreenAnimationDuration">300</item>
+        
+        <!-- Icon background color -->
+        <item name="windowSplashScreenIconBackgroundColor">@android:color/transparent</item>
+        
+        <!-- Status bar and navigation bar colors -->
+        <item name="android:statusBarColor">#0A0E0D</item>
+        <item name="android:navigationBarColor">#0A0E0D</item>
+        
+        <!-- Post splash screen theme -->
+        <item name="postSplashScreenTheme">@style/Theme.Pyera</item>
+    </style>
+</resources>

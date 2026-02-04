@@ -1,0 +1,19 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.pyera.app-mergeDebugResources-78:/values-land/values-land.xml",
+            "map": [
+                {
+                    "source": "C:\\Users\\crit\\.gradle\\caches\\9.0-milestone-1\\transforms\\d487cb3c25f8b8417b83e823fb7fd8ad\\transformed\\appcompat-1.6.1\\res\\values-land\\values-land.xml",
+                    "from": {
+                        "startLines": "2,3,4",
+                        "startColumns": "4,4,4",
+                        "startOffsets": "55,125,196",
+                        "endColumns": "69,70,67",
+                        "endOffsets": "120,191,259"
+                    }
+                }
+            ]
+        }
+    ]
+}

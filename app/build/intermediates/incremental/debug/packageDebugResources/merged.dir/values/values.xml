@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ic_launcher_background">#D4FF00</color>
+    <string name="app_name">Pyera</string>
+    <string name="default_web_client_id" translatable="false">481947273203-c89a5pa0m6uvis0dobe90tadjukq9tcb.apps.googleusercontent.com</string>
+    <string name="gcm_defaultSenderId" translatable="false">481947273203</string>
+    <string name="google_api_key" translatable="false">AIzaSyCSdEtnvSLX0IStEaISOobV-bMiLgbTpYE</string>
+    <string name="google_app_id" translatable="false">1:481947273203:android:60d739480579fc1764f486</string>
+    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyCSdEtnvSLX0IStEaISOobV-bMiLgbTpYE</string>
+    <string name="google_storage_bucket" translatable="false">pyera-11128.firebasestorage.app</string>
+    <string name="project_id" translatable="false">pyera-11128</string>
+    <style name="Theme.Pyera" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">#0A0E0D</item>
+        <item name="android:navigationBarColor">#0A0E0D</item>
+    </style>
+    <style name="Theme.Pyera.Starting" parent="Theme.Pyera">
+        <item name="android:windowBackground">@drawable/splash_background</item>
+    </style>
+</resources>

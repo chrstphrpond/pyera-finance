@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Pyera.Starting" parent="Theme.SplashScreen">
+        
+        <item name="windowSplashScreenBackground">@drawable/bg_gradient_green_gradient_background</item>
+        
+        
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_logo_white</item>
+        
+        
+        <item name="windowSplashScreenAnimationDuration">300</item>
+        
+        
+        <item name="windowSplashScreenIconBackgroundColor">@android:color/transparent</item>
+        
+        
+        <item name="android:statusBarColor">#0A0E0D</item>
+        <item name="android:navigationBarColor">#0A0E0D</item>
+        
+        
+        <item name="postSplashScreenTheme">@style/Theme.Pyera</item>
+    </style>
+    <style name="Theme.SplashScreen" parent="Base.Theme.SplashScreen.DayNight">
+        <item name="android:windowSplashScreenAnimatedIcon">?windowSplashScreenAnimatedIcon</item>
+        <item name="android:windowSplashScreenBackground">?windowSplashScreenBackground</item>
+        <item name="android:windowSplashScreenAnimationDuration">
+            ?windowSplashScreenAnimationDuration
+        </item>
+    </style>
+    <style name="Theme.SplashScreen.IconBackground" parent="Theme.SplashScreen">
+        <item name="android:windowSplashScreenIconBackgroundColor">
+            ?windowSplashScreenIconBackgroundColor
+        </item>
+    </style>
+</resources>

@@ -1,0 +1,95 @@
+﻿To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.0-milestone-1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :app:clean
+> Task :app:checkKotlinGradlePluginConfigurationErrors
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:generateDebugBuildConfig
+> Task :app:checkDebugAarMetadata
+> Task :app:processDebugNavigationResources
+> Task :app:generateDebugResValues
+> Task :app:compileDebugNavigationResources
+> Task :app:processDebugGoogleServices
+> Task :app:mapDebugSourceSetPaths
+> Task :app:generateDebugResources
+> Task :app:packageDebugResources
+> Task :app:createDebugCompatibleScreenManifests
+> Task :app:extractDeepLinksDebug
+> Task :app:parseDebugLocalResources
+> Task :app:mergeDebugResources
+> Task :app:processDebugMainManifest
+> Task :app:processDebugManifest
+> Task :app:processDebugManifestForPackage
+> Task :app:processDebugResources
+> Task :app:kspDebugKotlin
+
+> Task :app:compileDebugKotlin
+.\gradlew.bat : e: file:///C:/coding/Pyera/app/src/main/java/com/pyera/app/ui/main/MainScreen.kt:72:25 Cannot find a 
+parameter with this name: onInvestmentsClick
+At line:1 char:21
++ ... ding\Pyera; .\gradlew.bat clean :app:compileDebugKotlin --no-daemon 2 ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (e: file:///C:/c...nvestmentsClick:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+e: file:///C:/coding/Pyera/app/src/main/java/com/pyera/app/ui/transaction/AddTransactionScreen.kt:262:35 Too many 
+arguments for public final fun addTransaction(transaction: TransactionEntity): Unit defined in 
+com.pyera.app.ui.transaction.TransactionViewModel
+e: file:///C:/coding/Pyera/app/src/main/java/com/pyera/app/ui/transaction/AddTransactionScreen.kt:295:35 Too many 
+arguments for public final fun addTransaction(transaction: TransactionEntity): Unit defined in 
+com.pyera.app.ui.transaction.TransactionViewModel
+e: file:///C:/coding/Pyera/app/src/main/java/com/pyera/app/ui/transaction/AddTransactionScreen.kt:318:34 Unresolved 
+reference: OutlinedButtonDefaults
+e: file:///C:/coding/Pyera/app/src/main/java/com/pyera/app/ui/transaction/TransactionListScreen.kt:34:44 Unresolved 
+reference: pullRefresh
+e: file:///C:/coding/Pyera/app/src/main/java/com/pyera/app/ui/transaction/TransactionListScreen.kt:35:44 Unresolved 
+reference: rememberPullRefreshState
+e: file:///C:/coding/Pyera/app/src/main/java/com/pyera/app/ui/transaction/TransactionListScreen.kt:36:44 Unresolved 
+reference: PullRefreshIndicator
+e: file:///C:/coding/Pyera/app/src/main/java/com/pyera/app/ui/transaction/TransactionListScreen.kt:66:28 Unresolved 
+reference: rememberPullRefreshState
+e: file:///C:/coding/Pyera/app/src/main/java/com/pyera/app/ui/transaction/TransactionListScreen.kt:131:48 Unresolved 
+reference: setSearchQuery
+e: file:///C:/coding/Pyera/app/src/main/java/com/pyera/app/ui/transaction/TransactionListScreen.kt:140:53 Unresolved 
+reference: setTypeFilter
+e: file:///C:/coding/Pyera/app/src/main/java/com/pyera/app/ui/transaction/TransactionListScreen.kt:141:58 Unresolved 
+reference: setDateRangeFilter
+e: file:///C:/coding/Pyera/app/src/main/java/com/pyera/app/ui/transaction/TransactionListScreen.kt:142:57 Unresolved 
+reference: setCategoryFilter
+e: file:///C:/coding/Pyera/app/src/main/java/com/pyera/app/ui/transaction/TransactionListScreen.kt:143:49 Unresolved 
+reference: clearFilters
+e: file:///C:/coding/Pyera/app/src/main/java/com/pyera/app/ui/transaction/TransactionListScreen.kt:152:18 Unresolved 
+reference: pullRefresh
+e: file:///C:/coding/Pyera/app/src/main/java/com/pyera/app/ui/transaction/TransactionListScreen.kt:170:53 Unresolved 
+reference: clearFilters
+e: file:///C:/coding/Pyera/app/src/main/java/com/pyera/app/ui/transaction/TransactionListScreen.kt:175:57 Unresolved 
+reference: getGroupedTransactions
+e: file:///C:/coding/Pyera/app/src/main/java/com/pyera/app/ui/transaction/TransactionListScreen.kt:184:13 Unresolved 
+reference: PullRefreshIndicator
+
+> Task :app:compileDebugKotlin FAILED
+
+[Incubating] Problems report is available at: file:///C:/coding/Pyera/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:compileDebugKotlin'.
+> A failure occurred while executing 
+org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.0-milestone-1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 29s
+21 actionable tasks: 21 executed

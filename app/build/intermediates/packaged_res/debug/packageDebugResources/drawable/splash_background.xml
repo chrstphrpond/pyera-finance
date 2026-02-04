@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Gradient Background -->
+    <item android:drawable="@drawable/bg_gradient_green_gradient_background" />
+    
+    <!-- White Logo centered -->
+    <item
+        android:width="200dp"
+        android:height="68dp"
+        android:gravity="center">
+        <bitmap android:src="@drawable/ic_splash_logo_white" />
+    </item>
+</layer-list>

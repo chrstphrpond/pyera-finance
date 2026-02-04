@@ -1,0 +1,187 @@
+﻿To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.0-milestone-1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+.\gradlew.bat : 
+At line:1 char:1
++ .\gradlew.bat :app:compileDebugKotlin --no-daemon 
+--stacktrace 2>&1 | ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) 
+    [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Unable to start the daemon process.
+This problem might be caused by incorrect 
+configuration of the daemon.
+For example, an unrecognized jvm option is used.For 
+more details on the daemon, please refer to https://do
+cs.gradle.org/9.0-milestone-1/userguide/gradle_daemon.
+html in the Gradle documentation.
+Process command line: C:\Program 
+Files\Android\Android Studio\jbr\bin\java.exe 
+--add-opens=java.base/java.lang=ALL-UNNAMED 
+--add-opens=java.base/java.lang.invoke=ALL-UNNAMED 
+--add-opens=java.base/java.util=ALL-UNNAMED 
+--add-opens=java.prefs/java.util.prefs=ALL-UNNAMED --a
+dd-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UN
+NAMED --add-exports=jdk.compiler/com.sun.tools.javac.u
+til=ALL-UNNAMED 
+--add-opens=java.base/java.util=ALL-UNNAMED 
+--add-opens=java.prefs/java.util.prefs=ALL-UNNAMED 
+--add-opens=java.base/java.nio.charset=ALL-UNNAMED 
+--add-opens=java.base/java.net=ALL-UNNAMED --add-opens
+=java.base/java.util.concurrent.atomic=ALL-UNNAMED 
+--add-opens=java.xml/javax.xml.namespace=ALL-UNNAMED 
+-Xmx2048m -Dfile.encoding=UTF-8 -Duser.country=PH 
+-Duser.language=en -Duser.variant -cp C:\Users\crit\.g
+radle\wrapper\dists\gradle-9.0-milestone-1-bin\3vdepk4
+s12bybhohyuvjcm1bd\gradle-9.0-milestone-1\lib\gradle-d
+aemon-main-9.0.jar -javaagent:C:\Users\crit\.gradle\wr
+apper\dists\gradle-9.0-milestone-1-bin\3vdepk4s12bybho
+hyuvjcm1bd\gradle-9.0-milestone-1\lib\agents\gradle-in
+strumentation-agent-9.0.jar 
+org.gradle.launcher.daemon.bootstrap.GradleDaemon 
+9.0-milestone-1
+Please read the following process output to find out 
+more:
+-----------------------
+OpenJDK 64-Bit Server VM warning: INFO: 
+os::commit_memory(0x0000000080000000, 1073741824, 0) 
+failed; error='The paging file is too small for this 
+operation to complete' (DOS error/errno=1455)
+#
+# There is insufficient memory for the Java Runtime 
+Environment to continue.
+# Native memory allocation (mmap) failed to map 
+1073741824 bytes. Error detail: G1 virtual space
+# An error report file with more information is saved 
+as:
+# C:\Users\crit\.gradle\daemon\9.0-milestone-1\hs_err_
+pid705340.log
+
+
+* Try:
+> Run with --info or --debug option to get more log 
+output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+* Exception is:
+org.gradle.api.GradleException: Unable to start the 
+daemon process.
+This problem might be caused by incorrect 
+configuration of the daemon.
+For example, an unrecognized jvm option is used.For 
+more details on the daemon, please refer to https://do
+cs.gradle.org/9.0-milestone-1/userguide/gradle_daemon.
+html in the Gradle documentation.
+Process command line: C:\Program 
+Files\Android\Android Studio\jbr\bin\java.exe 
+--add-opens=java.base/java.lang=ALL-UNNAMED 
+--add-opens=java.base/java.lang.invoke=ALL-UNNAMED 
+--add-opens=java.base/java.util=ALL-UNNAMED 
+--add-opens=java.prefs/java.util.prefs=ALL-UNNAMED --a
+dd-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UN
+NAMED --add-exports=jdk.compiler/com.sun.tools.javac.u
+til=ALL-UNNAMED 
+--add-opens=java.base/java.util=ALL-UNNAMED 
+--add-opens=java.prefs/java.util.prefs=ALL-UNNAMED 
+--add-opens=java.base/java.nio.charset=ALL-UNNAMED 
+--add-opens=java.base/java.net=ALL-UNNAMED --add-opens
+=java.base/java.util.concurrent.atomic=ALL-UNNAMED 
+--add-opens=java.xml/javax.xml.namespace=ALL-UNNAMED 
+-Xmx2048m -Dfile.encoding=UTF-8 -Duser.country=PH 
+-Duser.language=en -Duser.variant -cp C:\Users\crit\.g
+radle\wrapper\dists\gradle-9.0-milestone-1-bin\3vdepk4
+s12bybhohyuvjcm1bd\gradle-9.0-milestone-1\lib\gradle-d
+aemon-main-9.0.jar -javaagent:C:\Users\crit\.gradle\wr
+apper\dists\gradle-9.0-milestone-1-bin\3vdepk4s12bybho
+hyuvjcm1bd\gradle-9.0-milestone-1\lib\agents\gradle-in
+strumentation-agent-9.0.jar 
+org.gradle.launcher.daemon.bootstrap.GradleDaemon 
+9.0-milestone-1
+Please read the following process output to find out 
+more:
+-----------------------
+OpenJDK 64-Bit Server VM warning: INFO: 
+os::commit_memory(0x0000000080000000, 1073741824, 0) 
+failed; error='The paging file is too small for this 
+operation to complete' (DOS error/errno=1455)
+#
+# There is insufficient memory for the Java Runtime 
+Environment to continue.
+# Native memory allocation (mmap) failed to map 
+1073741824 bytes. Error detail: G1 virtual space
+# An error report file with more information is saved 
+as:
+# C:\Users\crit\.gradle\daemon\9.0-milestone-1\hs_err_
+pid705340.log
+
+	at org.gradle.launcher.daemon.client.DaemonGreeter.pa
+rseDaemonOutput(DaemonGreeter.java:41)
+	at org.gradle.launcher.daemon.client.DefaultDaemonSta
+rter.startProcess(DefaultDaemonStarter.java:260)
+	at org.gradle.launcher.daemon.client.DefaultDaemonSta
+rter.startDaemon(DefaultDaemonStarter.java:205)
+	at org.gradle.launcher.daemon.client.DefaultDaemonCon
+nector.doStartDaemon(DefaultDaemonConnector.java:219)
+	at org.gradle.launcher.daemon.client.DefaultDaemonCon
+nector.startSingleUseDaemon(DefaultDaemonConnector.jav
+a:244)
+	at org.gradle.launcher.daemon.client.SingleUseDaemonC
+lient.execute(SingleUseDaemonClient.java:60)
+	at org.gradle.launcher.daemon.client.SingleUseDaemonC
+lient.execute(SingleUseDaemonClient.java:37)
+	at org.gradle.launcher.cli.RunBuildAction.run(RunBuil
+dAction.java:56)
+	at org.gradle.internal.Actions$RunnableActionAdapter.
+execute(Actions.java:167)
+	at org.gradle.launcher.cli.DefaultCommandLineActionFa
+ctory$ParseAndBuildAction.execute(DefaultCommandLineAc
+tionFactory.java:371)
+	at org.gradle.launcher.cli.DefaultCommandLineActionFa
+ctory$ParseAndBuildAction.execute(DefaultCommandLineAc
+tionFactory.java:335)
+	at org.gradle.launcher.cli.DebugLoggerWarningAction.e
+xecute(DebugLoggerWarningAction.java:74)
+	at org.gradle.launcher.cli.DebugLoggerWarningAction.e
+xecute(DebugLoggerWarningAction.java:30)
+	at org.gradle.launcher.cli.WelcomeMessageAction.execu
+te(WelcomeMessageAction.java:97)
+	at org.gradle.launcher.cli.WelcomeMessageAction.execu
+te(WelcomeMessageAction.java:40)
+	at org.gradle.launcher.cli.NativeServicesInitializing
+Action.execute(NativeServicesInitializingAction.java:5
+0)
+	at org.gradle.launcher.cli.NativeServicesInitializing
+Action.execute(NativeServicesInitializingAction.java:2
+7)
+	at org.gradle.launcher.cli.ExceptionReportingAction.e
+xecute(ExceptionReportingAction.java:41)
+	at org.gradle.launcher.cli.ExceptionReportingAction.e
+xecute(ExceptionReportingAction.java:26)
+	at org.gradle.launcher.cli.DefaultCommandLineActionFa
+ctory$WithLogging.execute(DefaultCommandLineActionFact
+ory.java:483)
+	at org.gradle.launcher.Main.doAction(Main.java:35)
+	at org.gradle.launcher.bootstrap.EntryPoint.run(Entry
+Point.java:52)
+	at java.base/jdk.internal.reflect.DirectMethodHandleA
+ccessor.invoke(Unknown Source)
+	at java.base/java.lang.reflect.Method.invoke(Unknown 
+Source)
+	at org.gradle.launcher.bootstrap.ProcessBootstrap.run
+NoExit(ProcessBootstrap.java:72)
+	at org.gradle.launcher.bootstrap.ProcessBootstrap.run
+(ProcessBootstrap.java:39)
+	at org.gradle.launcher.GradleMain.main(GradleMain.jav
+a:31)
+	at java.base/jdk.internal.reflect.DirectMethodHandleA
+ccessor.invoke(Unknown Source)
+	at java.base/java.lang.reflect.Method.invoke(Unknown 
+Source)
+	at org.gradle.wrapper.GradleWrapperMain.main(SourceFi
+le:70)
+
