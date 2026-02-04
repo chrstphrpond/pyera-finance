@@ -2,6 +2,11 @@
 
 A modern, feature-rich personal finance management Android app built with Jetpack Compose and Firebase.
 
+[![Android CI](https://github.com/chrstphrpond/pyera-finance/actions/workflows/android.yml/badge.svg)](https://github.com/chrstphrpond/pyera-finance/actions/workflows/android.yml)
+[![License](https://img.shields.io/badge/License-Proprietary-red.svg)](LICENSE)
+[![Kotlin](https://img.shields.io/badge/Kotlin-1.9-7F52FF.svg?logo=kotlin)](https://kotlinlang.org)
+[![Android](https://img.shields.io/badge/Android-26%2B-3DDC84.svg?logo=android)](https://developer.android.com)
+
 ![Android](https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white)
 ![Kotlin](https://img.shields.io/badge/Kotlin-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white)
 ![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-4285F4?style=for-the-badge&logo=jetpackcompose&logoColor=white)
@@ -129,11 +134,9 @@ Or open the project in Android Studio and click **Run**.
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
+
+Please note that this project is released with a [Code of Conduct](CODE_OF_CONDUCT.md). By participating in this project you agree to abide by its terms.
 
 ## License
 
