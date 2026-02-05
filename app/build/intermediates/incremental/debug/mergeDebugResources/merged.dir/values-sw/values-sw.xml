@@ -82,6 +82,8 @@
     <string msgid="3791785319221634505" name="generic_error_no_device_credential">"Hujaweka PIN, mchoro au nenosiri."</string>
     <string msgid="1807436368654974044" name="generic_error_no_keyguard">"Kifaa hiki hakitumii PIN, mchoro au nenosiri."</string>
     <string msgid="7309881387583143581" name="generic_error_user_canceled">"Uthibitishaji umeghairiwa na mtumiaji."</string>
+    <string msgid="2863935784364843033" name="glance_error_layout_text">"Angalia hitilafu mahususi ukitumia "<b><tt>"adb logcat"</tt></b>", ukitafuta "<b><tt>"GlanceAppWidget"</tt></b></string>
+    <string msgid="3631961919234443531" name="glance_error_layout_title"><b>"Hitilafu ya Wijeti ya Programu ya Glance"</b></string>
     <string msgid="6827826412747255547" name="in_progress">"Inaendelea"</string>
     <string msgid="7933458017204019916" name="indeterminate">"Imekaguliwa kwa kiasi fulani"</string>
     <string msgid="2988463736136100848" name="m3c_bottom_sheet_collapse_description">"Kunja safu ya chini"</string>

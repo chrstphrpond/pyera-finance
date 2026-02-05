@@ -13,6 +13,7 @@ import com.pyera.app.data.local.dao.BudgetDao
 import com.pyera.app.data.local.dao.CategoryDao
 import com.pyera.app.data.local.dao.DebtDao
 import com.pyera.app.data.local.dao.InvestmentDao
+import com.pyera.app.data.local.dao.RecurringTransactionDao
 import com.pyera.app.data.local.dao.SavingsGoalDao
 import com.pyera.app.data.local.dao.TransactionDao
 import dagger.Module
@@ -47,7 +48,7 @@ object DatabaseModule {
         )
         .openHelperFactory(factory)
         .setJournalMode(RoomDatabase.JournalMode.WRITE_AHEAD_LOGGING)
-        .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+        .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
         .build()
     }
 
@@ -108,6 +109,108 @@ object DatabaseModule {
         }
     }
 
+    /**
+     * Migration from v4 to v5 - Added AccountEntity and updated TransactionEntity
+     * Creates accounts table and updates transactions with account support
+     */
+    private val MIGRATION_4_5 = object : Migration(4, 5) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            // Create accounts table
+            database.execSQL("""
+                CREATE TABLE IF NOT EXISTS accounts (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    userId TEXT NOT NULL,
+                    name TEXT NOT NULL,
+                    type TEXT NOT NULL,
+                    balance REAL NOT NULL DEFAULT 0.0,
+                    currency TEXT NOT NULL DEFAULT 'PHP',
+                    color INTEGER NOT NULL,
+                    icon TEXT NOT NULL,
+                    isDefault INTEGER NOT NULL DEFAULT 0,
+                    isArchived INTEGER NOT NULL DEFAULT 0,
+                    createdAt INTEGER NOT NULL,
+                    updatedAt INTEGER NOT NULL
+                )
+            """.trimIndent())
+            
+            // Create account indexes
+            database.execSQL("CREATE INDEX IF NOT EXISTS idx_accounts_user ON accounts(userId)")
+            database.execSQL("CREATE INDEX IF NOT EXISTS idx_accounts_default ON accounts(isDefault)")
+            database.execSQL("CREATE INDEX IF NOT EXISTS idx_accounts_archived ON accounts(isArchived)")
+            database.execSQL("CREATE INDEX IF NOT EXISTS idx_accounts_type ON accounts(type)")
+            
+            // Backup existing transactions
+            database.execSQL("ALTER TABLE transactions RENAME TO transactions_backup")
+            
+            // Create new transactions table with updated schema
+            database.execSQL("""
+                CREATE TABLE transactions (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    amount REAL NOT NULL,
+                    note TEXT NOT NULL,
+                    date INTEGER NOT NULL,
+                    type TEXT NOT NULL,
+                    categoryId INTEGER,
+                    accountId INTEGER NOT NULL DEFAULT 0,
+                    userId TEXT NOT NULL DEFAULT '',
+                    isTransfer INTEGER NOT NULL DEFAULT 0,
+                    transferAccountId INTEGER,
+                    createdAt INTEGER NOT NULL DEFAULT ${System.currentTimeMillis()},
+                    updatedAt INTEGER NOT NULL DEFAULT ${System.currentTimeMillis()},
+                    FOREIGN KEY(categoryId) REFERENCES categories(id) ON DELETE SET NULL,
+                    FOREIGN KEY(accountId) REFERENCES accounts(id) ON DELETE RESTRICT
+                )
+            """.trimIndent())
+            
+            // Migrate data from backup
+            database.execSQL("""
+                INSERT INTO transactions (id, amount, note, date, type, categoryId)
+                SELECT id, amount, note, date, type, categoryId FROM transactions_backup
+            """.trimIndent())
+            
+            // Drop backup table
+            database.execSQL("DROP TABLE transactions_backup")
+            
+            // Create transaction indexes
+            database.execSQL("CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions(date)")
+            database.execSQL("CREATE INDEX IF NOT EXISTS idx_transactions_type ON transactions(type)")
+            database.execSQL("CREATE INDEX IF NOT EXISTS idx_transactions_category ON transactions(categoryId)")
+            database.execSQL("CREATE INDEX IF NOT EXISTS idx_transactions_account ON transactions(accountId)")
+            database.execSQL("CREATE INDEX IF NOT EXISTS idx_transactions_user ON transactions(userId)")
+        }
+    }
+
+    /**
+     * Migration from v5 to v6 - Added RecurringTransactionEntity
+     * Creates recurring_transactions table with indexes
+     */
+    private val MIGRATION_5_6 = object : Migration(5, 6) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            // Create recurring_transactions table
+            database.execSQL("""
+                CREATE TABLE IF NOT EXISTS recurring_transactions (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    amount REAL NOT NULL,
+                    type TEXT NOT NULL,
+                    categoryId INTEGER,
+                    description TEXT NOT NULL,
+                    frequency TEXT NOT NULL,
+                    startDate INTEGER NOT NULL,
+                    endDate INTEGER,
+                    nextDueDate INTEGER NOT NULL,
+                    isActive INTEGER NOT NULL DEFAULT 1,
+                    createdAt INTEGER NOT NULL DEFAULT ${System.currentTimeMillis()},
+                    FOREIGN KEY(categoryId) REFERENCES categories(id) ON DELETE SET NULL
+                )
+            """.trimIndent())
+            
+            // Create recurring transaction indexes
+            database.execSQL("CREATE INDEX IF NOT EXISTS idx_recurring_category ON recurring_transactions(categoryId)")
+            database.execSQL("CREATE INDEX IF NOT EXISTS idx_recurring_next_due ON recurring_transactions(nextDueDate)")
+            database.execSQL("CREATE INDEX IF NOT EXISTS idx_recurring_active ON recurring_transactions(isActive)")
+        }
+    }
+
     @Provides
     fun provideCategoryDao(database: PyeraDatabase): CategoryDao {
         return database.categoryDao()
@@ -141,6 +244,16 @@ object DatabaseModule {
     @Provides
     fun provideInvestmentDao(database: PyeraDatabase): InvestmentDao {
         return database.investmentDao()
+    }
+
+    @Provides
+    fun provideAccountDao(database: PyeraDatabase): AccountDao {
+        return database.accountDao()
+    }
+
+    @Provides
+    fun provideRecurringTransactionDao(database: PyeraDatabase): RecurringTransactionDao {
+        return database.recurringTransactionDao()
     }
     
     private const val DATABASE_NAME = "pyera_database"

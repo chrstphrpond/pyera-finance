@@ -67,7 +67,7 @@ fun ProfileScreen(
                 SettingsItem(
                     icon = Icons.Default.Security,
                     title = "Security",
-                    onClick = { /* navController.navigate(Screen.Security.route) */ }
+                    onClick = { navController.navigate(Screen.SecuritySettings.route) }
                 )
                 SettingsDivider()
                 SettingsItem(

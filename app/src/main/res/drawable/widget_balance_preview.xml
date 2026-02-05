@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Preview image for the Balance Widget (2x1)
+    Shown in the widget picker
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="180dp"
+    android:height="110dp"
+    android:viewportWidth="180"
+    android:viewportHeight="110">
+    
+    <!-- Background -->
+    <path
+        android:fillColor="#FF1A1F1D"
+        android:pathData="M8,0 L172,0 C176.4,0 180,3.6 180,8 L180,102 C180,106.4 176.4,110 172,110 L8,110 C3.6,110 0,106.4 0,102 L0,8 C0,3.6 3.6,0 8,0 Z" />
+    
+    <!-- Title: Total Balance -->
+    <path
+        android:fillColor="#FFB0B8B4"
+        android:pathData="M16,20 L80,20 L80,28 L16,28 Z" />
+    
+    <!-- Balance Amount -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M16,40 L120,40 L120,56 L16,56 Z" />
+    
+    <!-- Income Indicator -->
+    <path
+        android:fillColor="#FF4CAF50"
+        android:pathData="M16,72 L60,72 L60,80 L16,80 Z" />
+    
+    <!-- Expense Indicator -->
+    <path
+        android:fillColor="#FFFF5252"
+        android:pathData="M80,72 L124,72 L124,80 L80,80 Z" />
+    
+</vector>

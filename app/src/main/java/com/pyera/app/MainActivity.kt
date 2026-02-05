@@ -26,12 +26,14 @@ import androidx.navigation.compose.rememberNavController
 import com.pyera.app.data.biometric.BiometricAuthManager
 import com.pyera.app.data.local.LocalDataSeeder
 import com.pyera.app.data.repository.AuthRepository
+import com.pyera.app.data.security.AppLockManager
 import com.pyera.app.ui.auth.AuthState
 import com.pyera.app.ui.auth.LoginScreen
 import com.pyera.app.ui.auth.RegisterScreen
 import com.pyera.app.ui.main.MainScreen
 import com.pyera.app.ui.navigation.Screen
 import com.pyera.app.ui.onboarding.OnboardingScreen
+import com.pyera.app.ui.security.AppLockScreen
 import com.pyera.app.ui.theme.PyeraTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -51,6 +53,9 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var authRepository: AuthRepository
     
+    @Inject
+    lateinit var appLockManager: AppLockManager
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
 
@@ -64,6 +69,9 @@ class MainActivity : ComponentActivity() {
 
         // Initialize Google Auth Client
         googleAuthHelper.initialize(this)
+        
+        // Register AppLockManager as lifecycle observer
+        lifecycle.addObserver(appLockManager)
 
         setContent {
             PyeraTheme {
@@ -76,6 +84,7 @@ class MainActivity : ComponentActivity() {
                         googleAuthHelper = googleAuthHelper,
                         biometricAuthManager = biometricAuthManager,
                         authRepository = authRepository,
+                        appLockManager = appLockManager,
                         activity = this
                     )
                 }
@@ -108,6 +117,7 @@ fun PyeraAppNavigation(
     googleAuthHelper: com.pyera.app.data.repository.GoogleAuthHelper,
     biometricAuthManager: BiometricAuthManager,
     authRepository: AuthRepository,
+    appLockManager: AppLockManager,
     activity: ComponentActivity
 ) {
     val navController = rememberNavController()
@@ -122,76 +132,86 @@ fun PyeraAppNavigation(
         else -> Screen.Login.route
     }
     
-    NavHost(
-        navController = navController, 
-        startDestination = startDestination
-    ) {
-        // Onboarding
-        composable(Screen.Onboarding.route) {
-            OnboardingScreen(
-                onOnboardingComplete = {
-                    dataSeeder.markOnboardingCompleted()
-                    navController.navigate(Screen.Login.route) {
-                        popUpTo(Screen.Onboarding.route) { inclusive = true }
+    // Observe lock state
+    val isLocked by appLockManager.isLocked.collectAsState()
+    
+    // Show lock screen if locked
+    if (isLocked) {
+        AppLockScreen(
+            onUnlockSuccess = { appLockManager.unlock() }
+        )
+    } else {
+        NavHost(
+            navController = navController, 
+            startDestination = startDestination
+        ) {
+            // Onboarding
+            composable(Screen.Onboarding.route) {
+                OnboardingScreen(
+                    onOnboardingComplete = {
+                        dataSeeder.markOnboardingCompleted()
+                        navController.navigate(Screen.Login.route) {
+                            popUpTo(Screen.Onboarding.route) { inclusive = true }
+                        }
+                    },
+                    onSkip = {
+                        dataSeeder.markOnboardingCompleted()
+                        navController.navigate(Screen.Login.route) {
+                            popUpTo(Screen.Onboarding.route) { inclusive = true }
+                        }
                     }
-                },
-                onSkip = {
-                    dataSeeder.markOnboardingCompleted()
-                    navController.navigate(Screen.Login.route) {
-                        popUpTo(Screen.Onboarding.route) { inclusive = true }
-                    }
-                }
-            )
-        }
-        
-        // Auth
-        composable(Screen.Login.route) {
-            val loginViewModel = hiltViewModel<com.pyera.app.ui.auth.AuthViewModel>()
-            val loginState by loginViewModel.uiState.collectAsState()
-            
-            // Seed data when login is successful
-            LaunchedEffect(loginState.authState) {
-                if (loginState.authState is AuthState.Success) {
-                    dataSeeder.seedInitialData()
-                }
+                )
             }
             
-            LoginScreen(
-                onLoginSuccess = { 
-                    navController.navigate(Screen.Main.Dashboard.route) { 
-                        popUpTo(Screen.Login.route) { inclusive = true } 
-                    } 
-                },
-                onNavigateToRegister = { navController.navigate(Screen.Register.route) },
-                googleAuthHelper = googleAuthHelper,
-                biometricAuthManager = biometricAuthManager
-            )
-        }
-        
-        composable(Screen.Register.route) {
-            val registerViewModel = hiltViewModel<com.pyera.app.ui.auth.AuthViewModel>()
-            val registerState by registerViewModel.uiState.collectAsState()
-            
-            // Seed data when registration is successful
-            LaunchedEffect(registerState.authState) {
-                if (registerState.authState is AuthState.Success) {
-                    dataSeeder.seedInitialData()
+            // Auth
+            composable(Screen.Login.route) {
+                val loginViewModel = hiltViewModel<com.pyera.app.ui.auth.AuthViewModel>()
+                val loginState by loginViewModel.uiState.collectAsState()
+                
+                // Seed data when login is successful
+                LaunchedEffect(loginState.authState) {
+                    if (loginState.authState is AuthState.Success) {
+                        dataSeeder.seedInitialData()
+                    }
                 }
+                
+                LoginScreen(
+                    onLoginSuccess = { 
+                        navController.navigate(Screen.Main.Dashboard.route) { 
+                            popUpTo(Screen.Login.route) { inclusive = true } 
+                        } 
+                    },
+                    onNavigateToRegister = { navController.navigate(Screen.Register.route) },
+                    googleAuthHelper = googleAuthHelper,
+                    biometricAuthManager = biometricAuthManager
+                )
             }
             
-            RegisterScreen(
-                onRegisterSuccess = { 
-                    navController.navigate(Screen.Main.Dashboard.route) { 
-                        popUpTo(Screen.Register.route) { inclusive = true } 
-                    } 
-                },
-                onNavigateToLogin = { navController.popBackStack() }
-            )
-        }
-        
-        // Main App
-        composable(Screen.Main.Dashboard.route) {
-            MainScreen()
+            composable(Screen.Register.route) {
+                val registerViewModel = hiltViewModel<com.pyera.app.ui.auth.AuthViewModel>()
+                val registerState by registerViewModel.uiState.collectAsState()
+                
+                // Seed data when registration is successful
+                LaunchedEffect(registerState.authState) {
+                    if (registerState.authState is AuthState.Success) {
+                        dataSeeder.seedInitialData()
+                    }
+                }
+                
+                RegisterScreen(
+                    onRegisterSuccess = { 
+                        navController.navigate(Screen.Main.Dashboard.route) { 
+                            popUpTo(Screen.Register.route) { inclusive = true } 
+                        } 
+                    },
+                    onNavigateToLogin = { navController.popBackStack() }
+                )
+            }
+            
+            // Main App
+            composable(Screen.Main.Dashboard.route) {
+                MainScreen()
+            }
         }
     }
 }

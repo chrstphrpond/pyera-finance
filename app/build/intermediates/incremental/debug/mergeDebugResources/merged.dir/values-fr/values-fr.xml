@@ -82,6 +82,8 @@
     <string msgid="3791785319221634505" name="generic_error_no_device_credential">"Aucun code, schéma ni mot de passe n\'est défini."</string>
     <string msgid="1807436368654974044" name="generic_error_no_keyguard">"Cet appareil n\'est pas compatible avec les codes, schémas ni mots de passe."</string>
     <string msgid="7309881387583143581" name="generic_error_user_canceled">"Authentification annulée par l\'utilisateur."</string>
+    <string msgid="2863935784364843033" name="glance_error_layout_text">"Vous pouvez utiliser "<b><tt>"adb logcat"</tt></b>" pour connaître l\'erreur exacte lorsque vous recherchez "<b><tt>"GlanceAppWidget"</tt></b></string>
+    <string msgid="3631961919234443531" name="glance_error_layout_title"><b>"Erreur du widget de l\'appli Aperçu"</b></string>
     <string msgid="6827826412747255547" name="in_progress">"En cours"</string>
     <string msgid="7933458017204019916" name="indeterminate">"Partiellement coché"</string>
     <string msgid="2988463736136100848" name="m3c_bottom_sheet_collapse_description">"Réduire la bottom sheet"</string>

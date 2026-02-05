@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.pyera.app-mergeDebugResources-84:/values-v21/values-v21.xml",
+            "outputFile": "com.pyera.app-mergeDebugResources-90:/values-v21/values-v21.xml",
             "map": [
                 {
                     "source": "C:\\Users\\crit\\.gradle\\caches\\8.13\\transforms\\05202ac73d1c2cbbb965da0898691c51\\transformed\\core-1.13.1\\res\\values-v21\\values-v21.xml",

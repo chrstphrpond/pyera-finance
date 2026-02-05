@@ -16,10 +16,10 @@ interface TransactionDao {
     fun getTransactionsByDateRange(start: Long, end: Long): Flow<List<TransactionEntity>>
 
     @Query("SELECT * FROM transactions WHERE id = :id")
-    suspend fun getTransactionById(id: Int): TransactionEntity?
+    suspend fun getTransactionById(id: Long): TransactionEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertTransaction(transaction: TransactionEntity)
+    suspend fun insertTransaction(transaction: TransactionEntity): Long
 
     @Update
     suspend fun updateTransaction(transaction: TransactionEntity)
@@ -40,6 +40,64 @@ interface TransactionDao {
         startDate: Long,
         endDate: Long
     ): Flow<List<TransactionEntity>>
+    
+    // ==================== Account-related Queries ====================
+    
+    /**
+     * Get all transactions for a specific account
+     */
+    @Query("SELECT * FROM transactions WHERE accountId = :accountId ORDER BY date DESC")
+    fun getTransactionsByAccount(accountId: Long): Flow<List<TransactionEntity>>
+    
+    /**
+     * Get recent transactions for a specific account (limited)
+     */
+    @Query("SELECT * FROM transactions WHERE accountId = :accountId ORDER BY date DESC LIMIT :limit")
+    suspend fun getRecentTransactionsByAccount(accountId: Long, limit: Int): List<TransactionEntity>
+    
+    /**
+     * Get sum of income for an account
+     */
+    @Query("SELECT SUM(amount) FROM transactions WHERE accountId = :accountId AND type = 'INCOME'")
+    suspend fun getAccountIncomeSum(accountId: Long): Double?
+    
+    /**
+     * Get sum of expenses for an account
+     */
+    @Query("SELECT SUM(amount) FROM transactions WHERE accountId = :accountId AND type = 'EXPENSE'")
+    suspend fun getAccountExpenseSum(accountId: Long): Double?
+    
+    /**
+     * Get sum of outgoing transfers for an account
+     */
+    @Query("SELECT SUM(amount) FROM transactions WHERE accountId = :accountId AND isTransfer = 1")
+    suspend fun getAccountTransferOutSum(accountId: Long): Double?
+    
+    /**
+     * Get sum of incoming transfers for an account
+     */
+    @Query("SELECT SUM(amount) FROM transactions WHERE transferAccountId = :accountId AND isTransfer = 1")
+    suspend fun getAccountTransferInSum(accountId: Long): Double?
+    
+    /**
+     * Count transactions for an account
+     */
+    @Query("SELECT COUNT(*) FROM transactions WHERE accountId = :accountId")
+    suspend fun getTransactionCountByAccount(accountId: Long): Int
+    
+    // ==================== Transfer Queries ====================
+    
+    /**
+     * Get all transfer transactions
+     */
+    @Query("SELECT * FROM transactions WHERE isTransfer = 1 ORDER BY date DESC")
+    fun getTransferTransactions(): Flow<List<TransactionEntity>>
+    
+    /**
+     * Get transfers between two accounts
+     */
+    @Query("SELECT * FROM transactions WHERE isTransfer = 1 AND ((accountId = :fromAccount AND transferAccountId = :toAccount) OR (accountId = :toAccount AND transferAccountId = :fromAccount)) ORDER BY date DESC")
+    fun getTransfersBetweenAccounts(fromAccount: Long, toAccount: Long): Flow<List<TransactionEntity>>
     
     // ==================== Paginated Queries ====================
     
@@ -87,6 +145,15 @@ interface TransactionDao {
      */
     @Query("SELECT * FROM transactions WHERE categoryId = :categoryId ORDER BY date DESC LIMIT :limit OFFSET :offset")
     suspend fun getTransactionsPagedByCategory(categoryId: Int, limit: Int, offset: Int): List<TransactionEntity>
+    
+    /**
+     * Get paginated transactions by account
+     * @param accountId Account ID
+     * @param limit Number of items to fetch
+     * @param offset Number of items to skip
+     */
+    @Query("SELECT * FROM transactions WHERE accountId = :accountId ORDER BY date DESC LIMIT :limit OFFSET :offset")
+    suspend fun getTransactionsPagedByAccount(accountId: Long, limit: Int, offset: Int): List<TransactionEntity>
     
     // ==================== Count Queries for Pagination ====================
     

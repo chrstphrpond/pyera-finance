@@ -82,6 +82,8 @@
     <string msgid="3791785319221634505" name="generic_error_no_device_credential">"کوئی پن، پیٹرن، یا پاس ورڈ سیٹ نہیں ہے۔"</string>
     <string msgid="1807436368654974044" name="generic_error_no_keyguard">"‏یہ آلہ PIN، پیٹرن یا پاس ورڈ کو سپورٹ نہیں کرتا ہے۔"</string>
     <string msgid="7309881387583143581" name="generic_error_user_canceled">"صارف نے تصدیق کو منسوخ کر دیا۔"</string>
+    <string msgid="2863935784364843033" name="glance_error_layout_text">"‏"<b><tt>"GlanceAppWidget"</tt></b>" کو تلاش کرتے ہوئے "<b><tt>"adb logcat"</tt></b>" کا استعمال کر کے اصل خرابی کو چیک کریں"</string>
+    <string msgid="3631961919234443531" name="glance_error_layout_title">"‏"<b>"Glance App Widget کی خرابی"</b></string>
     <string msgid="6827826412747255547" name="in_progress">"پیشرفت میں"</string>
     <string msgid="7933458017204019916" name="indeterminate">"جزوی طور پر چیک کردہ"</string>
     <string msgid="2988463736136100848" name="m3c_bottom_sheet_collapse_description">"نیچے کی شیٹ کو سکیڑیں"</string>

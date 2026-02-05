@@ -82,6 +82,8 @@
     <string msgid="3791785319221634505" name="generic_error_no_device_credential">"未设置 PIN 码、解锁图案或密码。"</string>
     <string msgid="1807436368654974044" name="generic_error_no_keyguard">"此设备不支持 PIN 码、解锁图案或密码。"</string>
     <string msgid="7309881387583143581" name="generic_error_user_canceled">"用户已取消身份验证。"</string>
+    <string msgid="2863935784364843033" name="glance_error_layout_text">"运行 "<b><tt>"adb logcat"</tt></b>" 后搜索 "<b><tt>"GlanceAppWidget"</tt></b>" 可查看确切错误"</string>
+    <string msgid="3631961919234443531" name="glance_error_layout_title"><b>"Glance 应用微件错误"</b></string>
     <string msgid="6827826412747255547" name="in_progress">"进行中"</string>
     <string msgid="7933458017204019916" name="indeterminate">"部分选中"</string>
     <string msgid="2988463736136100848" name="m3c_bottom_sheet_collapse_description">"收起底部动作条"</string>

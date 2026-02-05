@@ -82,6 +82,8 @@
     <string msgid="3791785319221634505" name="generic_error_no_device_credential">"পিন, প্যাটার্ন অথবা পাসওয়ার্ড সেট করা নেই।"</string>
     <string msgid="1807436368654974044" name="generic_error_no_keyguard">"এই ডিভাইসে পিন, প্যাটার্ন বা পাসওয়ার্ড ব্যবহার করা যাবে না।"</string>
     <string msgid="7309881387583143581" name="generic_error_user_canceled">"যাচাইকরণ প্রক্রিয়াটি ব্যবহারকারী বাতিল করেছেন।"</string>
+    <string msgid="2863935784364843033" name="glance_error_layout_text">"আসল সমস্যাটি কী তা "<b><tt>"adb logcat"</tt></b>"-এর সাহায্যে চেক করুন, "<b><tt>"GlanceAppWidget"</tt></b>"-এর জন্য সার্চ করা হচ্ছে"</string>
+    <string msgid="3631961919234443531" name="glance_error_layout_title"><b>"Glance App উইজেট সংক্রান্ত সমস্যা"</b></string>
     <string msgid="6827826412747255547" name="in_progress">"কাজ চলছে"</string>
     <string msgid="7933458017204019916" name="indeterminate">"কয়েকটি বিকল্প বেছে নেওয়া হয়েছে"</string>
     <string msgid="2988463736136100848" name="m3c_bottom_sheet_collapse_description">"স্ক্রিনের নিচে অ্যাটাচ করা শিট আড়াল করুন"</string>

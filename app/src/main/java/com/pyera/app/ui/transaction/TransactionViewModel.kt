@@ -4,8 +4,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pyera.app.data.local.entity.AccountEntity
 import com.pyera.app.data.local.entity.CategoryEntity
 import com.pyera.app.data.local.entity.TransactionEntity
+import com.pyera.app.data.repository.AccountRepository
+import com.pyera.app.data.repository.AuthRepository
 import com.pyera.app.data.repository.CategoryRepository
 import com.pyera.app.data.repository.TransactionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -31,9 +34,14 @@ import java.util.Calendar
 class TransactionViewModel @Inject constructor(
     private val transactionRepository: TransactionRepository,
     private val categoryRepository: CategoryRepository,
+    private val accountRepository: AccountRepository,
+    private val authRepository: AuthRepository,
     private val ocrRepository: OcrRepository,
     private val smartCategorizer: SmartCategorizer
 ) : ViewModel() {
+    
+    private val currentUserId: String
+        get() = authRepository.currentUser?.uid ?: ""
 
     private val _state = MutableStateFlow(TransactionState())
     val state: StateFlow<TransactionState> = _state.asStateFlow()
@@ -66,6 +74,19 @@ class TransactionViewModel @Inject constructor(
                 .collect { categories ->
                     if (categories.isNotEmpty()) {
                         _state.update { it.copy(categories = categories) }
+                    }
+                }
+        }
+        
+        viewModelScope.launch {
+            accountRepository.getActiveAccounts()
+                .distinctUntilChanged()
+                .collect { accounts ->
+                    _state.update { 
+                        it.copy(
+                            accounts = accounts,
+                            defaultAccount = accounts.find { acc -> acc.isDefault } ?: accounts.firstOrNull()
+                        )
                     }
                 }
         }

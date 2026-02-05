@@ -82,6 +82,8 @@
     <string msgid="3791785319221634505" name="generic_error_no_device_credential">"គ្មាន​ការកំណត់​កូដ PIN លំនាំ ឬពាក្យសម្ងាត់​ទេ។"</string>
     <string msgid="1807436368654974044" name="generic_error_no_keyguard">"ឧបករណ៍នេះ​មិនអាចប្រើកូដ PIN លំនាំ ឬពាក្យ​សម្ងាត់បានទេ។"</string>
     <string msgid="7309881387583143581" name="generic_error_user_canceled">"អ្នកប្រើប្រាស់​បានបោះបង់​ការផ្ទៀងផ្ទាត់ហើយ។"</string>
+    <string msgid="2863935784364843033" name="glance_error_layout_text">"ពិនិត្យមើល​បញ្ហាជាក់លាក់​ដោយប្រើ "<b><tt>"adb logcat"</tt></b>", កំពុង​ស្វែងរក "<b><tt>"GlanceAppWidget"</tt></b></string>
+    <string msgid="3631961919234443531" name="glance_error_layout_title"><b>"បញ្ហា​ពាក់ព័ន្ធនឹង​ធាតុក្រាហ្វិក​កម្មវិធី​មើលមួយភ្លែត"</b></string>
     <string msgid="6827826412747255547" name="in_progress">"កំពុងដំណើរការ"</string>
     <string msgid="7933458017204019916" name="indeterminate">"បានធីកខ្លះ"</string>
     <string msgid="2988463736136100848" name="m3c_bottom_sheet_collapse_description">"បង្រួម​សន្លឹកខាងក្រោម"</string>

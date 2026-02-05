@@ -82,6 +82,8 @@
     <string msgid="3791785319221634505" name="generic_error_no_device_credential">"ပင်နံပါတ်၊ လော့ခ်ပုံစံ သို့မဟုတ် စကားဝှက် သတ်မှတ်မထားပါ။"</string>
     <string msgid="1807436368654974044" name="generic_error_no_keyguard">"ဤစက်သည် ပင်နံပါတ်၊ ပုံစံ သို့မဟုတ် စကားဝှက်ကို မပံ့ပိုးပါ။"</string>
     <string msgid="7309881387583143581" name="generic_error_user_canceled">"အသုံးပြုသူက အထောက်အထားစိစစ်ခြင်းကို ပယ်ဖျက်ထားသည်။"</string>
+    <string msgid="2863935784364843033" name="glance_error_layout_text"><b><tt>"GlanceAppWidget"</tt></b>" ရှာဖွေရာတွင် "<b><tt>"adb logcat"</tt></b>" သုံးပြီး အမှားအတိအကျကို ရှာနိုင်သည်"</string>
+    <string msgid="3631961919234443531" name="glance_error_layout_title"><b>"Glance အက်ပ်ဝိဂျက်အမှား"</b></string>
     <string msgid="6827826412747255547" name="in_progress">"ဆောင်ရွက်နေဆဲ"</string>
     <string msgid="7933458017204019916" name="indeterminate">"တစ်ဝက်တစ်ပျက် စစ်ဆေးထားသည်"</string>
     <string msgid="2988463736136100848" name="m3c_bottom_sheet_collapse_description">"အောက်ခြေအပိုဆောင်း စာမျက်နှာကို ချုံ့သည်"</string>

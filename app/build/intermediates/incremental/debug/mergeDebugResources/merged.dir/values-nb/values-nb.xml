@@ -82,6 +82,8 @@
     <string msgid="3791785319221634505" name="generic_error_no_device_credential">"PIN-kode, mønster eller passord er ikke angitt."</string>
     <string msgid="1807436368654974044" name="generic_error_no_keyguard">"Denne enheten støtter ikke PIN-kode, mønster eller passord."</string>
     <string msgid="7309881387583143581" name="generic_error_user_canceled">"Autentiseringen ble avbrutt av brukeren."</string>
+    <string msgid="2863935784364843033" name="glance_error_layout_text">"Sjekk den nøyaktige feilen ved å bruke "<b><tt>"adb logcat"</tt></b>" og søke etter "<b><tt>"GlanceAppWidget"</tt></b></string>
+    <string msgid="3631961919234443531" name="glance_error_layout_title"><b>"Modulfeil med Kort fortalt-appen"</b></string>
     <string msgid="6827826412747255547" name="in_progress">"Pågår"</string>
     <string msgid="7933458017204019916" name="indeterminate">"Delvis avmerket"</string>
     <string msgid="2988463736136100848" name="m3c_bottom_sheet_collapse_description">"Skjul feltet nederst"</string>

@@ -23,6 +23,7 @@ sealed class Screen(val route: String) {
         object Profile : Main("main/profile")
         object Analysis : Main("main/analysis") // Keep for navigation but not in bottom bar
         object Debt : Main("main/debt") // Keep for navigation but move to tab
+        object Insights : Main("main/insights") // Smart spending insights
     }
     
     object AddTransaction : Screen("transaction/add")
@@ -39,11 +40,41 @@ sealed class Screen(val route: String) {
         fun createRoute(budgetId: Int) = "budget/edit/$budgetId"
     }
     
+    // Account screens
+    object Accounts : Screen("accounts/list")
+    object AddAccount : Screen("accounts/add")
+    object EditAccount : Screen("accounts/edit/{accountId}") {
+        fun createRoute(accountId: Long) = "accounts/edit/$accountId"
+    }
+    object AccountDetail : Screen("accounts/detail/{accountId}") {
+        fun createRoute(accountId: Long) = "accounts/detail/$accountId"
+    }
+    object Transfer : Screen("accounts/transfer") {
+        fun createRoute(fromAccountId: Long? = null) = 
+            if (fromAccountId != null) "accounts/transfer?from=$fromAccountId" 
+            else "accounts/transfer"
+    }
+    
     // Other screens
     object Bills : Screen("bills")
     object Investments : Screen("investments")
     object Chat : Screen("chat")
     object Settings : Screen("settings")
+    
+    // Security screens
+    object SecuritySettings : Screen("security/settings")
+    object SetPin : Screen("security/setup")
+    object ChangePin : Screen("security/change-pin")
+    object AppLock : Screen("security/lock")
+    
+    // Recurring Transaction screens
+    object Recurring {
+        object List : Screen("recurring/list")
+        object Add : Screen("recurring/add")
+        object Edit : Screen("recurring/edit/{id}") {
+            fun createRoute(id: Long) = "recurring/edit/$id"
+        }
+    }
 }
 
 // Bottom Navigation - 5 Items Maximum

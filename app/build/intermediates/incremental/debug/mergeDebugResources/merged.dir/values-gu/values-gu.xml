@@ -82,6 +82,8 @@
     <string msgid="3791785319221634505" name="generic_error_no_device_credential">"કોઈ પિન, પૅટર્ન અથવા પાસવર્ડ સેટ કરેલો નથી."</string>
     <string msgid="1807436368654974044" name="generic_error_no_keyguard">"આ ડિવાઇસ પિન, પૅટર્ન અથવા પાસવર્ડને સપોર્ટ કરતું નથી."</string>
     <string msgid="7309881387583143581" name="generic_error_user_canceled">"વપરાશકર્તાએ પ્રમાણીકરણ રદ કર્યું."</string>
+    <string msgid="2863935784364843033" name="glance_error_layout_text"><b><tt>"adb logcat"</tt></b>"નો ઉપયોગ કરીને, "<b><tt>"GlanceAppWidget"</tt></b>" શોધીને ચોક્કસ ભૂલ ચેક કરો"</string>
+    <string msgid="3631961919234443531" name="glance_error_layout_title"><b>"Glance ઍપ વિજેટમાં ભૂલ"</b></string>
     <string msgid="6827826412747255547" name="in_progress">"પ્રક્રિયામાં છે"</string>
     <string msgid="7933458017204019916" name="indeterminate">"આંશિક રીતે ચેક કરેલા વિકલ્પો"</string>
     <string msgid="2988463736136100848" name="m3c_bottom_sheet_collapse_description">"બોટમ શીટ નાની કરો"</string>

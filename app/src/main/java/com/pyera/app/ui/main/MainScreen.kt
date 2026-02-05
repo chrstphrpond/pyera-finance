@@ -25,6 +25,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.pyera.app.ui.dashboard.DashboardScreen
+import com.pyera.app.ui.recurring.AddRecurringTransactionScreen
+import com.pyera.app.ui.recurring.EditRecurringTransactionScreen
+import com.pyera.app.ui.recurring.RecurringTransactionsScreen
 import com.pyera.app.ui.transaction.AddTransactionScreen
 import com.pyera.app.ui.transaction.TransactionListScreen
 import com.pyera.app.ui.debt.DebtScreen
@@ -34,6 +37,11 @@ import com.pyera.app.ui.investments.InvestmentsScreen
 import com.pyera.app.ui.chat.ChatScreen
 import com.pyera.app.ui.profile.ProfileScreen
 import com.pyera.app.ui.analysis.AnalysisScreen
+import com.pyera.app.ui.insights.InsightsScreen
+import com.pyera.app.ui.security.AppLockScreen
+import com.pyera.app.ui.security.ChangePinScreen
+import com.pyera.app.ui.security.SecuritySettingsScreen
+import com.pyera.app.ui.security.SetPinScreen
 import com.pyera.app.ui.budget.BudgetDetailScreen
 import com.pyera.app.ui.budget.BudgetListScreen
 import com.pyera.app.ui.budget.BudgetViewModel
@@ -82,6 +90,9 @@ fun MainScreen() {
                         },
                         onInvestmentsClick = {
                             bottomNavController.navigate(Screen.Investments.route)
+                        },
+                        onInsightsClick = {
+                            bottomNavController.navigate(Screen.Main.Insights.route)
                         }
                     )
                 }
@@ -104,6 +115,25 @@ fun MainScreen() {
                     exitTransition = { scaleOut() + fadeOut() }
                 ) {
                     AnalysisScreen()
+                }
+
+                // Insights (Smart Spending Insights)
+                composable(
+                    route = Screen.Main.Insights.route,
+                    enterTransition = { scaleIn() + fadeIn() },
+                    exitTransition = { scaleOut() + fadeOut() }
+                ) {
+                    InsightsScreen(
+                        onNavigateToBudget = {
+                            bottomNavController.navigate(Screen.Main.Budget.route)
+                        },
+                        onNavigateToTransactions = {
+                            bottomNavController.navigate(Screen.Main.Transactions.route)
+                        },
+                        onNavigateToSavings = {
+                            bottomNavController.navigate(Screen.Main.Savings.route)
+                        }
+                    )
                 }
 
                 // Budget List Screen
@@ -256,6 +286,94 @@ fun MainScreen() {
                     exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }) + fadeOut() }
                 ) {
                     AddTransactionScreen(navController = bottomNavController)
+                }
+                
+                // Security Settings
+                composable(
+                    route = Screen.SecuritySettings.route,
+                    enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }) + fadeIn() },
+                    exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }) + fadeOut() },
+                    popEnterTransition = { slideInHorizontally(initialOffsetX = { -1000 }) + fadeIn() },
+                    popExitTransition = { slideOutHorizontally(targetOffsetX = { 1000 }) + fadeOut() }
+                ) {
+                    SecuritySettingsScreen(
+                        onNavigateBack = { bottomNavController.popBackStack() },
+                        onNavigateToSetPin = { bottomNavController.navigate(Screen.SetPin.route) },
+                        onNavigateToChangePin = { bottomNavController.navigate(Screen.ChangePin.route) }
+                    )
+                }
+                
+                // Set PIN Screen
+                composable(
+                    route = Screen.SetPin.route,
+                    enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }) + fadeIn() },
+                    exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }) + fadeOut() },
+                    popEnterTransition = { slideInHorizontally(initialOffsetX = { -1000 }) + fadeIn() },
+                    popExitTransition = { slideOutHorizontally(targetOffsetX = { 1000 }) + fadeOut() }
+                ) {
+                    SetPinScreen(
+                        onPinSet = { bottomNavController.popBackStack() },
+                        onCancel = { bottomNavController.popBackStack() }
+                    )
+                }
+                
+                // Change PIN Screen
+                composable(
+                    route = Screen.ChangePin.route,
+                    enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }) + fadeIn() },
+                    exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }) + fadeOut() },
+                    popEnterTransition = { slideInHorizontally(initialOffsetX = { -1000 }) + fadeIn() },
+                    popExitTransition = { slideOutHorizontally(targetOffsetX = { 1000 }) + fadeOut() }
+                ) {
+                    ChangePinScreen(
+                        onPinChanged = { bottomNavController.popBackStack() },
+                        onCancel = { bottomNavController.popBackStack() }
+                    )
+                }
+                
+                // App Lock Screen (shown when app is locked)
+                composable(
+                    route = Screen.AppLock.route,
+                    enterTransition = { fadeIn(animationSpec = tween(300)) },
+                    exitTransition = { fadeOut(animationSpec = tween(300)) }
+                ) {
+                    AppLockScreen(
+                        onUnlockSuccess = { bottomNavController.popBackStack() }
+                    )
+                }
+
+                // Recurring Transactions - List
+                composable(
+                    route = Screen.Recurring.List.route,
+                    enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }) + fadeIn() },
+                    exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }) + fadeOut() }
+                ) {
+                    RecurringTransactionsScreen(navController = bottomNavController)
+                }
+
+                // Recurring Transactions - Add
+                composable(
+                    route = Screen.Recurring.Add.route,
+                    enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }) + fadeIn() },
+                    exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }) + fadeOut() }
+                ) {
+                    AddRecurringTransactionScreen(navController = bottomNavController)
+                }
+
+                // Recurring Transactions - Edit
+                composable(
+                    route = Screen.Recurring.Edit.route,
+                    arguments = listOf(
+                        navArgument("id") { type = NavType.LongType }
+                    ),
+                    enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }) + fadeIn() },
+                    exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }) + fadeOut() }
+                ) { backStackEntry ->
+                    val recurringId = backStackEntry.arguments?.getLong("id") ?: 0L
+                    EditRecurringTransactionScreen(
+                        navController = bottomNavController,
+                        recurringId = recurringId
+                    )
                 }
             }
         }

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Preview image for the Transactions Widget (4x2)
+    Shown in the widget picker
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="320dp"
+    android:height="220dp"
+    android:viewportWidth="320"
+    android:viewportHeight="220">
+    
+    <!-- Background -->
+    <path
+        android:fillColor="#FF1A1F1D"
+        android:pathData="M8,0 L312,0 C316.4,0 320,3.6 320,8 L320,212 C320,216.4 316.4,220 312,220 L8,220 C3.6,220 0,216.4 0,212 L0,8 C0,3.6 3.6,0 8,0 Z" />
+    
+    <!-- Balance Label -->
+    <path
+        android:fillColor="#FFB0B8B4"
+        android:pathData="M16,16 L80,16 L80,24 L16,24 Z" />
+    
+    <!-- Balance Amount -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M16,32 L120,32 L120,48 L16,48 Z" />
+    
+    <!-- Income Summary -->
+    <path
+        android:fillColor="#FF4CAF50"
+        android:pathData="M200,32 L260,32 L260,40 L200,40 Z" />
+    
+    <!-- Expense Summary -->
+    <path
+        android:fillColor="#FFFF5252"
+        android:pathData="M270,32 L304,32 L304,40 L270,40 Z" />
+    
+    <!-- Divider Line -->
+    <path
+        android:fillColor="#FF3A433F"
+        android:pathData="M16,60 L304,60 L304,62 L16,62 Z" />
+    
+    <!-- Transaction Item 1 -->
+    <path
+        android:fillColor="#FF242927"
+        android:pathData="M16,72 L48,72 C52,72 54,74 54,78 L54,94 C54,98 52,100 48,100 L16,100 C12,100 10,98 10,94 L10,78 C10,74 12,72 16,72 Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M64,80 L160,80 L160,88 L64,88 Z" />
+    <path
+        android:fillColor="#FFB0B8B4"
+        android:pathData="M64,92 L120,92 L120,98 L64,98 Z" />
+    <path
+        android:fillColor="#FF4CAF50"
+        android:pathData="M260,84 L304,84 L304,92 L260,92 Z" />
+    
+    <!-- Transaction Item 2 -->
+    <path
+        android:fillColor="#FF242927"
+        android:pathData="M16,108 L48,108 C52,108 54,110 54,114 L54,130 C54,134 52,136 48,136 L16,136 C12,136 10,134 10,130 L10,114 C10,110 12,108 16,108 Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M64,116 L160,116 L160,124 L64,124 Z" />
+    <path
+        android:fillColor="#FFB0B8B4"
+        android:pathData="M64,128 L120,128 L120,134 L64,134 Z" />
+    <path
+        android:fillColor="#FFFF5252"
+        android:pathData="M260,120 L304,120 L304,128 L260,128 Z" />
+    
+    <!-- Transaction Item 3 -->
+    <path
+        android:fillColor="#FF242927"
+        android:pathData="M16,144 L48,144 C52,144 54,146 54,150 L54,166 C54,170 52,172 48,172 L16,172 C12,172 10,170 10,166 L10,150 C10,146 12,144 16,144 Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M64,152 L160,152 L160,160 L64,160 Z" />
+    <path
+        android:fillColor="#FFB0B8B4"
+        android:pathData="M64,164 L120,164 L120,170 L64,170 Z" />
+    <path
+        android:fillColor="#FFFF5252"
+        android:pathData="M260,156 L304,156 L304,164 L260,164 Z" />
+    
+    <!-- Transaction Item 4 -->
+    <path
+        android:fillColor="#FF242927"
+        android:pathData="M16,180 L48,180 C52,180 54,182 54,186 L54,202 C54,206 52,208 48,208 L16,208 C12,208 10,206 10,202 L10,186 C10,182 12,180 16,180 Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M64,188 L160,188 L160,196 L64,196 Z" />
+    <path
+        android:fillColor="#FFB0B8B4"
+        android:pathData="M64,200 L120,200 L120,206 L64,206 Z" />
+    <path
+        android:fillColor="#FF4CAF50"
+        android:pathData="M260,192 L304,192 L304,200 L260,200 Z" />
+    
+</vector>

@@ -82,6 +82,8 @@
     <string msgid="3791785319221634505" name="generic_error_no_device_credential">"कुनै पनि PIN, ढाँचा वा पासवर्ड सेट गरिएको छैन।"</string>
     <string msgid="1807436368654974044" name="generic_error_no_keyguard">"यस डिभाइसमा PIN, ढाँचा वा पासवर्ड प्रयोग गर्न मिल्दैन।"</string>
     <string msgid="7309881387583143581" name="generic_error_user_canceled">"प्रयोगकर्ताले प्रमाणीकरण सेवा रद्द गर्नुभयो।"</string>
+    <string msgid="2863935784364843033" name="glance_error_layout_text"><b><tt>"adb logcat"</tt></b>" प्रयोग गरी "<b><tt>"GlanceAppWidget"</tt></b>" खोजेर यथार्थ त्रुटि पत्ता लगाउनुहोस्"</string>
+    <string msgid="3631961919234443531" name="glance_error_layout_title"><b>"Glance एपको विजेटसम्बन्धी त्रुटि"</b></string>
     <string msgid="6827826412747255547" name="in_progress">"काम हुँदै छ"</string>
     <string msgid="7933458017204019916" name="indeterminate">"आंशिक रूपमा जाँच गरिएको"</string>
     <string msgid="2988463736136100848" name="m3c_bottom_sheet_collapse_description">"पुछारको पाना कोल्याप्स गर्नुहोस्"</string>

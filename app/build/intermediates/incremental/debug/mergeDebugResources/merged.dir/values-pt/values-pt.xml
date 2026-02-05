@@ -64,6 +64,8 @@
     <string msgid="3791785319221634505" name="generic_error_no_device_credential">"Nenhum PIN, padrão ou senha configurado."</string>
     <string msgid="1807436368654974044" name="generic_error_no_keyguard">"Este dispositivo não é compatível com PIN, padrão ou senha."</string>
     <string msgid="7309881387583143581" name="generic_error_user_canceled">"Autenticação cancelada pelo usuário."</string>
+    <string msgid="2863935784364843033" name="glance_error_layout_text">"Pesquise "<b><tt>"GlanceAppWidget"</tt></b>" no "<b><tt>"adb logcat"</tt></b>" para consultar o erro exato"</string>
+    <string msgid="3631961919234443531" name="glance_error_layout_title"><b>"Erro no widget do app Glance"</b></string>
     <string msgid="6827826412747255547" name="in_progress">"Em andamento"</string>
     <string msgid="7933458017204019916" name="indeterminate">"Parcialmente selecionada"</string>
     <string msgid="2988463736136100848" name="m3c_bottom_sheet_collapse_description">"Fechar página inferior"</string>

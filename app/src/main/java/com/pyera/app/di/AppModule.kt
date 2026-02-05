@@ -3,7 +3,10 @@ package com.pyera.app.di
 import android.content.Context
 import com.pyera.app.data.biometric.BiometricAuthManager
 import com.pyera.app.domain.ocr.ReceiptParser
+import com.pyera.app.data.security.AppLockManager
+import com.pyera.app.data.security.BiometricHelper
 import com.pyera.app.data.security.SecurityChecker
+import com.pyera.app.data.security.SecurityPreferences
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.Module
@@ -39,5 +42,24 @@ object AppModule {
     @Singleton
     fun provideSecurityChecker(@ApplicationContext context: Context): SecurityChecker = 
         SecurityChecker(context)
+
+    @Provides
+    @Singleton
+    fun provideSecurityPreferences(
+        @ApplicationContext context: Context
+    ): SecurityPreferences = SecurityPreferences(context)
+
+    @Provides
+    @Singleton
+    fun provideAppLockManager(
+        securityPreferences: SecurityPreferences
+    ): AppLockManager = AppLockManager(securityPreferences)
+
+    @Provides
+    @Singleton
+    fun provideBiometricHelper(
+        biometricAuthManager: BiometricAuthManager,
+        appLockManager: AppLockManager
+    ): BiometricHelper = BiometricHelper(biometricAuthManager, appLockManager)
 
 }

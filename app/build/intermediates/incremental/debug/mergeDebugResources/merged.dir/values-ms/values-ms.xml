@@ -82,6 +82,8 @@
     <string msgid="3791785319221634505" name="generic_error_no_device_credential">"PIN, corak atau kata laluan tidak ditetapkan."</string>
     <string msgid="1807436368654974044" name="generic_error_no_keyguard">"Peranti ini tidak menyokong PIN, corak atau kata laluan."</string>
     <string msgid="7309881387583143581" name="generic_error_user_canceled">"Pengesahan dibatalkan oleh pengguna."</string>
+    <string msgid="2863935784364843033" name="glance_error_layout_text">"Semak ralat sebenar menggunakan "<b><tt>"adb logcat"</tt></b>" semasa mencari "<b><tt>"GlanceAppWidget"</tt></b></string>
+    <string msgid="3631961919234443531" name="glance_error_layout_title"><b>"Ralat Widget Apl Glance"</b></string>
     <string msgid="6827826412747255547" name="in_progress">"Dalam proses"</string>
     <string msgid="7933458017204019916" name="indeterminate">"Sebahagiannya ditandai"</string>
     <string msgid="2988463736136100848" name="m3c_bottom_sheet_collapse_description">"Kuncupkan helaian bawah"</string>

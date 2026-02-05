@@ -34,6 +34,7 @@ fun DashboardScreen(
     onViewAllTransactionsClick: () -> Unit = {},
     onNotificationsClick: () -> Unit = {},
     onAnalysisClick: () -> Unit = {},
+    onInsightsClick: () -> Unit = {},
     onAccountSelectorClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
     onSettingsClick: () -> Unit = {}
@@ -82,7 +83,8 @@ fun DashboardScreen(
         QuickActionsRow(
             onAddTransaction = onAddTransactionClick,
             onScanReceipt = onScanReceiptClick,
-            onViewAnalysis = onAnalysisClick
+            onViewAnalysis = onAnalysisClick,
+            onViewInsights = onInsightsClick
         )
 
         Spacer(modifier = Modifier.height(Spacing.XLarge))
@@ -240,7 +242,8 @@ private fun IncomeExpenseIndicator(
 private fun QuickActionsRow(
     onAddTransaction: () -> Unit,
     onScanReceipt: () -> Unit,
-    onViewAnalysis: () -> Unit
+    onViewAnalysis: () -> Unit,
+    onViewInsights: () -> Unit
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -265,9 +268,9 @@ private fun QuickActionsRow(
         )
 
         QuickActionButton(
-            icon = Icons.Default.BarChart,
-            label = "Analysis",
-            onClick = onViewAnalysis,
+            icon = Icons.Default.Lightbulb,
+            label = "Insights",
+            onClick = onViewInsights,
             containerColor = SurfaceElevated,
             contentColor = TextPrimary,
             modifier = Modifier.weight(1f)

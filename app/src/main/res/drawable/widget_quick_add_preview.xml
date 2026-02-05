@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Preview image for the Quick Add Widget (3x1)
+    Shown in the widget picker
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="250dp"
+    android:height="110dp"
+    android:viewportWidth="250"
+    android:viewportHeight="110">
+    
+    <!-- Background -->
+    <path
+        android:fillColor="#FF1A1F1D"
+        android:pathData="M8,0 L242,0 C246.4,0 250,3.6 250,8 L250,102 C250,106.4 246.4,110 242,110 L8,110 C3.6,110 0,106.4 0,102 L0,8 C0,3.6 3.6,0 8,0 Z" />
+    
+    <!-- Balance Label -->
+    <path
+        android:fillColor="#FFB0B8B4"
+        android:pathData="M16,20 L60,20 L60,28 L16,28 Z" />
+    
+    <!-- Balance Amount -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M16,40 L100,40 L100,52 L16,52 Z" />
+    
+    <!-- Add Income Button -->
+    <path
+        android:fillColor="#FF4CAF50"
+        android:pathData="M130,32 L190,32 C194,32 196,34 196,38 L196,52 C196,56 194,58 190,58 L130,58 C126,58 124,56 124,52 L124,38 C124,34 126,32 130,32 Z" />
+    
+    <!-- Add Expense Button -->
+    <path
+        android:fillColor="#FFFF5252"
+        android:pathData="M204,32 L234,32 C238,32 240,34 240,38 L240,52 C240,56 238,58 234,58 L204,58 C200,58 198,56 198,52 L198,38 C198,34 200,32 204,32 Z" />
+    
+</vector>

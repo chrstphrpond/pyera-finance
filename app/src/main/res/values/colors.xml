@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Brand Colors -->
+    <color name="neon_yellow">#FFD4FF00</color>
+    <color name="neon_yellow_dark">#FFB8E600</color>
+    <color name="neon_yellow_light">#FFE0FF33</color>
+    
+    <!-- Background Colors -->
+    <color name="dark_green">#FF0A0E0D</color>
+    <color name="surface_dark">#FF1A1F1D</color>
+    <color name="surface_elevated">#FF242927</color>
+    <color name="surface_overlay">#FF2F3633</color>
+    
+    <!-- Semantic Colors -->
+    <color name="income_green">#FF4CAF50</color>
+    <color name="expense_red">#FFFF5252</color>
+    <color name="warning_yellow">#FFFFB300</color>
+    <color name="info_blue">#FF448AFF</color>
+    
+    <!-- Widget Colors - Dark Theme -->
+    <color name="widget_background_dark">#FF1A1F1D</color>
+    <color name="widget_surface">#FF242927</color>
+    <color name="widget_text_primary_dark">#FFFFFFFF</color>
+    <color name="widget_text_secondary_dark">#FFB0B8B4</color>
+    <color name="widget_divider">#FF3A433F</color>
+    
+    <!-- Widget Colors - Light Theme -->
+    <color name="widget_background_light">#FFF5F5F5</color>
+    <color name="widget_text_primary_light">#FF121212</color>
+    <color name="widget_text_secondary_light">#FF666666</color>
+    
+    <!-- Common -->
+    <color name="white">#FFFFFFFF</color>
+    <color name="black">#FF000000</color>
+    <color name="transparent">#00000000</color>
+</resources>

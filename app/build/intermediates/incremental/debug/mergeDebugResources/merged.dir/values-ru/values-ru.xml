@@ -82,6 +82,8 @@
     <string msgid="3791785319221634505" name="generic_error_no_device_credential">"Не заданы PIN-код, пароль или графический ключ."</string>
     <string msgid="1807436368654974044" name="generic_error_no_keyguard">"На этом устройстве не поддерживаются PIN-код, графический ключ и пароль."</string>
     <string msgid="7309881387583143581" name="generic_error_user_canceled">"Аутентификация отменена пользователем."</string>
+    <string msgid="2863935784364843033" name="glance_error_layout_text">"Выявите ошибку с помощью "<b><tt>"adb logcat"</tt></b>". В этом инструменте выполните поиск по запросу "<b><tt>"GlanceAppWidget"</tt></b>"."</string>
+    <string msgid="3631961919234443531" name="glance_error_layout_title"><b>"Ошибка, связанная с виджетом приложения в Glance"</b></string>
     <string msgid="6827826412747255547" name="in_progress">"Выполняется"</string>
     <string msgid="7933458017204019916" name="indeterminate">"Отмечено частично"</string>
     <string msgid="2988463736136100848" name="m3c_bottom_sheet_collapse_description">"Свернуть нижний экран"</string>

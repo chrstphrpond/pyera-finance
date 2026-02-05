@@ -1,5 +1,7 @@
 package com.pyera.app.di
 
+import com.pyera.app.data.repository.AccountRepository
+import com.pyera.app.data.repository.AccountRepositoryImpl
 import com.pyera.app.data.repository.AnalysisRepository
 import com.pyera.app.data.repository.AnalysisRepositoryImpl
 import com.pyera.app.data.repository.AuthRepository
@@ -18,6 +20,8 @@ import com.pyera.app.data.repository.InvestmentRepository
 import com.pyera.app.data.repository.InvestmentRepositoryImpl
 import com.pyera.app.data.repository.OcrRepository
 import com.pyera.app.data.repository.OcrRepositoryImpl
+import com.pyera.app.data.repository.RecurringTransactionRepository
+import com.pyera.app.data.repository.RecurringTransactionRepositoryImpl
 import com.pyera.app.data.repository.SavingsRepository
 import com.pyera.app.data.repository.SavingsRepositoryImpl
 import com.pyera.app.data.repository.TransactionRepository
@@ -101,4 +105,16 @@ abstract class RepositoryModule {
     abstract fun bindBudgetRepository(
         impl: BudgetRepositoryImpl
     ): BudgetRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindAccountRepository(
+        impl: AccountRepositoryImpl
+    ): AccountRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindRecurringTransactionRepository(
+        impl: RecurringTransactionRepositoryImpl
+    ): RecurringTransactionRepository
 }

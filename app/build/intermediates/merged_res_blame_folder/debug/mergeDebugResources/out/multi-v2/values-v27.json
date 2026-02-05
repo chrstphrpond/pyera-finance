@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.pyera.app-mergeDebugResources-84:/values-v27/values-v27.xml",
+            "outputFile": "com.pyera.app-mergeDebugResources-90:/values-v27/values-v27.xml",
             "map": [
                 {
                     "source": "C:\\Users\\crit\\.gradle\\caches\\8.13\\transforms\\681109769e79a8fd89fc19a99ae57c78\\transformed\\jetified-core-splashscreen-1.0.1\\res\\values-v27\\values-v27.xml",

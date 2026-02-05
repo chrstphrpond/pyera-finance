@@ -55,10 +55,103 @@
             </intent-filter>
         </activity>
 
+        <!-- Widget Configuration Activity -->
+        <activity
+            android:name="com.pyera.app.widget.WidgetConfigurationActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Pyera" >
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
+
+        <!-- Balance Widget Receiver (2x1) -->
+        <receiver
+            android:name="com.pyera.app.widget.BalanceWidgetReceiver"
+            android:exported="true"
+            android:label="Pyera Balance" >
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/balance_widget_info" />
+            <meta-data
+                android:name="android.appwidget.configuration"
+                android:value=".widget.WidgetConfigurationActivity" />
+        </receiver>
+
+        <!-- Quick Add Widget Receiver (3x1) -->
+        <receiver
+            android:name="com.pyera.app.widget.QuickAddWidgetReceiver"
+            android:exported="true"
+            android:label="Pyera Quick Add" >
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/quick_add_widget_info" />
+            <meta-data
+                android:name="android.appwidget.configuration"
+                android:value=".widget.WidgetConfigurationActivity" />
+        </receiver>
+
+        <!-- Transactions Widget Receiver (4x2) -->
+        <receiver
+            android:name="com.pyera.app.widget.TransactionsWidgetReceiver"
+            android:exported="true"
+            android:label="Pyera Transactions" >
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/transactions_widget_info" />
+            <meta-data
+                android:name="android.appwidget.configuration"
+                android:value=".widget.WidgetConfigurationActivity" />
+        </receiver>
+
         <service
             android:name="androidx.room.MultiInstanceInvalidationService"
             android:directBootAware="true"
             android:exported="false" />
+
+        <activity
+            android:name="androidx.glance.appwidget.action.ActionTrampolineActivity"
+            android:enabled="true"
+            android:excludeFromRecents="true"
+            android:exported="false" />
+        <activity
+            android:name="androidx.glance.appwidget.action.InvisibleActionTrampolineActivity"
+            android:enabled="true"
+            android:exported="false"
+            android:launchMode="singleInstance"
+            android:noHistory="true"
+            android:taskAffinity="androidx.glance.appwidget.ListAdapterCallbackTrampoline"
+            android:theme="@style/Widget.Glance.AppWidget.CallbackTrampoline" />
+
+        <receiver
+            android:name="androidx.glance.appwidget.action.ActionCallbackBroadcastReceiver"
+            android:enabled="true"
+            android:exported="false" />
+        <receiver
+            android:name="androidx.glance.appwidget.MyPackageReplacedReceiver"
+            android:enabled="true"
+            android:exported="false" >
+            <intent-filter>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+
+        <service
+            android:name="androidx.glance.appwidget.GlanceRemoteViewsService"
+            android:exported="true"
+            android:permission="android.permission.BIND_REMOTEVIEWS" />
 
         <provider
             android:name="androidx.startup.InitializationProvider"
@@ -322,6 +415,9 @@
             android:enabled="true"
             android:exported="false"
             android:permission="android.permission.BIND_JOB_SERVICE" />
+        <service
+            android:name="androidx.core.widget.RemoteViewsCompatService"
+            android:permission="android.permission.BIND_REMOTEVIEWS" />
 
         <activity
             android:name="com.google.android.gms.common.api.GoogleApiActivity"

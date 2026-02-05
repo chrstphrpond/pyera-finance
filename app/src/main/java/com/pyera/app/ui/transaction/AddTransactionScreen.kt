@@ -39,8 +39,10 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.pyera.app.data.local.entity.AccountEntity
 import com.pyera.app.data.local.entity.CategoryEntity
 import com.pyera.app.data.local.entity.TransactionEntity
+import com.pyera.app.data.local.entity.formattedBalance
 import com.pyera.app.ui.theme.AccentGreen
 import com.pyera.app.ui.theme.DeepBackground
 import com.pyera.app.ui.theme.SurfaceElevated
@@ -66,12 +68,22 @@ fun AddTransactionScreen(
     var note by remember { mutableStateOf("") }
     var selectedType by remember { mutableStateOf("EXPENSE") } // "INCOME" or "EXPENSE"
     var selectedCategory by remember { mutableStateOf<CategoryEntity?>(null) }
+    var selectedAccount by remember { mutableStateOf(state.defaultAccount) }
     var selectedDate by remember { mutableStateOf(System.currentTimeMillis()) }
     var isScanning by remember { mutableStateOf(false) }
     var scannedReceiptUri by remember { mutableStateOf<android.net.Uri?>(null) }
     var showDatePicker by remember { mutableStateOf(false) }
+    var showAccountPicker by remember { mutableStateOf(false) }
     var isAmountError by remember { mutableStateOf(false) }
+    var isAccountError by remember { mutableStateOf(false) }
     var saveSuccess by remember { mutableStateOf(false) }
+    
+    // Update selected account when default account changes
+    LaunchedEffect(state.defaultAccount) {
+        if (selectedAccount == null) {
+            selectedAccount = state.defaultAccount
+        }
+    }
 
     // Navigate back when transaction is successfully saved
     if (saveSuccess) {
@@ -215,6 +227,24 @@ fun AddTransactionScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
+                // Account Section
+                Text(
+                    text = "Account",
+                    style = MaterialTheme.typography.titleMedium, 
+                    color = TextPrimary
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                // Account Selector
+                AccountSelector(
+                    account = selectedAccount,
+                    accounts = state.accounts,
+                    onAccountSelected = { selectedAccount = it },
+                    isError = isAccountError
+                )
+                
+                Spacer(modifier = Modifier.height(24.dp))
+                
                 // Category Section
                 Text(
                     text = "Category",
@@ -260,20 +290,32 @@ fun AddTransactionScreen(
                     Button(
                         onClick = {
                             val amountVal = amount.toDoubleOrNull()
-                            if (amountVal != null && amountVal > 0 && selectedCategory != null) {
-                                viewModel.addTransaction(
-                                    TransactionEntity(
-                                        amount = amountVal,
-                                        note = note,
-                                        date = selectedDate,
-                                        type = selectedType,
-                                        categoryId = selectedCategory?.id
-                                    )
-                                )
-                                saveSuccess = true
-                            } else {
-                                if (amountVal == null || amountVal <= 0) {
+                            val accountId = selectedAccount?.id
+                            
+                            when {
+                                amountVal == null || amountVal <= 0 -> {
                                     isAmountError = true
+                                }
+                                accountId == null -> {
+                                    isAccountError = true
+                                    android.widget.Toast.makeText(context, "Please select an account", android.widget.Toast.LENGTH_SHORT).show()
+                                }
+                                selectedCategory == null -> {
+                                    android.widget.Toast.makeText(context, "Please select a category", android.widget.Toast.LENGTH_SHORT).show()
+                                }
+                                else -> {
+                                    viewModel.addTransaction(
+                                        TransactionEntity(
+                                            amount = amountVal,
+                                            note = note,
+                                            date = selectedDate,
+                                            type = selectedType,
+                                            categoryId = selectedCategory?.id,
+                                            accountId = accountId,
+                                            userId = state.accounts.find { it.id == accountId }?.userId ?: ""
+                                        )
+                                    )
+                                    saveSuccess = true
                                 }
                             }
                         },
@@ -281,7 +323,7 @@ fun AddTransactionScreen(
                             .fillMaxWidth()
                             .height(50.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = AccentGreen),
-                        enabled = selectedCategory != null && amount.isNotBlank()
+                        enabled = selectedCategory != null && amount.isNotBlank() && selectedAccount != null
                     ) {
                         Text("Save Transaction", color = DeepBackground, fontSize = 16.sp)
                     }
@@ -292,43 +334,55 @@ fun AddTransactionScreen(
                     OutlinedButton(
                         onClick = {
                             val amountVal = amount.toDoubleOrNull()
-                            if (amountVal != null && amountVal > 0 && selectedCategory != null) {
-                                viewModel.addTransaction(
-                                    TransactionEntity(
-                                        amount = amountVal,
-                                        note = note,
-                                        date = selectedDate,
-                                        type = selectedType,
-                                        categoryId = selectedCategory?.id
-                                    )
-                                )
-                                // Reset form
-                                amount = ""
-                                note = ""
-                                selectedCategory = null
-                                selectedDate = System.currentTimeMillis()
-                                scannedReceiptUri = null
-                                android.widget.Toast.makeText(
-                                    context, 
-                                    "Transaction saved! Add another.", 
-                                    android.widget.Toast.LENGTH_SHORT
-                                ).show()
-                            } else {
-                                if (amountVal == null || amountVal <= 0) {
+                            val accountId = selectedAccount?.id
+                            
+                            when {
+                                amountVal == null || amountVal <= 0 -> {
                                     isAmountError = true
+                                }
+                                accountId == null -> {
+                                    isAccountError = true
+                                    android.widget.Toast.makeText(context, "Please select an account", android.widget.Toast.LENGTH_SHORT).show()
+                                }
+                                selectedCategory == null -> {
+                                    android.widget.Toast.makeText(context, "Please select a category", android.widget.Toast.LENGTH_SHORT).show()
+                                }
+                                else -> {
+                                    viewModel.addTransaction(
+                                        TransactionEntity(
+                                            amount = amountVal,
+                                            note = note,
+                                            date = selectedDate,
+                                            type = selectedType,
+                                            categoryId = selectedCategory?.id,
+                                            accountId = accountId,
+                                            userId = state.accounts.find { it.id == accountId }?.userId ?: ""
+                                        )
+                                    )
+                                    // Reset form
+                                    amount = ""
+                                    note = ""
+                                    selectedCategory = null
+                                    selectedDate = System.currentTimeMillis()
+                                    scannedReceiptUri = null
+                                    android.widget.Toast.makeText(
+                                        context, 
+                                        "Transaction saved! Add another.", 
+                                        android.widget.Toast.LENGTH_SHORT
+                                    ).show()
                                 }
                             }
                         },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(50.dp),
-                        enabled = selectedCategory != null && amount.isNotBlank(),
+                        enabled = selectedCategory != null && amount.isNotBlank() && selectedAccount != null,
                         colors = ButtonDefaults.outlinedButtonColors(
                             contentColor = AccentGreen
                         ),
                         border = ButtonDefaults.outlinedButtonBorder.copy(
                             brush = androidx.compose.ui.graphics.SolidColor(
-                                if (selectedCategory != null && amount.isNotBlank()) AccentGreen else TextSecondary
+                                if (selectedCategory != null && amount.isNotBlank() && selectedAccount != null) AccentGreen else TextSecondary
                             )
                         )
                     ) {
@@ -768,5 +822,140 @@ fun CategoryItem(category: CategoryEntity, isSelected: Boolean, onClick: () -> U
             maxLines = 1,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
         )
+    }
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AccountSelector(
+    account: AccountEntity?,
+    accounts: List<AccountEntity>,
+    onAccountSelected: (AccountEntity) -> Unit,
+    isError: Boolean = false
+) {
+    var expanded by remember { mutableStateOf(false) }
+    
+    Box {
+        Surface(
+            color = if (isError) ColorError.copy(alpha = 0.1f) else SurfaceElevated,
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { expanded = true }
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (account != null) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(Color(account.color)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = account.icon,
+                            fontSize = 20.sp
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.width(12.dp))
+                    
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = account.name,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = TextPrimary,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Text(
+                            text = account.formattedBalance(),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = TextSecondary
+                        )
+                    }
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(SurfaceDark),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.AccountBalance,
+                            contentDescription = null,
+                            tint = TextSecondary
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.width(12.dp))
+                    
+                    Text(
+                        text = "Select Account",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = if (isError) ColorError else TextSecondary,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+                
+                Icon(
+                    imageVector = Icons.Default.ArrowDropDown,
+                    contentDescription = "Select",
+                    tint = if (isError) ColorError else TextSecondary
+                )
+            }
+        }
+        
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.fillMaxWidth(0.9f)
+        ) {
+            accounts.forEach { acc ->
+                DropdownMenuItem(
+                    text = {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .clip(CircleShape)
+                                    .background(Color(acc.color)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = acc.icon,
+                                    fontSize = 16.sp
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column {
+                                Text(
+                                    text = acc.name,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = TextPrimary
+                                )
+                                Text(
+                                    text = acc.formattedBalance(),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = TextSecondary
+                                )
+                            }
+                        }
+                    },
+                    onClick = {
+                        onAccountSelected(acc)
+                        expanded = false
+                    }
+                )
+            }
+        }
     }
 }
