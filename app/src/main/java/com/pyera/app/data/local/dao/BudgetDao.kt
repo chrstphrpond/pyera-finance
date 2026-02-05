@@ -58,6 +58,38 @@ interface BudgetDao {
 
     @Query("SELECT * FROM budgets WHERE categoryId = :categoryId")
     fun getBudgetsForCategory(categoryId: Int): Flow<List<BudgetEntity>>
+    
+    // ==================== Paginated Queries ====================
+    
+    /**
+     * Get paginated budgets for a user
+     * @param userId User ID
+     * @param limit Number of items to fetch
+     * @param offset Number of items to skip
+     */
+    @Query("SELECT * FROM budgets WHERE userId = :userId ORDER BY createdAt DESC LIMIT :limit OFFSET :offset")
+    suspend fun getBudgetsPaged(userId: String, limit: Int, offset: Int): List<BudgetEntity>
+    
+    /**
+     * Get paginated active budgets for a user
+     * @param userId User ID
+     * @param limit Number of items to fetch
+     * @param offset Number of items to skip
+     */
+    @Query("SELECT * FROM budgets WHERE userId = :userId AND isActive = 1 ORDER BY amount DESC LIMIT :limit OFFSET :offset")
+    suspend fun getActiveBudgetsPaged(userId: String, limit: Int, offset: Int): List<BudgetEntity>
+    
+    /**
+     * Get total count of budgets for a user
+     */
+    @Query("SELECT COUNT(*) FROM budgets WHERE userId = :userId")
+    suspend fun getBudgetCount(userId: String): Int
+    
+    /**
+     * Get count of active budgets for a user
+     */
+    @Query("SELECT COUNT(*) FROM budgets WHERE userId = :userId AND isActive = 1")
+    suspend fun getActiveBudgetCountSync(userId: String): Int
 
     // ==================== Budget with Spending Queries ====================
 
@@ -106,7 +138,54 @@ interface BudgetDao {
     ): Flow<List<BudgetWithSpending>>
 
     /**
-     * Get budget with spending for a specific category
+     * Get all budgets with spending data for a user within a date range (paginated)
+     */
+    @Transaction
+    @Query("""
+        SELECT 
+            b.id,
+            b.userId,
+            b.categoryId,
+            c.name as categoryName,
+            c.color as categoryColor,
+            c.icon as categoryIcon,
+            b.amount,
+            b.period,
+            b.startDate,
+            b.isActive,
+            b.alertThreshold,
+            COALESCE(SUM(CASE WHEN t.type = 'EXPENSE' THEN t.amount ELSE 0 END), 0) as spentAmount,
+            b.amount - COALESCE(SUM(CASE WHEN t.type = 'EXPENSE' THEN t.amount ELSE 0 END), 0) as remainingAmount,
+            CASE 
+                WHEN b.amount > 0 THEN 
+                    (COALESCE(SUM(CASE WHEN t.type = 'EXPENSE' THEN t.amount ELSE 0 END), 0) / b.amount * 100)
+                ELSE 0 
+            END as progressPercentage,
+            CASE 
+                WHEN COALESCE(SUM(CASE WHEN t.type = 'EXPENSE' THEN t.amount ELSE 0 END), 0) > b.amount THEN 1 
+                ELSE 0 
+            END as isOverBudget,
+            0 as daysRemaining
+        FROM budgets b
+        LEFT JOIN categories c ON b.categoryId = c.id
+        LEFT JOIN transactions t ON b.categoryId = t.categoryId 
+            AND t.date >= :startDate 
+            AND t.date <= :endDate
+        WHERE b.userId = :userId AND b.isActive = 1
+        GROUP BY b.id, b.userId, b.categoryId, c.name, c.color, c.icon, b.amount, b.period, b.startDate, b.isActive, b.alertThreshold
+        ORDER BY progressPercentage DESC
+        LIMIT :limit OFFSET :offset
+    """)
+    fun getBudgetsWithSpendingPaged(
+        userId: String,
+        startDate: Long,
+        endDate: Long,
+        limit: Int,
+        offset: Int
+    ): Flow<List<BudgetWithSpending>>
+
+    /**
+     * Get a single budget with spending data
      */
     @Transaction
     @Query("""

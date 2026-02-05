@@ -69,6 +69,31 @@ fun ChatScreen(
                 .padding(paddingValues)
                 .padding(16.dp)
         ) {
+            // Info card indicating chat is disabled
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                )
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text(
+                        text = "ℹ️ AI Chat Disabled",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "The AI assistant has been disabled for security reasons. You can still use all other Pyera features to manage your finances.",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+
             LazyColumn(
                 modifier = Modifier
                     .weight(1f)

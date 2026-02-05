@@ -7,6 +7,7 @@ import com.pyera.app.data.repository.SavingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -17,6 +18,7 @@ class SavingsViewModel @Inject constructor(
 ) : ViewModel() {
 
     val savingsGoals: StateFlow<List<SavingsGoalEntity>> = savingsRepository.getAllSavingsGoals()
+        .distinctUntilChanged()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),

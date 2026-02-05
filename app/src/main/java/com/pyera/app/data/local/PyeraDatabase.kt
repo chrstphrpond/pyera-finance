@@ -17,6 +17,20 @@ import com.pyera.app.data.local.entity.InvestmentEntity
 import com.pyera.app.data.local.entity.SavingsGoalEntity
 import com.pyera.app.data.local.entity.TransactionEntity
 
+/**
+ * Main Room database for the Pyera Finance app.
+ * 
+ * Version History:
+ * - v1: Initial database with basic entities
+ * - v2: Added BudgetEntity and updated relationships
+ * - v3: Added BillEntity and InvestmentEntity
+ * - v4: Added database indexes for performance optimization
+ *   - TransactionEntity: idx_transactions_date, idx_transactions_type, idx_transactions_category
+ *   - BudgetEntity: idx_budgets_category, idx_budgets_user, idx_budgets_active, idx_budgets_dates
+ *   - DebtEntity: idx_debts_due_date, idx_debts_status, idx_debts_type
+ *   - SavingsGoalEntity: idx_savings_deadline, idx_savings_target
+ *   - CategoryEntity: idx_categories_type, idx_categories_name
+ */
 @Database(
     entities = [
         CategoryEntity::class,
@@ -27,8 +41,8 @@ import com.pyera.app.data.local.entity.TransactionEntity
         BillEntity::class,
         InvestmentEntity::class
     ],
-    version = 3,
-    exportSchema = true
+    version = 4,
+    exportSchema = false
 )
 abstract class PyeraDatabase : RoomDatabase() {
     abstract fun categoryDao(): CategoryDao

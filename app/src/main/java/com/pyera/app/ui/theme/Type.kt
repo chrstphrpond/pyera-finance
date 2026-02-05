@@ -26,107 +26,119 @@ val OutfitFontFamily = FontFamily(
     Font(R.font.outfit, FontWeight.Black)
 )
 
-// Pyera Typography
-// Headers use Ibrand (Display, Headline)
-// Body text, Titles, Labels use Outfit
 val Typography = Typography(
-    // Display - Large headers, use Ibrand
+    // Display - Large numbers, hero text (uses Ibrand)
     displayLarge = TextStyle(
         fontFamily = IbrandFontFamily,
         fontWeight = FontWeight.Normal,
-        fontSize = 48.sp,
-        letterSpacing = (-0.02).sp
+        fontSize = 57.sp,
+        lineHeight = 64.sp,
+        letterSpacing = (-0.25).sp
     ),
     displayMedium = TextStyle(
         fontFamily = IbrandFontFamily,
         fontWeight = FontWeight.Normal,
-        fontSize = 40.sp,
-        letterSpacing = (-0.02).sp
+        fontSize = 45.sp,
+        lineHeight = 52.sp,
+        letterSpacing = (-0.2).sp
     ),
     displaySmall = TextStyle(
         fontFamily = IbrandFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 36.sp,
-        letterSpacing = (-0.01).sp
+        lineHeight = 44.sp,
+        letterSpacing = (-0.15).sp
     ),
     
-    // Headlines - Section headers, use Ibrand
+    // Headlines - Screen titles (uses Ibrand)
     headlineLarge = TextStyle(
         fontFamily = IbrandFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 32.sp,
-        letterSpacing = (-0.01).sp
+        lineHeight = 40.sp,
+        letterSpacing = (-0.1).sp
     ),
     headlineMedium = TextStyle(
         fontFamily = IbrandFontFamily,
         fontWeight = FontWeight.Normal,
-        fontSize = 24.sp,
-        letterSpacing = (-0.01).sp
+        fontSize = 28.sp,
+        lineHeight = 36.sp,
+        letterSpacing = (-0.05).sp
     ),
     headlineSmall = TextStyle(
         fontFamily = IbrandFontFamily,
         fontWeight = FontWeight.Normal,
-        fontSize = 18.sp,
+        fontSize = 24.sp,
+        lineHeight = 32.sp,
         letterSpacing = 0.sp
     ),
     
-    // Titles - Card titles, screen titles, use Outfit
+    // Titles - Card titles, section headers (uses Outfit)
     titleLarge = TextStyle(
         fontFamily = OutfitFontFamily,
         fontWeight = FontWeight.SemiBold,
         fontSize = 22.sp,
+        lineHeight = 28.sp,
         letterSpacing = 0.sp
     ),
     titleMedium = TextStyle(
         fontFamily = OutfitFontFamily,
         fontWeight = FontWeight.Medium,
         fontSize = 16.sp,
+        lineHeight = 24.sp,
         letterSpacing = 0.15.sp
     ),
     titleSmall = TextStyle(
         fontFamily = OutfitFontFamily,
         fontWeight = FontWeight.Medium,
         fontSize = 14.sp,
+        lineHeight = 20.sp,
         letterSpacing = 0.1.sp
     ),
     
-    // Body - Main text content, use Outfit
+    // Body - Main content text (uses Outfit)
     bodyLarge = TextStyle(
         fontFamily = OutfitFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp,
-        letterSpacing = 0.sp
+        lineHeight = 24.sp,
+        letterSpacing = 0.5.sp
     ),
     bodyMedium = TextStyle(
         fontFamily = OutfitFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 14.sp,
-        letterSpacing = 0.sp
+        lineHeight = 20.sp,
+        letterSpacing = 0.25.sp
     ),
     bodySmall = TextStyle(
         fontFamily = OutfitFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 12.sp,
-        letterSpacing = 0.sp
+        lineHeight = 16.sp,
+        letterSpacing = 0.4.sp
     ),
     
-    // Labels - Buttons, captions, use Outfit
+    // Labels - Buttons, captions, overlines (uses Outfit)
     labelLarge = TextStyle(
         fontFamily = OutfitFontFamily,
         fontWeight = FontWeight.Medium,
         fontSize = 14.sp,
+        lineHeight = 20.sp,
         letterSpacing = 0.1.sp
     ),
     labelMedium = TextStyle(
         fontFamily = OutfitFontFamily,
         fontWeight = FontWeight.Medium,
         fontSize = 12.sp,
-        letterSpacing = 0.3.sp
+        lineHeight = 16.sp,
+        letterSpacing = 0.5.sp
     ),
     labelSmall = TextStyle(
         fontFamily = OutfitFontFamily,
         fontWeight = FontWeight.Medium,
         fontSize = 11.sp,
+        lineHeight = 16.sp,
         letterSpacing = 0.5.sp
     )
 )

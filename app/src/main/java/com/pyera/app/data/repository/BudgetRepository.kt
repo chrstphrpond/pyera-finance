@@ -120,4 +120,10 @@ interface BudgetRepository {
         startDate: Long,
         endDate: Long
     ): Float
+    
+    /**
+     * Sync budgets to cloud
+     * Called by SyncWorker for background synchronization
+     */
+    suspend fun syncBudgets(): Result<Unit>
 }

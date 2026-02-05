@@ -13,6 +13,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
@@ -20,6 +21,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.pyera.app.ui.dashboard.DashboardScreen
@@ -51,11 +53,14 @@ val LocalSnackbarHostState = staticCompositionLocalOf<SnackbarHostState> {
 fun MainScreen() {
     val bottomNavController = rememberNavController()
     val snackbarHostState = remember { SnackbarHostState() }
+    
+    val navBackStackEntry by bottomNavController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
 
     CompositionLocalProvider(LocalSnackbarHostState provides snackbarHostState) {
         Scaffold(
             snackbarHost = { SnackbarHost(snackbarHostState) },
-            bottomBar = { PyeraBottomBar(navController = bottomNavController) }
+            bottomBar = { PyeraBottomBar(navController = bottomNavController, currentRoute = currentRoute) }
         ) { innerPadding ->
             NavHost(
                 navController = bottomNavController,
@@ -70,13 +75,13 @@ fun MainScreen() {
                 ) {
                     DashboardScreen(
                         onAddTransactionClick = {
-                            bottomNavController.navigate(Screen.Main.AddTransaction.route)
+                            bottomNavController.navigate(Screen.AddTransaction.route)
                         },
                         onBillsClick = {
-                            bottomNavController.navigate(Screen.Main.Bills.route)
+                            bottomNavController.navigate(Screen.Bills.route)
                         },
                         onInvestmentsClick = {
-                            bottomNavController.navigate(Screen.Main.Investments.route)
+                            bottomNavController.navigate(Screen.Investments.route)
                         }
                     )
                 }
@@ -110,10 +115,10 @@ fun MainScreen() {
                     val budgetViewModel: BudgetViewModel = hiltViewModel()
                     BudgetListScreen(
                         onNavigateToCreate = {
-                            bottomNavController.navigate(Screen.Main.CreateBudget.route)
+                            bottomNavController.navigate(Screen.CreateBudget.route)
                         },
                         onNavigateToDetail = { budgetId ->
-                            bottomNavController.navigate(Screen.Main.BudgetDetail.createRoute(budgetId))
+                            bottomNavController.navigate(Screen.BudgetDetail.createRoute(budgetId))
                         },
                         viewModel = budgetViewModel
                     )
@@ -121,7 +126,7 @@ fun MainScreen() {
 
                 // Budget Detail Screen
                 composable(
-                    route = Screen.Main.BudgetDetail.route,
+                    route = Screen.BudgetDetail.route,
                     arguments = listOf(
                         navArgument("budgetId") { type = NavType.IntType }
                     ),
@@ -138,7 +143,7 @@ fun MainScreen() {
                             bottomNavController.popBackStack()
                         },
                         onNavigateToEdit = { id ->
-                            bottomNavController.navigate(Screen.Main.EditBudget.createRoute(id))
+                            bottomNavController.navigate(Screen.EditBudget.createRoute(id))
                         },
                         viewModel = budgetViewModel
                     )
@@ -146,7 +151,7 @@ fun MainScreen() {
 
                 // Create Budget Screen
                 composable(
-                    route = Screen.Main.CreateBudget.route,
+                    route = Screen.CreateBudget.route,
                     enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }) + fadeIn() },
                     exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }) + fadeOut() },
                     popEnterTransition = { slideInHorizontally(initialOffsetX = { -1000 }) + fadeIn() },
@@ -166,7 +171,7 @@ fun MainScreen() {
 
                 // Edit Budget Screen (reuse CreateBudgetScreen with budget ID)
                 composable(
-                    route = Screen.Main.EditBudget.route,
+                    route = Screen.EditBudget.route,
                     arguments = listOf(
                         navArgument("budgetId") { type = NavType.IntType }
                     ),
@@ -210,7 +215,7 @@ fun MainScreen() {
 
                 // Bills
                 composable(
-                    route = Screen.Main.Bills.route,
+                    route = Screen.Bills.route,
                     enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }) + fadeIn() },
                     exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }) + fadeOut() }
                 ) {
@@ -219,7 +224,7 @@ fun MainScreen() {
 
                 // Investments
                 composable(
-                    route = Screen.Main.Investments.route,
+                    route = Screen.Investments.route,
                     enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }) + fadeIn() },
                     exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }) + fadeOut() }
                 ) {
@@ -232,12 +237,12 @@ fun MainScreen() {
                     enterTransition = { scaleIn() + fadeIn() },
                     exitTransition = { scaleOut() + fadeOut() }
                 ) {
-                    ProfileScreen()
+                    ProfileScreen(navController = bottomNavController)
                 }
 
                 // Chat
                 composable(
-                    route = Screen.Main.Chat.route,
+                    route = Screen.Chat.route,
                     enterTransition = { scaleIn(initialScale = 0.8f) + fadeIn() },
                     exitTransition = { scaleOut(targetScale = 0.8f) + fadeOut() }
                 ) {
@@ -246,7 +251,7 @@ fun MainScreen() {
 
                 // Add Transaction
                 composable(
-                    route = Screen.Main.AddTransaction.route,
+                    route = Screen.AddTransaction.route,
                     enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }) + fadeIn() },
                     exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }) + fadeOut() }
                 ) {

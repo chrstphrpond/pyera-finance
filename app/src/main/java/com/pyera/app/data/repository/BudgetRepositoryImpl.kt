@@ -10,7 +10,6 @@ import com.pyera.app.data.local.entity.BudgetWithSpending
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.util.Calendar
@@ -178,6 +177,7 @@ class BudgetRepositoryImpl @Inject constructor(
                         amount = amount,
                         period = period,
                         startDate = System.currentTimeMillis(),
+                        endDate = System.currentTimeMillis() + 30 * 24 * 60 * 60 * 1000L,
                         isActive = true
                     )
                 )
@@ -197,15 +197,43 @@ class BudgetRepositoryImpl @Inject constructor(
         val budget = budgetDao.getActiveBudgetForCategory(categoryId).first()
             ?: return@withContext 0f
 
-        val transactions = transactionDao.getTransactionsBetweenDates(startDate, endDate).first()
-        val spent = transactions
-            .filter { it.categoryId == categoryId && it.type == "EXPENSE" }
-            .sumOf { it.amount }
+        val transactions = transactionDao.getTransactionsByCategoryAndTypeBetweenDates(
+            categoryId = categoryId,
+            type = "EXPENSE",
+            startDate = startDate,
+            endDate = endDate
+        ).first()
+        val spent = transactions.sumOf { it.amount }
 
         if (budget.amount > 0) {
             (spent / budget.amount).toFloat().coerceIn(0f, 1f)
         } else {
             0f
+        }
+    }
+    
+    /**
+     * Sync budgets to cloud.
+     * This is a placeholder implementation that should be enhanced with
+     * actual cloud sync logic when Firebase or other backend is integrated.
+     */
+    override suspend fun syncBudgets(): Result<Unit> {
+        return try {
+            withContext(Dispatchers.IO) {
+                // TODO: Implement actual cloud sync
+                // For now, we just verify local data is consistent
+                
+                // In a real implementation, you would:
+                // 1. Get unsynced budgets from local DB (check updatedAt > lastSyncTime)
+                // 2. Upload to Firebase/Firestore
+                // 3. Update sync status in local DB
+                // 4. Download any new budgets from cloud
+                // 5. Resolve conflicts if any
+                
+                Result.success(Unit)
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 

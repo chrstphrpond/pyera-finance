@@ -36,6 +36,7 @@ import com.pyera.app.ui.theme.TextSecondary
 import com.pyera.app.ui.theme.TextTertiary
 import androidx.compose.ui.graphics.graphicsLayer
 import kotlinx.coroutines.launch
+import com.pyera.app.R
 
 data class OnboardingPage(
     val title: String,

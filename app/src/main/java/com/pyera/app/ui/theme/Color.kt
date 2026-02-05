@@ -2,53 +2,67 @@ package com.pyera.app.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Primary Brand Colors - Premium Dark Theme
-val Inchworm = Color(0xFF8CE700)           // Primary neon lime green
-val Gunmetal = Color(0xFF131918)           // Dark surface
-val Orange = Color(0xFFFE7733)             // Accent orange
-val PaleViolet = Color(0xFFB2A1FF)         // Secondary violet
-val BrightSnow = Color(0xFFFFFFFF)         // Pure white
-val AmericanSilver = Color(0xFFD1D1D1)     // Light gray
+// Primary Brand Colors
+val NeonYellow = Color(0xFFD4FF00)
+val NeonYellowDark = Color(0xFFB8E600)
+val NeonYellowLight = Color(0xFFE0FF33)
 
-// Premium Surface Colors
-val DeepBackground = Color(0xFF080C0B)     // Very deep black background
-val CardBackground = Color(0xFF131918)     // Card/surface background
-val SurfaceDark = Color(0xFF0E1312)        // Darker surface variant
-val SurfaceElevated = Color(0xFF1A2220)    // Elevated surface
-val DarkBackground = Color(0xFF080C0B)     // Deep dark background (alias)
+// Background Colors
+val DarkGreen = Color(0xFF0A0E0D)
+val SurfaceDark = Color(0xFF1A1F1D)
+val SurfaceElevated = Color(0xFF242927)
+val SurfaceOverlay = Color(0xFF2F3633)
 
-// Accent Colors
-val AccentGreen = Color(0xFF8CE700)        // Primary neon lime accent
-val AccentGreenDim = Color(0xFF5A9400)     // Dimmed green for inactive states
+// Semantic Colors (Enhanced for Accessibility)
+val ColorSuccess = Color(0xFF4CAF50)
+val ColorSuccessDark = Color(0xFF388E3C)
+val ColorSuccessContainer = Color(0xFF1B2A12)
+val ColorError = Color(0xFFFF5252)
+val ColorErrorContainer = Color(0xFF2A0A0A)
+val ColorWarning = Color(0xFFFFB300)
+val ColorWarningContainer = Color(0xFF2A1F00)
+val ColorInfo = Color(0xFF448AFF)
 
-// Text Colors
-val TextPrimary = BrightSnow
-val TextSecondary = AmericanSilver
-val TextTertiary = Color(0xFF5A6462)       // More muted tertiary text
+// Text Colors (WCAG AA Compliant)
+val TextPrimary = Color(0xFFFFFFFF)
+val TextSecondary = Color(0xFFB0B8B4)
+val TextTertiary = Color(0xFF8B918F)
+val TextDisabled = Color(0xFF5F6663)
 
-// Semantic Colors
-val ColorSuccess = AccentGreen
-val ColorWarning = Orange
-val ColorError = Color(0xFFEF4444)         // Red for errors
-val ColorInfo = PaleViolet
-val PositiveChange = Color(0xFF4ADE80)     // For positive % changes
-val NegativeChange = Color(0xFFEF4444)     // For negative % changes
+// Interactive States
+val ColorOverlayPressed = Color(0x1FFFFFFF)
+val ColorOverlayHover = Color(0x0FFFFFFF)
 
-// Semantic Container Colors
-val SuccessContainer = Color(0xFF1B2A18)
-val WarningContainer = Color(0xFF2A1F14)
-val ErrorContainer = Color(0xFF2A1414)
-val InfoContainer = Color(0xFF1A1A2A)
+// Borders
+val ColorBorder = Color(0xFF3A433F)
+val ColorBorderFocused = NeonYellow.copy(alpha = 0.5f)
 
-// Border Colors
-val ColorBorder = Color(0xFF1E2826)        // Subtle border color
-val CardBorder = Color(0xFF1E2826)         // Card border color
+// Currency Colors
+val ColorIncome = ColorSuccess
+val ColorExpense = ColorError
+val ColorDebt = ColorWarning
 
-// Glass Effect
-val GlassOverlay = Color(0x1AFFFFFF)       // 10% white for glass effect
-
-// Ambient glow effects
-val GreenGlow = Color(0x338CE700)          // 20% green for radial glow
-val GreenGlowSubtle = Color(0x1A8CE700)    // 10% green for subtle ambient
-val CardGradientTop = Color(0xFF1A2220)    // Slightly lighter card top
-val CardGradientBottom = Color(0xFF131918) // Card bottom (matches CardBackground)
+// Legacy aliases for backward compatibility
+val Inchworm = NeonYellow
+val Gunmetal = SurfaceDark
+val Orange = ColorWarning
+val PaleViolet = ColorInfo
+val BrightSnow = TextPrimary
+val AmericanSilver = TextSecondary
+val DeepBackground = DarkGreen
+val CardBackground = SurfaceDark
+val DarkBackground = DarkGreen
+val AccentGreen = NeonYellow
+val AccentGreenDim = NeonYellowDark
+val PositiveChange = ColorSuccess
+val NegativeChange = ColorError
+val SuccessContainer = ColorSuccessContainer
+val WarningContainer = ColorWarningContainer
+val ErrorContainer = ColorErrorContainer
+val InfoContainer = Color(0xFF0A1A2A)
+val CardBorder = ColorBorder
+val GlassOverlay = ColorOverlayHover
+val GreenGlow = NeonYellow.copy(alpha = 0.2f)
+val GreenGlowSubtle = NeonYellow.copy(alpha = 0.1f)
+val CardGradientTop = SurfaceElevated
+val CardGradientBottom = SurfaceDark

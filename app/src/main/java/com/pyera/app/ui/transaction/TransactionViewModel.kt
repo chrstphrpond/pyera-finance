@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -23,6 +24,7 @@ import android.net.Uri
 import com.pyera.app.data.repository.OcrRepository
 
 import com.pyera.app.domain.smart.SmartCategorizer
+import com.pyera.app.util.ValidationUtils
 import java.util.Calendar
 
 @HiltViewModel
@@ -40,9 +42,14 @@ class TransactionViewModel @Inject constructor(
         loadData()
     }
 
+    // Cache date formatters
+    private val dateFormatter = java.text.SimpleDateFormat("MMM dd, yyyy", java.util.Locale.getDefault())
+    private val calendar = java.util.Calendar.getInstance()
+
     private fun loadData() {
         viewModelScope.launch {
             transactionRepository.getAllTransactions()
+                .distinctUntilChanged()
                 .onStart { _state.update { it.copy(isLoading = true) } }
                 .catch { e -> _state.update { it.copy(isLoading = false, error = e.message) } }
                 .collect { transactions ->
@@ -55,6 +62,7 @@ class TransactionViewModel @Inject constructor(
 
         viewModelScope.launch {
             categoryRepository.getAllCategories()
+                .distinctUntilChanged()
                 .collect { categories ->
                     if (categories.isNotEmpty()) {
                         _state.update { it.copy(categories = categories) }
@@ -214,7 +222,6 @@ class TransactionViewModel @Inject constructor(
         val transactions = state.value.filteredTransactions
         if (transactions.isEmpty()) return emptyMap()
 
-        val calendar = Calendar.getInstance()
         val today = calendar.apply {
             set(Calendar.HOUR_OF_DAY, 0)
             set(Calendar.MINUTE, 0)
@@ -229,10 +236,7 @@ class TransactionViewModel @Inject constructor(
             when {
                 transaction.date >= today -> "Today"
                 transaction.date >= yesterday -> "Yesterday"
-                else -> {
-                    val sdf = java.text.SimpleDateFormat("MMM dd, yyyy", java.util.Locale.getDefault())
-                    sdf.format(java.util.Date(transaction.date))
-                }
+                else -> dateFormatter.format(java.util.Date(transaction.date))
             }
         }
     }
@@ -250,6 +254,20 @@ class TransactionViewModel @Inject constructor(
     }
 
     fun addTransaction(transaction: TransactionEntity) {
+        // Validate input
+        val noteValidation = ValidationUtils.validateTransactionNote(transaction.note)
+        if (noteValidation is ValidationUtils.ValidationResult.Error) {
+            _state.update { it.copy(error = noteValidation.message) }
+            return
+        }
+        
+        val amountValidation = ValidationUtils.validateAmount(transaction.amount)
+        if (amountValidation is ValidationUtils.ValidationResult.Error) {
+            _state.update { it.copy(error = amountValidation.message) }
+            return
+        }
+        
+        // Proceed with adding transaction
         viewModelScope.launch {
             try {
                 var finalTransaction = transaction

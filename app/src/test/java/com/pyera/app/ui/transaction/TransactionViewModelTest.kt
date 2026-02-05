@@ -8,8 +8,9 @@ import com.pyera.app.data.repository.TransactionRepository
 import com.pyera.app.domain.smart.SmartCategorizer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.ResultHandlingTestDispatcher
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -24,23 +25,19 @@ import org.mockito.kotlin.whenever
 @OptIn(ExperimentalCoroutinesApi::class)
 class TransactionViewModelTest {
 
-    private lateinit var viewModel: TransactionViewModel
     private val transactionRepository: TransactionRepository = mock()
     private val categoryRepository: CategoryRepository = mock()
     private val ocrRepository: OcrRepository = mock()
     private val smartCategorizer: SmartCategorizer = mock()
 
-    private val testDispatcher = UnconfinedTestDispatcher()
+    private val testDispatcher = StandardTestDispatcher()
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
-        viewModel = TransactionViewModel(
-            transactionRepository,
-            categoryRepository,
-            ocrRepository,
-            smartCategorizer
-        )
+        // Setup default mock returns to avoid exceptions during ViewModel init
+        whenever(transactionRepository.getAllTransactions()).thenReturn(flowOf(emptyList()))
+        whenever(categoryRepository.getAllCategories()).thenReturn(flowOf(emptyList()))
     }
 
     @After
@@ -49,8 +46,15 @@ class TransactionViewModelTest {
     }
 
     @Test
-    fun `addTransaction triggers auto-categorization when categoryId is 0`() = runTest {
+    fun `addTransaction triggers auto-categorization when categoryId is 0`() = runTest(testDispatcher) {
         // Given
+        val viewModel = TransactionViewModel(
+            transactionRepository,
+            categoryRepository,
+            ocrRepository,
+            smartCategorizer
+        )
+        
         val transaction = TransactionEntity(
             amount = 10.0,
             note = "Uber",
@@ -66,19 +70,26 @@ class TransactionViewModelTest {
 
         // When
         viewModel.addTransaction(transaction)
+        advanceUntilIdle()
 
         // Then
-        // Verify that insertTransaction was called with the PREDICTED category ID (5), not 0
         verify(transactionRepository).insertTransaction(
             org.mockito.kotlin.check {
-                 assert(it.categoryId == 5L)
+                 assert(it.categoryId == 5) { "Expected categoryId 5 but was ${it.categoryId}" }
             }
         )
     }
 
     @Test
-    fun `addTransaction uses provided categoryId if valid`() = runTest {
+    fun `addTransaction uses provided categoryId if valid`() = runTest(testDispatcher) {
         // Given
+        val viewModel = TransactionViewModel(
+            transactionRepository,
+            categoryRepository,
+            ocrRepository,
+            smartCategorizer
+        )
+        
         val transaction = TransactionEntity(
             amount = 10.0,
             note = "Uber",
@@ -89,12 +100,12 @@ class TransactionViewModelTest {
 
         // When
         viewModel.addTransaction(transaction)
+        advanceUntilIdle()
 
         // Then
-        // Verify that insertTransaction was called with the ORIGINAL category ID (2)
         verify(transactionRepository).insertTransaction(
              org.mockito.kotlin.check {
-                 assert(it.categoryId == 2L)
+                 assert(it.categoryId == 2) { "Expected categoryId 2 but was ${it.categoryId}" }
             }
         )
     }

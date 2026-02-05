@@ -1,5 +1,6 @@
 package com.pyera.app.ui.analysis
 
+import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pyera.app.data.local.entity.CategoryEntity
@@ -16,12 +17,14 @@ import javax.inject.Inject
 import com.pyera.app.domain.smart.PredictiveBudgetUseCase
 import com.pyera.app.data.repository.TransactionRepository
 
+@Immutable
 data class ExpenseByCategory(
     val categoryName: String,
     val amount: Double,
     val color: Int
 )
 
+@Immutable
 data class AnalysisState(
     val totalExpense: Double = 0.0,
     val totalIncome: Double = 0.0,

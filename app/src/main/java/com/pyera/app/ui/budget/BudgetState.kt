@@ -1,14 +1,17 @@
 package com.pyera.app.ui.budget
 
+import androidx.compose.runtime.Immutable
 import com.pyera.app.data.local.entity.BudgetEntity
 import com.pyera.app.data.local.entity.CategoryEntity
 
+@Immutable
 data class BudgetState(
     val isLoading: Boolean = false,
     val items: List<BudgetItem> = emptyList(),
     val currentPeriod: String = "" // "YYYY-MM"
 )
 
+@Immutable
 data class BudgetItem(
     val category: CategoryEntity,
     val budgetAmount: Double,

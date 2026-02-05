@@ -2,39 +2,34 @@ package com.pyera.app.ui.theme
 
 import androidx.compose.ui.unit.dp
 
-/**
- * Pyera spacing tokens following an 8dp grid system.
- * Use these tokens for consistent spacing throughout the app.
- */
 object Spacing {
-    /** 2dp - Extra extra small, for tight spacing */
-    val xxs = 2.dp
+    val None = 0.dp
+    val XXSmall = 2.dp
+    val XSmall = 4.dp
+    val Small = 8.dp
+    val Medium = 12.dp
+    val Large = 16.dp
+    val XLarge = 24.dp
+    val XXLarge = 32.dp
+    val XXXLarge = 48.dp
     
-    /** 4dp - Extra small, for dense layouts */
-    val xs = 4.dp
+    // Component-specific
+    val CardPadding = 16.dp
+    val ScreenPadding = 16.dp
+    val DialogPadding = 24.dp
+    val ListItemSpacing = 12.dp
+    val SectionSpacing = 24.dp
     
-    /** 8dp - Small, standard internal padding */
-    val sm = 8.dp
-    
-    /** 12dp - Medium small, for moderate spacing */
-    val ms = 12.dp
-    
-    /** 16dp - Medium, standard component spacing */
-    val md = 16.dp
-    
-    /** 20dp - Medium large, for section breaks */
+    // Legacy aliases for backward compatibility
+    val xxs = XXSmall
+    val xs = XSmall
+    val sm = Small
+    val ms = Medium
+    val md = Large
     val ml = 20.dp
-    
-    /** 24dp - Large, for major sections */
-    val lg = 24.dp
-    
-    /** 32dp - Extra large, for screen padding */
-    val xl = 32.dp
-    
-    /** 48dp - Extra extra large, for major separations */
-    val xxl = 48.dp
-    
-    /** 64dp - Huge, for splash screens or hero sections */
+    val lg = XLarge
+    val xl = XXLarge
+    val xxl = XXXLarge
     val huge = 64.dp
 }
 

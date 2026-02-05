@@ -1,9 +1,16 @@
 package com.pyera.app.data.local.entity
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "categories")
+@Entity(
+    tableName = "categories",
+    indices = [
+        Index(value = ["type"], name = "idx_categories_type"),
+        Index(value = ["name"], name = "idx_categories_name")
+    ]
+)
 data class CategoryEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,

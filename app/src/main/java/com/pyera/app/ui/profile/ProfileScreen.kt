@@ -1,44 +1,36 @@
 package com.pyera.app.ui.profile
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
+import com.pyera.app.ui.components.PyeraButton
 import com.pyera.app.ui.components.PyeraCard
-import com.pyera.app.ui.theme.AccentGreen
-import com.pyera.app.ui.theme.ColorBorder
-import com.pyera.app.ui.theme.ColorError
-import com.pyera.app.ui.theme.DeepBackground
-import com.pyera.app.ui.theme.SurfaceElevated
-import com.pyera.app.ui.theme.TextPrimary
-import com.pyera.app.ui.theme.TextSecondary
+import com.pyera.app.ui.components.ButtonVariant
+import com.pyera.app.ui.navigation.Screen
+import com.pyera.app.ui.theme.*
 
 @Composable
 fun ProfileScreen(
+    navController: NavController,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     Scaffold(
-        containerColor = DeepBackground
+        containerColor = DarkGreen
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -46,522 +38,291 @@ fun ProfileScreen(
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
         ) {
-            // Profile Header
-            ProfileHeader(
-                userName = state.userName,
-                email = state.email,
-                avatarInitials = state.avatarInitials,
-                onEditProfile = { /* Navigate to edit profile */ }
+            // User Header
+            UserProfileHeader(
+                userName = state.userName.ifEmpty { "User" },
+                email = state.email.ifEmpty { "user@example.com" },
+                avatarUrl = state.avatarUrl
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(Spacing.Large))
 
-            // Stats Row
-            StatsRow(
-                totalTransactions = state.totalTransactions,
-                totalSavings = state.totalSavings,
-                budgetStatus = state.budgetStatus
+            // Quick Stats
+            QuickStatsRow(
+                transactionCount = state.transactionCount,
+                savingsGoals = state.savingsGoalsCount,
+                activeBudgets = state.activeBudgetsCount
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(Spacing.Large))
 
-            // Settings Section
-            SettingsSection(
-                notificationsEnabled = state.notificationsEnabled,
-                currency = state.currency,
-                appearance = state.appearance,
-                isBiometricAvailable = state.isBiometricAvailable,
-                isBiometricEnabled = state.isBiometricEnabled,
-                onToggleNotifications = { enabled ->
-                    viewModel.onEvent(ProfileEvent.ToggleNotifications(enabled))
-                },
-                onToggleBiometric = { enabled ->
-                    viewModel.onEvent(ProfileEvent.ToggleBiometric(enabled))
-                },
-                onAccountSettingsClick = {
-                    viewModel.onEvent(ProfileEvent.NavigateToAccountSettings)
-                },
-                onDataPrivacyClick = {
-                    viewModel.onEvent(ProfileEvent.NavigateToDataPrivacy)
-                }
-            )
+            // Settings Sections
+            SettingsSection(title = "Account") {
+                SettingsItem(
+                    icon = Icons.Default.Person,
+                    title = "Personal Information",
+                    onClick = { /* navController.navigate(Screen.EditProfile.route) */ }
+                )
+                SettingsDivider()
+                SettingsItem(
+                    icon = Icons.Default.Security,
+                    title = "Security",
+                    onClick = { /* navController.navigate(Screen.Security.route) */ }
+                )
+                SettingsDivider()
+                SettingsItem(
+                    icon = Icons.Default.Notifications,
+                    title = "Notifications",
+                    trailing = {
+                        Switch(
+                            checked = state.notificationsEnabled,
+                            onCheckedChange = viewModel::setNotificationsEnabled,
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = NeonYellow,
+                                checkedTrackColor = NeonYellow.copy(alpha = 0.5f),
+                                uncheckedThumbColor = TextSecondary,
+                                uncheckedTrackColor = ColorBorder
+                            )
+                        )
+                    }
+                )
+            }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            SettingsSection(title = "Data") {
+                SettingsItem(
+                    icon = Icons.Default.Download,
+                    title = "Export to CSV",
+                    onClick = { viewModel.exportData() }
+                )
+                SettingsDivider()
+                SettingsItem(
+                    icon = Icons.Default.Backup,
+                    title = "Backup & Restore",
+                    onClick = { /* navController.navigate(Screen.Backup.route) */ }
+                )
+            }
 
-            // Actions Section
-            ActionsSection(
-                onExportDataClick = {
-                    viewModel.onEvent(ProfileEvent.ExportData)
-                },
-                onHelpSupportClick = {
-                    viewModel.onEvent(ProfileEvent.NavigateToHelpSupport)
-                },
-                onAboutClick = {
-                    viewModel.onEvent(ProfileEvent.NavigateToAbout)
-                }
-            )
+            SettingsSection(title = "App") {
+                SettingsItem(
+                    icon = Icons.Default.Palette,
+                    title = "Appearance",
+                    subtitle = "Dark mode",
+                    onClick = { /* navController.navigate(Screen.Appearance.route) */ }
+                )
+                SettingsDivider()
+                SettingsItem(
+                    icon = Icons.Default.Help,
+                    title = "Help & Support",
+                    onClick = { /* navController.navigate(Screen.Support.route) */ }
+                )
+                SettingsDivider()
+                SettingsItem(
+                    icon = Icons.Default.Info,
+                    title = "About",
+                    subtitle = "Version ${state.appVersion}",
+                    onClick = { /* navController.navigate(Screen.About.route) */ }
+                )
+            }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(Spacing.Large))
 
-            // Danger Zone
-            DangerZone(
-                onLogoutClick = {
-                    viewModel.onEvent(ProfileEvent.Logout)
-                }
-            )
+            // Logout Button
+            PyeraButton(
+                onClick = { viewModel.logout() },
+                variant = ButtonVariant.Destructive,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = Spacing.ScreenPadding)
+            ) {
+                Text("Logout")
+            }
 
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Footer
-            Footer(appVersion = state.appVersion)
-
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(Spacing.XXXLarge))
         }
     }
 }
 
 @Composable
-fun ProfileHeader(
+private fun UserProfileHeader(
     userName: String,
     email: String,
-    avatarInitials: String,
-    onEditProfile: () -> Unit
+    avatarUrl: String?
 ) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .padding(top = 16.dp),
+            .padding(Spacing.ScreenPadding),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Avatar
-        Box(
-            modifier = Modifier
-                .size(100.dp)
-                .clip(CircleShape)
-                .background(SurfaceElevated),
-            contentAlignment = Alignment.Center
+        Surface(
+            shape = MaterialTheme.shapes.extraLarge,
+            color = SurfaceElevated,
+            modifier = Modifier.size(100.dp)
         ) {
-            Text(
-                text = avatarInitials,
-                fontSize = 36.sp,
-                fontWeight = FontWeight.Bold,
-                color = AccentGreen
-            )
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = null,
+                    modifier = Modifier.size(50.dp),
+                    tint = NeonYellow
+                )
+            }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(Spacing.Medium))
 
-        // User Name
+        // Name
         Text(
             text = userName,
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.White
+            style = MaterialTheme.typography.headlineSmall,
+            color = TextPrimary
         )
-
-        Spacer(modifier = Modifier.height(4.dp))
 
         // Email
         Text(
             text = email,
-            fontSize = 14.sp,
+            style = MaterialTheme.typography.bodyMedium,
             color = TextSecondary
         )
+    }
+}
 
-        Spacer(modifier = Modifier.height(16.dp))
+@Composable
+private fun QuickStatsRow(
+    transactionCount: Int,
+    savingsGoals: Int,
+    activeBudgets: Int
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = Spacing.ScreenPadding),
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+        QuickStatItem(
+            value = transactionCount.toString(),
+            label = "Transactions"
+        )
+        QuickStatItem(
+            value = savingsGoals.toString(),
+            label = "Goals"
+        )
+        QuickStatItem(
+            value = activeBudgets.toString(),
+            label = "Budgets"
+        )
+    }
+}
 
-        // Edit Profile Button
-        OutlinedButton(
-            onClick = onEditProfile,
-            shape = RoundedCornerShape(20.dp),
-            colors = ButtonDefaults.outlinedButtonColors(
-                contentColor = AccentGreen
-            ),
-            border = ButtonDefaults.outlinedButtonBorder.copy(
-                brush = androidx.compose.ui.graphics.SolidColor(ColorBorder)
-            )
+@Composable
+private fun QuickStatItem(
+    value: String,
+    label: String
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = value,
+            style = MaterialTheme.typography.headlineSmall,
+            color = NeonYellow
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodySmall,
+            color = TextSecondary
+        )
+    }
+}
+
+@Composable
+private fun SettingsSection(
+    title: String,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Column(
+        modifier = Modifier.padding(vertical = Spacing.Small)
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.labelLarge,
+            color = NeonYellow,
+            modifier = Modifier.padding(horizontal = Spacing.ScreenPadding, vertical = Spacing.Small)
+        )
+
+        PyeraCard(
+            modifier = Modifier.padding(horizontal = Spacing.ScreenPadding),
+            borderColor = ColorBorder
         ) {
-            Text(
-                text = "Edit Profile",
-                fontSize = 14.sp
-            )
+            Column {
+                content()
+            }
         }
     }
 }
 
 @Composable
-fun StatsRow(
-    totalTransactions: Int,
-    totalSavings: Double,
-    budgetStatus: String
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        StatCard(
-            modifier = Modifier.weight(1f),
-            title = "Transactions",
-            value = totalTransactions.toString(),
-            icon = Icons.Default.ReceiptLong
-        )
-        StatCard(
-            modifier = Modifier.weight(1f),
-            title = "Savings",
-            value = "₱${String.format("%.0f", totalSavings)}",
-            icon = Icons.Default.Savings
-        )
-        StatCard(
-            modifier = Modifier.weight(1f),
-            title = "Budget",
-            value = budgetStatus,
-            icon = Icons.Default.AccountBalanceWallet
-        )
-    }
+private fun SettingsDivider() {
+    HorizontalDivider(
+        color = ColorBorder,
+        thickness = 1.dp,
+        modifier = Modifier.padding(horizontal = Spacing.CardPadding)
+    )
 }
 
 @Composable
-fun StatCard(
-    modifier: Modifier = Modifier,
+private fun SettingsItem(
+    icon: ImageVector,
     title: String,
-    value: String,
-    icon: ImageVector
+    subtitle: String? = null,
+    onClick: (() -> Unit)? = null,
+    trailing: @Composable (() -> Unit)? = null
 ) {
-    PyeraCard(
-        modifier = modifier
+    val clickableModifier = if (onClick != null) {
+        Modifier.clickable(onClick = onClick)
+    } else Modifier
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(clickableModifier)
+            .padding(Spacing.CardPadding),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Column(
-            modifier = Modifier
-                .padding(12.dp)
-                .fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Spacing.Medium)
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = AccentGreen,
-                modifier = Modifier.size(24.dp)
+                tint = TextSecondary
             )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = value,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                color = TextPrimary
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = title,
-                fontSize = 12.sp,
-                color = TextSecondary
-            )
-        }
-    }
-}
 
-@Composable
-fun SettingsSection(
-    notificationsEnabled: Boolean,
-    currency: String,
-    appearance: String,
-    isBiometricAvailable: Boolean,
-    isBiometricEnabled: Boolean,
-    onToggleNotifications: (Boolean) -> Unit,
-    onToggleBiometric: (Boolean) -> Unit,
-    onAccountSettingsClick: () -> Unit,
-    onDataPrivacyClick: () -> Unit
-) {
-    Column(
-        modifier = Modifier.padding(horizontal = 16.dp)
-    ) {
-        // Section Header
-        Text(
-            text = "Settings",
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold,
-            color = TextPrimary
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        PyeraCard {
             Column {
-                // Account Settings
-                MenuItemWithArrow(
-                    icon = Icons.Default.Person,
-                    title = "Account Settings",
-                    onClick = onAccountSettingsClick
-                )
-
-                Divider(color = ColorBorder, thickness = 1.dp)
-
-                // Notifications
-                MenuItemWithToggle(
-                    icon = Icons.Default.Notifications,
-                    title = "Notifications",
-                    checked = notificationsEnabled,
-                    onCheckedChange = onToggleNotifications
-                )
-
-                Divider(color = ColorBorder, thickness = 1.dp)
-
-                // Biometric Authentication (only show if available)
-                if (isBiometricAvailable) {
-                    MenuItemWithToggle(
-                        icon = Icons.Default.Fingerprint,
-                        title = "Biometric Login",
-                        checked = isBiometricEnabled,
-                        onCheckedChange = onToggleBiometric
-                    )
-
-                    Divider(color = ColorBorder, thickness = 1.dp)
-                }
-
-                // Currency
-                MenuItemWithValue(
-                    icon = Icons.Default.AttachMoney,
-                    title = "Currency",
-                    value = currency
-                )
-
-                Divider(color = ColorBorder, thickness = 1.dp)
-
-                // Appearance
-                MenuItemWithValue(
-                    icon = Icons.Default.Palette,
-                    title = "Appearance",
-                    value = appearance
-                )
-
-                Divider(color = ColorBorder, thickness = 1.dp)
-
-                // Data & Privacy
-                MenuItemWithArrow(
-                    icon = Icons.Default.Shield,
-                    title = "Data & Privacy",
-                    onClick = onDataPrivacyClick
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun ActionsSection(
-    onExportDataClick: () -> Unit,
-    onHelpSupportClick: () -> Unit,
-    onAboutClick: () -> Unit
-) {
-    Column(
-        modifier = Modifier.padding(horizontal = 16.dp)
-    ) {
-        // Section Header
-        Text(
-            text = "Actions",
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold,
-            color = TextPrimary
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        PyeraCard {
-            Column {
-                // Export Data
-                MenuItemWithArrow(
-                    icon = Icons.Default.Download,
-                    title = "Export Data",
-                    onClick = onExportDataClick
-                )
-
-                Divider(color = ColorBorder, thickness = 1.dp)
-
-                // Help & Support
-                MenuItemWithArrow(
-                    icon = Icons.Default.Help,
-                    title = "Help & Support",
-                    onClick = onHelpSupportClick
-                )
-
-                Divider(color = ColorBorder, thickness = 1.dp)
-
-                // About Pyera
-                MenuItemWithArrow(
-                    icon = Icons.Default.Info,
-                    title = "About Pyera",
-                    onClick = onAboutClick
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun MenuItemWithArrow(
-    icon: ImageVector,
-    title: String,
-    onClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() }
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = AccentGreen,
-            modifier = Modifier.size(24.dp)
-        )
-        Spacer(modifier = Modifier.width(16.dp))
-        Text(
-            text = title,
-            fontSize = 16.sp,
-            color = TextPrimary,
-            modifier = Modifier.weight(1f)
-        )
-        Icon(
-            imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
-            contentDescription = null,
-            tint = TextSecondary,
-            modifier = Modifier.size(16.dp)
-        )
-    }
-}
-
-@Composable
-fun MenuItemWithToggle(
-    icon: ImageVector,
-    title: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = AccentGreen,
-            modifier = Modifier.size(24.dp)
-        )
-        Spacer(modifier = Modifier.width(16.dp))
-        Text(
-            text = title,
-            fontSize = 16.sp,
-            color = TextPrimary,
-            modifier = Modifier.weight(1f)
-        )
-        Switch(
-            checked = checked,
-            onCheckedChange = onCheckedChange,
-            colors = SwitchDefaults.colors(
-                checkedThumbColor = AccentGreen,
-                checkedTrackColor = AccentGreen.copy(alpha = 0.5f),
-                uncheckedThumbColor = TextSecondary,
-                uncheckedTrackColor = ColorBorder
-            )
-        )
-    }
-}
-
-@Composable
-fun MenuItemWithValue(
-    icon: ImageVector,
-    title: String,
-    value: String
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = AccentGreen,
-            modifier = Modifier.size(24.dp)
-        )
-        Spacer(modifier = Modifier.width(16.dp))
-        Text(
-            text = title,
-            fontSize = 16.sp,
-            color = TextPrimary,
-            modifier = Modifier.weight(1f)
-        )
-        Text(
-            text = value,
-            fontSize = 14.sp,
-            color = TextSecondary
-        )
-    }
-}
-
-@Composable
-fun DangerZone(
-    onLogoutClick: () -> Unit
-) {
-    Column(
-        modifier = Modifier.padding(horizontal = 16.dp)
-    ) {
-        OutlinedButton(
-            onClick = onLogoutClick,
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.outlinedButtonColors(
-                contentColor = ColorError
-            ),
-            border = ButtonDefaults.outlinedButtonBorder.copy(
-                brush = androidx.compose.ui.graphics.SolidColor(ColorError)
-            )
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(vertical = 4.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Logout,
-                    contentDescription = null,
-                    tint = ColorError
-                )
-                Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Log Out",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium
+                    text = title,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = TextPrimary
                 )
+                if (subtitle != null) {
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextSecondary
+                    )
+                }
             }
         }
-    }
-}
 
-@Composable
-fun Footer(
-    appVersion: String
-) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "Pyera v$appVersion",
-            fontSize = 12.sp,
-            color = TextSecondary
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = "© 2024 Pyera Finance. All rights reserved.",
-            fontSize = 10.sp,
-            color = TextSecondary.copy(alpha = 0.7f)
-        )
+        if (trailing != null) {
+            trailing()
+        } else if (onClick != null) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
+                contentDescription = null,
+                tint = TextSecondary
+            )
+        }
     }
 }

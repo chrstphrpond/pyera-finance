@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -56,7 +57,7 @@ fun AddTransactionScreen(
     navController: NavController,
     viewModel: TransactionViewModel = hiltViewModel()
 ) {
-    val state by viewModel.state.collectAsState()
+    val state by viewModel.state.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     val context = androidx.compose.ui.platform.LocalContext.current
     
@@ -229,7 +230,10 @@ fun AddTransactionScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     contentPadding = PaddingValues(horizontal = 4.dp)
                 ) {
-                    items(filteredCategories) { category ->
+                    items(
+                    items = filteredCategories,
+                    key = { category: CategoryEntity -> category.id }
+                ) { category: CategoryEntity ->
                         CategoryItem(
                             category = category,
                             isSelected = selectedCategory?.id == category.id,

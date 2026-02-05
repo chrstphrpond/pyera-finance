@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import android.database.sqlite.SQLiteException
@@ -104,6 +105,7 @@ class BudgetViewModel @Inject constructor(
 
     // Categories for budget creation
     val categories: StateFlow<List<CategoryEntity>> = categoryRepository.getAllCategories()
+        .distinctUntilChanged()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -307,6 +309,41 @@ class BudgetViewModel @Inject constructor(
         )
     }
 
+    // ==================== Validation Methods ====================
+    
+    fun validateBudgetAmount(amount: String): BudgetValidationResult {
+        return when {
+            amount.isBlank() -> BudgetValidationResult.Error("Amount is required")
+            amount.toDoubleOrNull() == null -> BudgetValidationResult.Error("Invalid amount")
+            amount.toDouble() <= 0 -> BudgetValidationResult.Error("Amount must be greater than 0")
+            amount.toDouble() > 999999999.99 -> BudgetValidationResult.Error("Amount is too large")
+            else -> BudgetValidationResult.Success
+        }
+    }
+    
+    fun validateBudgetCategory(categoryId: Int?): BudgetValidationResult {
+        return when {
+            categoryId == null || categoryId <= 0 -> BudgetValidationResult.Error("Please select a category")
+            else -> BudgetValidationResult.Success
+        }
+    }
+    
+    fun validateCreateBudgetState(): BudgetValidationResult {
+        val state = _createBudgetState.value
+        
+        val categoryResult = validateBudgetCategory(state.categoryId)
+        if (categoryResult is BudgetValidationResult.Error) {
+            return categoryResult
+        }
+        
+        val amountResult = validateBudgetAmount(state.amount)
+        if (amountResult is BudgetValidationResult.Error) {
+            return amountResult
+        }
+        
+        return BudgetValidationResult.Success
+    }
+
     // ==================== Private Methods ====================
 
     private fun updateDateRange() {
@@ -347,3 +384,11 @@ data class CreateBudgetState(
     val success: Boolean = false,
     val error: String? = null
 )
+
+/**
+ * Validation result for budget operations
+ */
+sealed class BudgetValidationResult {
+    object Success : BudgetValidationResult()
+    data class Error(val message: String) : BudgetValidationResult()
+}

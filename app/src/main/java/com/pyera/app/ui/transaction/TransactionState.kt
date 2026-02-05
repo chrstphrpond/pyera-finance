@@ -1,5 +1,6 @@
 package com.pyera.app.ui.transaction
 
+import androidx.compose.runtime.Immutable
 import com.pyera.app.data.local.entity.CategoryEntity
 import com.pyera.app.data.local.entity.TransactionEntity
 
@@ -11,6 +12,7 @@ enum class DateRangeFilter {
     ALL, THIS_WEEK, THIS_MONTH, CUSTOM
 }
 
+@Immutable
 data class TransactionState(
     val transactions: List<TransactionEntity> = emptyList(),
     val filteredTransactions: List<TransactionEntity> = emptyList(),

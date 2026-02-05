@@ -1,5 +1,6 @@
 package com.pyera.app.ui.dashboard
 
+import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pyera.app.data.local.entity.TransactionEntity
@@ -10,6 +11,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
@@ -19,6 +21,7 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 import javax.inject.Inject
 
+@Immutable
 data class DashboardState(
     val totalBalance: Double = 0.0,
     val totalIncome: Double = 0.0,
@@ -28,6 +31,7 @@ data class DashboardState(
     val error: String? = null
 )
 
+@Immutable
 data class TransactionUiModel(
     val id: Int,
     val title: String,
@@ -45,28 +49,25 @@ class DashboardViewModel @Inject constructor(
     private val _state = MutableStateFlow(DashboardState())
     val state: StateFlow<DashboardState> = _state.asStateFlow()
 
-    init {
-        loadDashboardData()
-    }
-
     private fun loadDashboardData() {
         transactionRepository.getAllTransactions()
+            .distinctUntilChanged()
             .onStart { _state.value = _state.value.copy(isLoading = true) }
             .onEach { transactions ->
                 val income = transactions
-                    .filter { it.type == "INCOME" }
-                    .sumOf { it.amount }
+                    .filter { t -> t.type == "INCOME" }
+                    .sumOf { t -> t.amount }
                 
                 val expense = transactions
-                    .filter { it.type == "EXPENSE" }
-                    .sumOf { it.amount }
+                    .filter { t -> t.type == "EXPENSE" }
+                    .sumOf { t -> t.amount }
                 
                 val balance = income - expense
                 
                 val recentTransactions = transactions
-                    .sortedByDescending { it.date }
+                    .sortedByDescending { t -> t.date }
                     .take(5)
-                    .map { it.toUiModel() }
+                    .map { t -> t.toUiModel() }
                 
                 _state.value = DashboardState(
                     totalBalance = balance,
@@ -94,11 +95,17 @@ class DashboardViewModel @Inject constructor(
         loadDashboardData()
     }
 
+    // Cache date formatters - don't recreate on each mapping
+    private val dateFormat = SimpleDateFormat("MMM dd", Locale.getDefault())
+    private val todayFormat = SimpleDateFormat("yyyyMMdd", Locale.getDefault())
+
+    init {
+        loadDashboardData()
+    }
+
     private fun TransactionEntity.toUiModel(): TransactionUiModel {
-        val dateFormat = SimpleDateFormat("MMM dd", Locale.getDefault())
-        val timeFormat = SimpleDateFormat("h:mm a", Locale.getDefault())
-        val today = SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(System.currentTimeMillis())
-        val transactionDate = SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(this.date)
+        val today = todayFormat.format(System.currentTimeMillis())
+        val transactionDate = todayFormat.format(this.date)
         
         val dateString = when (transactionDate) {
             today -> "Today"

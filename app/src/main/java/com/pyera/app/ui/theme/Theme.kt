@@ -10,52 +10,59 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
-    primary = AccentGreen,
-    onPrimary = DeepBackground,
-    primaryContainer = CardBackground,
-    onPrimaryContainer = AccentGreen,
-    secondary = PaleViolet,
-    onSecondary = DeepBackground,
-    secondaryContainer = InfoContainer,
-    onSecondaryContainer = PaleViolet,
-    tertiary = Orange,
-    onTertiary = DeepBackground,
-    tertiaryContainer = WarningContainer,
-    onTertiaryContainer = Orange,
-    background = DeepBackground,
+    primary = NeonYellow,
+    onPrimary = DarkGreen,
+    primaryContainer = NeonYellow.copy(alpha = 0.15f),
+    onPrimaryContainer = NeonYellow,
+    secondary = SurfaceElevated,
+    onSecondary = TextPrimary,
+    secondaryContainer = SurfaceElevated,
+    onSecondaryContainer = TextPrimary,
+    tertiary = ColorWarning,
+    onTertiary = DarkGreen,
+    tertiaryContainer = ColorWarningContainer,
+    onTertiaryContainer = ColorWarning,
+    background = DarkGreen,
     onBackground = TextPrimary,
-    surface = CardBackground,
+    surface = SurfaceDark,
     onSurface = TextPrimary,
     surfaceVariant = SurfaceElevated,
     onSurfaceVariant = TextSecondary,
-    outline = CardBorder,
-    outlineVariant = CardBorder,
+    surfaceTint = NeonYellow,
     error = ColorError,
-    onError = BrightSnow,
-    errorContainer = ErrorContainer,
-    onErrorContainer = ColorError
+    onError = TextPrimary,
+    errorContainer = ColorErrorContainer,
+    onErrorContainer = ColorError,
+    outline = ColorBorder,
+    outlineVariant = ColorBorder.copy(alpha = 0.5f),
+    scrim = Color(0xFF000000)
 )
 
 // Light scheme as fallback - primarily using dark mode as brand identity
 private val LightColorScheme = lightColorScheme(
-    primary = Inchworm,
-    onPrimary = DarkBackground,
-    primaryContainer = SurfaceDark,
-    onPrimaryContainer = Inchworm,
-    secondary = PaleViolet,
-    onSecondary = DarkBackground,
-    tertiary = Orange,
-    onTertiary = DarkBackground,
-    background = BrightSnow,
-    onBackground = DarkBackground,
-    surface = AmericanSilver,
-    onSurface = DarkBackground
+    primary = NeonYellow,
+    onPrimary = DarkGreen,
+    primaryContainer = NeonYellow.copy(alpha = 0.15f),
+    onPrimaryContainer = NeonYellowDark,
+    secondary = SurfaceElevated,
+    onSecondary = TextPrimary,
+    background = Color(0xFFF5F5F5),
+    onBackground = DarkGreen,
+    surface = Color(0xFFFFFFFF),
+    onSurface = DarkGreen,
+    surfaceVariant = Color(0xFFE8E8E8),
+    onSurfaceVariant = TextSecondary,
+    error = ColorError,
+    onError = Color(0xFFFFFFFF),
+    errorContainer = ColorErrorContainer,
+    outline = ColorBorder
 )
 
 @Composable

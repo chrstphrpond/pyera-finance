@@ -20,30 +20,23 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -60,7 +53,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -70,13 +65,21 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.pyera.app.R
+import com.pyera.app.ui.components.ButtonSize
+import com.pyera.app.ui.components.PyeraButton
+import com.pyera.app.ui.components.PyeraTextField
 import com.pyera.app.ui.theme.AccentGreen
 import com.pyera.app.ui.theme.CardBackground
 import com.pyera.app.ui.theme.CardBorder
 import com.pyera.app.ui.theme.ColorError
+import com.pyera.app.ui.theme.ColorSuccess
+import com.pyera.app.ui.theme.ColorWarning
 import com.pyera.app.ui.theme.DeepBackground
-import com.pyera.app.ui.theme.Orange
-import com.pyera.app.ui.theme.PositiveChange
+import com.pyera.app.ui.theme.NeonYellow
+import com.pyera.app.ui.theme.Radius
+import com.pyera.app.ui.theme.Spacing
+import com.pyera.app.ui.theme.SurfaceElevated
 import com.pyera.app.ui.theme.TextSecondary
 import com.pyera.app.ui.theme.TextTertiary
 
@@ -98,22 +101,24 @@ fun RegisterScreen(
     val scrollState = rememberScrollState()
 
     // Validation states
-    val passwordsMatch by remember {
+    val passwordsMatch by remember(confirmPassword, password) {
         derivedStateOf {
             confirmPassword.isEmpty() || password == confirmPassword
         }
     }
-    val passwordStrength by remember {
+    
+    val passwordStrength by remember(password) {
         derivedStateOf { calculatePasswordStrength(password) }
     }
-    val allFieldsValid by remember {
+    
+    val isFormValid by remember(name, email, password, confirmPassword, passwordsMatch, uiState.termsAccepted) {
         derivedStateOf {
-            name.isNotEmpty() &&
-                    email.isNotEmpty() &&
-                    password.isNotEmpty() &&
-                    confirmPassword.isNotEmpty() &&
-                    passwordsMatch &&
-                    uiState.termsAccepted
+            name.isNotBlank() &&
+            email.isValidEmail() &&
+            password.length >= 6 &&
+            confirmPassword.isNotBlank() &&
+            passwordsMatch &&
+            uiState.termsAccepted
         }
     }
 
@@ -131,13 +136,13 @@ fun RegisterScreen(
     ) {
         // Background Image
         Image(
-            painter = painterResource(id = com.pyera.app.R.drawable.bg_auth_green_flow),
+            painter = painterResource(id = R.drawable.bg_auth_green_flow),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop,
-            alpha = 0.6f // Dim the image slightly by default
+            alpha = 0.6f
         )
-        
+
         // Gradient Scrim for text readability
         Box(
             modifier = Modifier
@@ -158,129 +163,87 @@ fun RegisterScreen(
                 .fillMaxSize()
                 .imePadding()
                 .verticalScroll(scrollState)
-                .padding(horizontal = 24.dp),
+                .padding(horizontal = Spacing.XLarge),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(Spacing.XXLarge))
 
             // Top Section - Logo and Branding
             RegisterHeader()
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(Spacing.XLarge))
 
-            // Registration Form
+            // Registration Form Card
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(20.dp))
+                    .clip(RoundedCornerShape(Radius.xl))
                     .background(CardBackground)
-                    .border(1.dp, CardBorder, RoundedCornerShape(20.dp))
-                    .padding(20.dp)
+                    .border(1.dp, CardBorder, RoundedCornerShape(Radius.xl))
+                    .padding(Spacing.XLarge)
             ) {
-                // Full Name Field
-                OutlinedTextField(
+                // Create Account Text
+                Text(
+                    text = "Create Account",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Text(
+                    text = "Sign up to get started",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = TextSecondary,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(Spacing.XLarge))
+
+                // Full Name Field using PyeraTextField
+                PyeraTextField(
                     value = name,
                     onValueChange = {
                         name = it
                         if (authState is AuthState.Error) viewModel.clearError()
                     },
-                    label = { Text("Full Name") },
-                    placeholder = { Text("Enter your full name") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = null,
-                            tint = TextTertiary
-                        )
-                    },
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Text,
-                        imeAction = ImeAction.Next
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                    ),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        focusedBorderColor = AccentGreen,
-                        unfocusedBorderColor = CardBorder,
-                        focusedLabelColor = AccentGreen,
-                        unfocusedLabelColor = TextTertiary,
-                        focusedLeadingIconColor = AccentGreen,
-                        unfocusedLeadingIconColor = TextTertiary,
-                        cursorColor = AccentGreen,
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent
-                    ),
-                    shape = RoundedCornerShape(12.dp)
+                    label = "Full Name",
+                    placeholder = "Enter your full name",
+                    leadingIcon = Icons.Default.Person,
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Next
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(Spacing.Large))
 
-                // Email Field
-                OutlinedTextField(
+                // Email Field using PyeraTextField
+                PyeraTextField(
                     value = email,
                     onValueChange = {
                         email = it
                         if (authState is AuthState.Error) viewModel.clearError()
                     },
-                    label = { Text("Email") },
-                    placeholder = { Text("Enter your email") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Email,
-                            contentDescription = null,
-                            tint = TextTertiary
-                        )
-                    },
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Email,
-                        imeAction = ImeAction.Next
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                    ),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        focusedBorderColor = AccentGreen,
-                        unfocusedBorderColor = CardBorder,
-                        focusedLabelColor = AccentGreen,
-                        unfocusedLabelColor = TextTertiary,
-                        focusedLeadingIconColor = AccentGreen,
-                        unfocusedLeadingIconColor = TextTertiary,
-                        cursorColor = AccentGreen,
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent
-                    ),
-                    shape = RoundedCornerShape(12.dp)
+                    label = "Email",
+                    placeholder = "Enter your email",
+                    leadingIcon = Icons.Default.Email,
+                    keyboardType = KeyboardType.Email,
+                    imeAction = ImeAction.Next
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(Spacing.Large))
 
-                // Password Field with Visibility Toggle
-                OutlinedTextField(
+                // Password Field using PyeraTextField
+                PyeraTextField(
                     value = password,
                     onValueChange = {
                         password = it
                         if (authState is AuthState.Error) viewModel.clearError()
                     },
-                    label = { Text("Password") },
-                    placeholder = { Text("Create a password") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Lock,
-                            contentDescription = null,
-                            tint = TextTertiary
-                        )
-                    },
+                    label = "Password",
+                    placeholder = "Create a password",
+                    leadingIcon = Icons.Default.Lock,
                     trailingIcon = {
                         IconButton(onClick = { viewModel.togglePasswordVisibility() }) {
                             Icon(
@@ -292,29 +255,10 @@ fun RegisterScreen(
                             )
                         }
                     },
+                    keyboardType = KeyboardType.Password,
+                    imeAction = ImeAction.Next,
                     visualTransformation = if (uiState.isPasswordVisible)
-                        VisualTransformation.None else PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Password,
-                        imeAction = ImeAction.Next
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                    ),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        focusedBorderColor = AccentGreen,
-                        unfocusedBorderColor = CardBorder,
-                        focusedLabelColor = AccentGreen,
-                        unfocusedLabelColor = TextTertiary,
-                        focusedLeadingIconColor = AccentGreen,
-                        unfocusedLeadingIconColor = TextTertiary,
-                        cursorColor = AccentGreen,
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent
-                    ),
-                    shape = RoundedCornerShape(12.dp)
+                        VisualTransformation.None else PasswordVisualTransformation()
                 )
 
                 // Password Strength Indicator
@@ -324,32 +268,23 @@ fun RegisterScreen(
                     exit = fadeOut() + shrinkVertically()
                 ) {
                     Column {
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(Spacing.Small))
                         PasswordStrengthIndicator(strength = passwordStrength)
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(Spacing.Large))
 
-                // Confirm Password Field with Validation
-                OutlinedTextField(
+                // Confirm Password Field using PyeraTextField
+                PyeraTextField(
                     value = confirmPassword,
                     onValueChange = {
                         confirmPassword = it
                         if (authState is AuthState.Error) viewModel.clearError()
                     },
-                    label = { Text("Confirm Password") },
-                    placeholder = { Text("Confirm your password") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    isError = !passwordsMatch,
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Lock,
-                            contentDescription = null,
-                            tint = if (!passwordsMatch) ColorError else TextTertiary
-                        )
-                    },
+                    label = "Confirm Password",
+                    placeholder = "Confirm your password",
+                    leadingIcon = Icons.Default.Lock,
                     trailingIcon = {
                         IconButton(onClick = { viewModel.toggleConfirmPasswordVisibility() }) {
                             Icon(
@@ -361,93 +296,61 @@ fun RegisterScreen(
                             )
                         }
                     },
+                    keyboardType = KeyboardType.Password,
+                    imeAction = ImeAction.Done,
                     visualTransformation = if (uiState.isConfirmPasswordVisible)
                         VisualTransformation.None else PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Password,
-                        imeAction = ImeAction.Done
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onDone = {
+                    onDone = {
+                        if (isFormValid) {
                             focusManager.clearFocus()
-                            if (allFieldsValid) {
-                                viewModel.register(email, password, name)
-                            }
+                            viewModel.register(email, password, name)
                         }
-                    ),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        focusedBorderColor = if (!passwordsMatch) ColorError else AccentGreen,
-                        unfocusedBorderColor = if (!passwordsMatch) ColorError else CardBorder,
-                        errorBorderColor = ColorError,
-                        focusedLabelColor = AccentGreen,
-                        unfocusedLabelColor = TextTertiary,
-                        focusedLeadingIconColor = AccentGreen,
-                        unfocusedLeadingIconColor = TextTertiary,
-                        cursorColor = AccentGreen,
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent
-                    ),
-                    shape = RoundedCornerShape(12.dp)
+                    },
+                    isError = !passwordsMatch && confirmPassword.isNotEmpty(),
+                    errorMessage = if (!passwordsMatch && confirmPassword.isNotEmpty()) "Passwords do not match" else null
                 )
 
-                // Password Mismatch Error
-                AnimatedVisibility(
-                    visible = !passwordsMatch,
-                    enter = fadeIn() + expandVertically(),
-                    exit = fadeOut() + shrinkVertically()
-                ) {
-                    Text(
-                        text = "Passwords do not match",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = ColorError,
-                        modifier = Modifier.padding(top = 4.dp, start = 16.dp)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(Spacing.Large))
 
                 // Terms & Conditions Checkbox
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Checkbox(
+                    androidx.compose.material3.Checkbox(
                         checked = uiState.termsAccepted,
                         onCheckedChange = { viewModel.toggleTermsAccepted() },
-                        colors = CheckboxDefaults.colors(
+                        colors = androidx.compose.material3.CheckboxDefaults.colors(
                             checkedColor = AccentGreen,
                             uncheckedColor = TextTertiary,
                             checkmarkColor = DeepBackground
                         )
                     )
-                    Column {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(start = Spacing.Small)
+                    ) {
+                        Text(
+                            text = "I accept the ",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = TextSecondary
+                        )
+                        TextButton(
+                            onClick = { /* TODO: Navigate to Terms */ },
+                            contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)
                         ) {
                             Text(
-                                text = "I agree to the ",
+                                text = "Terms & Conditions",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = TextSecondary
+                                color = AccentGreen
                             )
-                            TextButton(
-                                onClick = { /* TODO: Navigate to Terms */ },
-                                contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)
-                            ) {
-                                Text(
-                                    text = "Terms & Conditions",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = AccentGreen
-                                )
-                            }
                         }
                     }
                 }
 
                 // Error Message
                 if (authState is AuthState.Error) {
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(Spacing.Small))
                     Text(
                         text = authState.message,
                         style = MaterialTheme.typography.bodySmall,
@@ -457,25 +360,17 @@ fun RegisterScreen(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(Spacing.XLarge))
 
-                // Create Account Button
-                Button(
+                // Create Account Button using PyeraButton
+                PyeraButton(
                     onClick = {
                         focusManager.clearFocus()
                         viewModel.register(email, password, name)
                     },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                    enabled = authState !is AuthState.Loading && allFieldsValid,
-                    shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = AccentGreen,
-                        contentColor = DeepBackground,
-                        disabledContainerColor = AccentGreen.copy(alpha = 0.3f),
-                        disabledContentColor = DeepBackground.copy(alpha = 0.5f)
-                    )
+                    modifier = Modifier.fillMaxWidth(),
+                    size = ButtonSize.Large,
+                    enabled = isFormValid && authState !is AuthState.Loading
                 ) {
                     if (authState is AuthState.Loading) {
                         CircularProgressIndicator(
@@ -485,7 +380,7 @@ fun RegisterScreen(
                         )
                     } else {
                         Text(
-                            text = "Create Account",
+                            text = "Sign Up",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -493,11 +388,13 @@ fun RegisterScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(Spacing.XLarge))
 
             // Login Link
             Row(
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
                     text = "Already have an account?",
@@ -506,15 +403,15 @@ fun RegisterScreen(
                 )
                 TextButton(onClick = onNavigateToLogin) {
                     Text(
-                        text = "Login",
+                        text = "Sign In",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = AccentGreen,
+                        color = NeonYellow,
                         fontWeight = FontWeight.SemiBold
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(Spacing.XXLarge))
         }
     }
 }
@@ -524,11 +421,11 @@ private fun RegisterHeader() {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // App Logo
+        // App Logo Icon
         Box(
             modifier = Modifier
                 .size(80.dp)
-                .clip(RoundedCornerShape(20.dp))
+                .clip(RoundedCornerShape(Radius.lg))
                 .background(AccentGreen),
             contentAlignment = Alignment.Center
         ) {
@@ -540,17 +437,17 @@ private fun RegisterHeader() {
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(Spacing.Large))
 
         // Title
         Text(
-            text = "Create Account",
+            text = "Join Pyera",
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
             color = Color.White
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(Spacing.XSmall))
 
         // Subtitle
         Text(
@@ -573,8 +470,8 @@ private fun PasswordStrengthIndicator(strength: PasswordStrength) {
     val color = when (strength) {
         PasswordStrength.EMPTY -> CardBorder
         PasswordStrength.WEAK -> ColorError
-        PasswordStrength.MEDIUM -> Orange
-        PasswordStrength.STRONG -> PositiveChange
+        PasswordStrength.MEDIUM -> ColorWarning
+        PasswordStrength.STRONG -> ColorSuccess
     }
 
     val label = when (strength) {
@@ -582,6 +479,13 @@ private fun PasswordStrengthIndicator(strength: PasswordStrength) {
         PasswordStrength.WEAK -> "Weak"
         PasswordStrength.MEDIUM -> "Medium"
         PasswordStrength.STRONG -> "Strong"
+    }
+
+    val icon = when (strength) {
+        PasswordStrength.EMPTY -> null
+        PasswordStrength.WEAK -> null
+        PasswordStrength.MEDIUM -> null
+        PasswordStrength.STRONG -> Icons.Default.Check
     }
 
     Column {
@@ -597,11 +501,29 @@ private fun PasswordStrengthIndicator(strength: PasswordStrength) {
 
         if (label.isNotEmpty()) {
             Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "Password strength: $label",
-                style = MaterialTheme.typography.labelSmall,
-                color = color
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = "Password strength: $label",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = color
+                )
+                icon?.let {
+                    Icon(
+                        imageVector = it,
+                        contentDescription = null,
+                        modifier = Modifier.size(12.dp),
+                        tint = color
+                    )
+                }
+            }
         }
     }
+}
+
+// Extension function for email validation
+private fun String.isValidEmail(): Boolean {
+    return android.util.Patterns.EMAIL_ADDRESS.matcher(this).matches()
 }

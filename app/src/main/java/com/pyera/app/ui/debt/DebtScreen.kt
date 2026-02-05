@@ -92,11 +92,11 @@ fun DebtScreen(
     }
 
     // Delete confirmation dialog
-    if (debtToDelete != null) {
+    debtToDelete?.let { debt ->
         DeleteConfirmationDialog(
-            debt = debtToDelete!!,
+            debt = debt,
             onConfirm = {
-                viewModel.deleteDebt(debtToDelete!!)
+                viewModel.deleteDebt(debt)
                 debtToDelete = null
             },
             onDismiss = { debtToDelete = null }
@@ -104,11 +104,11 @@ fun DebtScreen(
     }
 
     // Mark as paid confirmation dialog
-    if (debtToMarkPaid != null) {
+    debtToMarkPaid?.let { debt ->
         MarkPaidConfirmationDialog(
-            debt = debtToMarkPaid!!,
+            debt = debt,
             onConfirm = {
-                viewModel.markAsPaid(debtToMarkPaid!!)
+                viewModel.markAsPaid(debt)
                 showCelebration = true
                 debtToMarkPaid = null
             },
@@ -126,9 +126,9 @@ fun DebtScreen(
                 debtToEdit = null
             },
             onConfirm = { name, amount, date, type ->
-                if (debtToEdit != null) {
-                    viewModel.updateDebt(debtToEdit!!.copy(name = name, amount = amount, dueDate = date))
-                } else {
+                debtToEdit?.let { existingDebt ->
+                    viewModel.updateDebt(existingDebt.copy(name = name, amount = amount, dueDate = date))
+                } ?: run {
                     viewModel.addDebt(name, amount, date, type)
                 }
                 showAddDialog = false

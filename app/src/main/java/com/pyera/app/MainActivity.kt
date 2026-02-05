@@ -2,6 +2,7 @@ package com.pyera.app
 
 import android.animation.ObjectAnimator
 import android.os.Bundle
+import android.view.WindowManager
 import android.view.animation.AnticipateInterpolator
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -54,6 +55,12 @@ class MainActivity : ComponentActivity() {
         val splashScreen = installSplashScreen()
 
         super.onCreate(savedInstanceState)
+
+        // Prevent screenshots and screen recording
+        window.setFlags(
+            WindowManager.LayoutParams.FLAG_SECURE,
+            WindowManager.LayoutParams.FLAG_SECURE
+        )
 
         // Initialize Google Auth Client
         googleAuthHelper.initialize(this)
@@ -112,7 +119,7 @@ fun PyeraAppNavigation(
     
     val startDestination = when {
         !isOnboardingCompleted -> Screen.Onboarding.route
-        else -> Screen.Auth.Login.route
+        else -> Screen.Login.route
     }
     
     NavHost(
@@ -124,13 +131,13 @@ fun PyeraAppNavigation(
             OnboardingScreen(
                 onOnboardingComplete = {
                     dataSeeder.markOnboardingCompleted()
-                    navController.navigate(Screen.Auth.Login.route) {
+                    navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.Onboarding.route) { inclusive = true }
                     }
                 },
                 onSkip = {
                     dataSeeder.markOnboardingCompleted()
-                    navController.navigate(Screen.Auth.Login.route) {
+                    navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.Onboarding.route) { inclusive = true }
                     }
                 }
@@ -138,7 +145,7 @@ fun PyeraAppNavigation(
         }
         
         // Auth
-        composable(Screen.Auth.Login.route) {
+        composable(Screen.Login.route) {
             val loginViewModel = hiltViewModel<com.pyera.app.ui.auth.AuthViewModel>()
             val loginState by loginViewModel.uiState.collectAsState()
             
@@ -151,17 +158,17 @@ fun PyeraAppNavigation(
             
             LoginScreen(
                 onLoginSuccess = { 
-                    navController.navigate(Screen.Main.route) { 
-                        popUpTo(Screen.Auth.Login.route) { inclusive = true } 
+                    navController.navigate(Screen.Main.Dashboard.route) { 
+                        popUpTo(Screen.Login.route) { inclusive = true } 
                     } 
                 },
-                onNavigateToRegister = { navController.navigate(Screen.Auth.Register.route) },
+                onNavigateToRegister = { navController.navigate(Screen.Register.route) },
                 googleAuthHelper = googleAuthHelper,
                 biometricAuthManager = biometricAuthManager
             )
         }
         
-        composable(Screen.Auth.Register.route) {
+        composable(Screen.Register.route) {
             val registerViewModel = hiltViewModel<com.pyera.app.ui.auth.AuthViewModel>()
             val registerState by registerViewModel.uiState.collectAsState()
             
@@ -174,8 +181,8 @@ fun PyeraAppNavigation(
             
             RegisterScreen(
                 onRegisterSuccess = { 
-                    navController.navigate(Screen.Main.route) { 
-                        popUpTo(Screen.Auth.Register.route) { inclusive = true } 
+                    navController.navigate(Screen.Main.Dashboard.route) { 
+                        popUpTo(Screen.Register.route) { inclusive = true } 
                     } 
                 },
                 onNavigateToLogin = { navController.popBackStack() }
@@ -183,7 +190,7 @@ fun PyeraAppNavigation(
         }
         
         // Main App
-        composable(Screen.Main.route) {
+        composable(Screen.Main.Dashboard.route) {
             MainScreen()
         }
     }

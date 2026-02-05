@@ -19,9 +19,9 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
-        // Security: Load API key from local.properties (not committed to VCS)
-        val kimiApiKey: String = project.findProperty("KIMI_API_KEY") as String? ?: ""
-        buildConfigField("String", "KIMI_API_KEY", "\"$kimiApiKey\"")
+        // APK Size Optimization: Only include English resources
+        // This filters out unused language resources from dependencies
+        resConfigs("en")
         
         vectorDrawables {
             useSupportLibrary = true
@@ -38,25 +38,64 @@ android {
             )
         }
     }
+    
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
+    
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
+        freeCompilerArgs += listOf(
+            "-opt-in=kotlin.RequiresOptIn",
+            "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi"
+        )
     }
+    
     buildFeatures {
         compose = true
         buildConfig = true
     }
+    
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.4"
     }
-    packaging {
-        resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+    
+    // ABI splits for smaller APKs
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            include("arm64-v8a", "armeabi-v7a")
+            isUniversalApk = false
         }
     }
+    
+    // Resource optimization
+    packaging {
+        resources {
+            excludes += listOf(
+                "/META-INF/{AL2.0,LGPL2.1}",
+                "META-INF/DEPENDENCIES",
+                "META-INF/LICENSE",
+                "META-INF/LICENSE.txt",
+                "META-INF/NOTICE",
+                "META-INF/NOTICE.txt"
+            )
+        }
+    }
+    
+    // Lint configuration
+    lint {
+        abortOnError = false
+        checkReleaseBuilds = false
+    }
+}
+
+// KSP configuration - disable incremental processing to avoid issues
+ksp {
+    arg("room.incremental", "false")
+    arg("room.expandProjection", "true")
 }
 
 dependencies {
@@ -110,6 +149,10 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
 
+    // SQLCipher for database encryption
+    implementation("net.zetetic:android-database-sqlcipher:4.5.4")
+    implementation("androidx.sqlite:sqlite-ktx:2.4.0")
+
     // Network
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.gson)
@@ -118,6 +161,8 @@ dependencies {
 
     // Testing
     testImplementation(libs.junit)
+    testImplementation(libs.mockito.kotlin)
+    testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

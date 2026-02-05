@@ -9,4 +9,10 @@ interface TransactionRepository {
     suspend fun deleteTransaction(transaction: TransactionEntity)
     suspend fun updateTransaction(transaction: TransactionEntity)
     suspend fun getTransactionsForExport(): List<TransactionEntity>
+    
+    /**
+     * Sync pending transactions to cloud
+     * Called by SyncWorker for background synchronization
+     */
+    suspend fun syncPendingTransactions(): Result<Unit>
 }

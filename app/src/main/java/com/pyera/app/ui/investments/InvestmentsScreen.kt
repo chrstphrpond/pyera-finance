@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -22,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.pyera.app.data.local.entity.InvestmentEntity
+import androidx.compose.foundation.lazy.items
 import com.pyera.app.ui.components.PyeraCard
 import com.pyera.app.ui.theme.AccentGreen
 import com.pyera.app.ui.theme.CardBackground
@@ -38,8 +40,8 @@ import java.util.*
 fun InvestmentsScreen(
     viewModel: InvestmentsViewModel = hiltViewModel()
 ) {
-    val investments by viewModel.investments.collectAsState()
-    val totalValue by viewModel.totalPortfolioValue.collectAsState()
+    val investments by viewModel.investments.collectAsStateWithLifecycle()
+    val totalValue by viewModel.totalPortfolioValue.collectAsStateWithLifecycle()
     var showAddDialog by remember { mutableStateOf(false) }
     var investmentToUpdate by remember { mutableStateOf<InvestmentEntity?>(null) }
 
@@ -53,16 +55,16 @@ fun InvestmentsScreen(
         )
     }
 
-    if (investmentToUpdate != null) {
+    investmentToUpdate?.let { investment ->
         UpdateInvestmentDialog(
-            investment = investmentToUpdate!!,
+            investment = investment,
             onDismiss = { investmentToUpdate = null },
             onConfirm = { newValue ->
-                viewModel.updateValue(investmentToUpdate!!, newValue)
+                viewModel.updateValue(investment, newValue)
                 investmentToUpdate = null
             },
             onDelete = {
-                viewModel.deleteInvestment(investmentToUpdate!!)
+                viewModel.deleteInvestment(investment)
                 investmentToUpdate = null
             }
         )
@@ -129,7 +131,10 @@ fun InvestmentsScreen(
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(investments) { investment ->
+                    items(
+                        items = investments,
+                        key = { investment: InvestmentEntity -> investment.id }
+                    ) { investment: InvestmentEntity ->
                         InvestmentItem(investment, onClick = { investmentToUpdate = investment })
                     }
                 }

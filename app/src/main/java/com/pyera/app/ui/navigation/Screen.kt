@@ -1,83 +1,102 @@
 package com.pyera.app.ui.navigation
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.automirrored.filled.ReceiptLong
+import androidx.compose.material.icons.automirrored.outlined.ReceiptLong
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.ui.graphics.vector.ImageVector
 
-/**
- * Sealed class representing all navigation screens in the Pyera app.
- */
+// Main Screens
 sealed class Screen(val route: String) {
+    object Welcome : Screen("welcome")
     object Onboarding : Screen("onboarding")
+    object Login : Screen("login")
+    object Register : Screen("register")
+    object ForgotPassword : Screen("forgot_password")
     
-    object Auth : Screen("auth_graph") {
-        object Login : Screen("login")
-        object Register : Screen("register")
+    sealed class Main(route: String) : Screen(route) {
+        object Dashboard : Main("main/dashboard")
+        object Transactions : Main("main/transactions")
+        object Budget : Main("main/budget")
+        object Savings : Main("main/savings")
+        object Profile : Main("main/profile")
+        object Analysis : Main("main/analysis") // Keep for navigation but not in bottom bar
+        object Debt : Main("main/debt") // Keep for navigation but move to tab
     }
-
-    object Main : Screen("main_graph") {
-        object Dashboard : Screen("dashboard")
-        object Transactions : Screen("transactions")
-        object Analysis : Screen("analysis")
-        
-        // Budget Screens
-        object Budget : Screen("budget")
-        object BudgetDetail : Screen("budget_detail/{budgetId}") {
-            fun createRoute(budgetId: Int) = "budget_detail/$budgetId"
-        }
-        object CreateBudget : Screen("create_budget")
-        object EditBudget : Screen("edit_budget/{budgetId}") {
-            fun createRoute(budgetId: Int) = "edit_budget/$budgetId"
-        }
-        
-        object Debt : Screen("debt")
-        object Savings : Screen("savings")
-        object Bills : Screen("bills")
-        object Investments : Screen("investments")
-        object Chat : Screen("chat")
-        object Profile : Screen("profile")
-        object AddTransaction : Screen("add_transaction")
+    
+    object AddTransaction : Screen("transaction/add")
+    object EditTransaction : Screen("transaction/edit/{transactionId}") {
+        fun createRoute(transactionId: String) = "transaction/edit/$transactionId"
     }
+    
+    // Budget screens
+    object BudgetDetail : Screen("budget/detail/{budgetId}") {
+        fun createRoute(budgetId: Int) = "budget/detail/$budgetId"
+    }
+    object CreateBudget : Screen("budget/create")
+    object EditBudget : Screen("budget/edit/{budgetId}") {
+        fun createRoute(budgetId: Int) = "budget/edit/$budgetId"
+    }
+    
+    // Other screens
+    object Bills : Screen("bills")
+    object Investments : Screen("investments")
+    object Chat : Screen("chat")
+    object Settings : Screen("settings")
 }
 
-/**
- * Bottom navigation items for the main screen
- */
+// Bottom Navigation - 5 Items Maximum
 sealed class BottomNavItem(
     val route: String,
     val title: String,
-    val icon: ImageVector
+    val icon: ImageVector,
+    val selectedIcon: ImageVector
 ) {
     object Dashboard : BottomNavItem(
         route = Screen.Main.Dashboard.route,
         title = "Home",
-        icon = Icons.Default.Home
+        icon = Icons.Outlined.Home,
+        selectedIcon = Icons.Filled.Home
     )
+    
     object Transactions : BottomNavItem(
         route = Screen.Main.Transactions.route,
         title = "Activity",
-        icon = Icons.AutoMirrored.Filled.List
+        icon = Icons.AutoMirrored.Outlined.ReceiptLong,
+        selectedIcon = Icons.AutoMirrored.Filled.ReceiptLong
     )
+    
     object Budget : BottomNavItem(
         route = Screen.Main.Budget.route,
         title = "Budget",
-        icon = Icons.Default.Star
+        icon = Icons.Outlined.AccountBalanceWallet,
+        selectedIcon = Icons.Filled.AccountBalanceWallet
     )
-    object Debt : BottomNavItem(
-        route = Screen.Main.Debt.route,
-        title = "Debt",
-        icon = Icons.Default.Warning
+    
+    object Savings : BottomNavItem(
+        route = Screen.Main.Savings.route,
+        title = "Savings",
+        icon = Icons.Outlined.Savings,
+        selectedIcon = Icons.Filled.Savings
     )
+    
     object Profile : BottomNavItem(
         route = Screen.Main.Profile.route,
         title = "Profile",
-        icon = Icons.Default.Person
+        icon = Icons.Outlined.Person,
+        selectedIcon = Icons.Filled.Person
     )
 }
+
+// Items array for BottomNavigation
+val bottomNavItems = listOf(
+    BottomNavItem.Dashboard,
+    BottomNavItem.Transactions,
+    BottomNavItem.Budget,
+    BottomNavItem.Savings,
+    BottomNavItem.Profile
+)
 
 /**
  * Extension function to check if a screen is a budget screen

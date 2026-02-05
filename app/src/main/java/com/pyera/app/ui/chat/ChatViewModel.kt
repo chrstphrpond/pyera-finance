@@ -1,5 +1,6 @@
 package com.pyera.app.ui.chat
 
+import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pyera.app.data.repository.ChatRepository
@@ -10,6 +11,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@Immutable
 data class ChatMessage(
     val id: String = java.util.UUID.randomUUID().toString(),
     val text: String,
@@ -17,6 +19,7 @@ data class ChatMessage(
     val timestamp: Long = System.currentTimeMillis()
 )
 
+@Immutable
 data class ChatState(
     val messages: List<ChatMessage> = emptyList(),
     val isLoading: Boolean = false,

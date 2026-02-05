@@ -173,11 +173,12 @@ fun BudgetDetailScreen(
                 CircularProgressIndicator(color = AccentGreen)
             }
         } else {
-            val budgetData = budget!!
-            BudgetDetailContent(
-                budget = budgetData,
-                modifier = Modifier.padding(padding)
-            )
+            budget?.let { budgetData ->
+                BudgetDetailContent(
+                    budget = budgetData,
+                    modifier = Modifier.padding(padding)
+                )
+            }
         }
 
         if (showDeleteDialog) {

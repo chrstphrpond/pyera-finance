@@ -1,75 +1,49 @@
 package com.pyera.app.ui.components
 
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import androidx.navigation.compose.currentBackStackEntryAsState
-import com.pyera.app.ui.navigation.BottomNavItem
-import com.pyera.app.ui.theme.AccentGreen
-import com.pyera.app.ui.theme.CardBorder
-import com.pyera.app.ui.theme.DeepBackground
-import com.pyera.app.ui.theme.TextTertiary
+import com.pyera.app.ui.navigation.bottomNavItems
+import com.pyera.app.ui.theme.*
 
 @Composable
-fun PyeraBottomBar(navController: NavController) {
-    val items = listOf(
-        BottomNavItem.Dashboard,
-        BottomNavItem.Transactions,
-        BottomNavItem.Budget,
-        BottomNavItem.Debt,
-        BottomNavItem.Profile
-    )
-
+fun PyeraBottomBar(
+    navController: NavController,
+    currentRoute: String?
+) {
     NavigationBar(
-        containerColor = DeepBackground,
-        contentColor = AccentGreen,
-        modifier = Modifier.drawBehind {
-            drawLine(
-                color = CardBorder,
-                start = Offset(0f, 0f),
-                end = Offset(size.width, 0f),
-                strokeWidth = 1.dp.toPx()
-            )
-        }
+        containerColor = SurfaceDark,
+        contentColor = TextPrimary,
+        tonalElevation = 0.dp
     ) {
-        val navBackStackEntry by navController.currentBackStackEntryAsState()
-        val currentRoute = navBackStackEntry?.destination?.route
-
-        items.forEach { item ->
+        bottomNavItems.forEach { item ->
+            val selected = currentRoute == item.route
             NavigationBarItem(
                 icon = {
                     Icon(
-                        imageVector = item.icon,
-                        contentDescription = item.title,
-                        modifier = Modifier.size(26.dp)
+                        imageVector = if (selected) item.selectedIcon else item.icon,
+                        contentDescription = item.title
                     )
                 },
-                label = { Text(text = item.title) },
-                selected = currentRoute == item.route,
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = DeepBackground,
-                    selectedTextColor = AccentGreen,
-                    indicatorColor = AccentGreen,
-                    unselectedIconColor = TextTertiary,
-                    unselectedTextColor = TextTertiary
-                ),
+                label = { Text(item.title) },
+                selected = selected,
                 onClick = {
                     navController.navigate(item.route) {
-                        navController.graph.startDestinationRoute?.let { route ->
-                            popUpTo(route) {
-                                saveState = true
-                            }
+                        popUpTo(navController.graph.startDestinationId) {
+                            saveState = true
                         }
                         launchSingleTop = true
                         restoreState = true
                     }
-                }
+                },
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = NeonYellow,
+                    selectedTextColor = NeonYellow,
+                    unselectedIconColor = TextSecondary,
+                    unselectedTextColor = TextSecondary,
+                    indicatorColor = NeonYellow.copy(alpha = 0.1f)
+                )
             )
         }
     }

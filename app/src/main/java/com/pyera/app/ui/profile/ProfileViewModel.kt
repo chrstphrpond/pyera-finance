@@ -1,136 +1,59 @@
 package com.pyera.app.ui.profile
 
+import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.pyera.app.data.biometric.BiometricAuthManager
 import com.pyera.app.data.repository.AuthRepository
-import com.pyera.app.data.repository.TransactionRepository
 import com.pyera.app.data.repository.BudgetRepository
 import com.pyera.app.data.repository.SavingsRepository
+import com.pyera.app.data.repository.TransactionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-
 import javax.inject.Inject
-
-data class ProfileState(
-    val userName: String = "Pyera User",
-    val email: String = "user@example.com",
-    val avatarInitials: String = "PU",
-    val totalTransactions: Int = 0,
-    val totalSavings: Double = 0.0,
-    val budgetStatus: String = "Active",
-    val notificationsEnabled: Boolean = true,
-    val currency: String = "PHP ₱",
-    val appearance: String = "Dark",
-    val appVersion: String = "1.0.0",
-    val isBiometricAvailable: Boolean = false,
-    val isBiometricEnabled: Boolean = false
-)
-
-sealed class ProfileEvent {
-    data object Logout : ProfileEvent()
-    data object ExportData : ProfileEvent()
-    data class ToggleNotifications(val enabled: Boolean) : ProfileEvent()
-    data class ToggleBiometric(val enabled: Boolean) : ProfileEvent()
-    data object NavigateToAccountSettings : ProfileEvent()
-    data object NavigateToDataPrivacy : ProfileEvent()
-    data object NavigateToHelpSupport : ProfileEvent()
-    data object NavigateToAbout : ProfileEvent()
-}
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
-    transactionRepository: TransactionRepository,
-    savingsRepository: SavingsRepository,
-    budgetRepository: BudgetRepository,
     private val authRepository: AuthRepository,
-    private val biometricAuthManager: BiometricAuthManager
+    private val transactionRepository: TransactionRepository,
+    private val savingsRepository: SavingsRepository,
+    private val budgetRepository: BudgetRepository
 ) : ViewModel() {
 
     private val _notificationsEnabled = MutableStateFlow(true)
 
     val state: StateFlow<ProfileState> = combine(
-        transactionRepository.getAllTransactions(),
-        savingsRepository.getAllSavingsGoals(),
-        budgetRepository.getActiveBudgetsForUser(authRepository.currentUser?.uid ?: ""),
+        transactionRepository.getAllTransactions()
+            .distinctUntilChanged(),
+        savingsRepository.getAllSavingsGoals()
+            .distinctUntilChanged(),
+        budgetRepository.getActiveBudgetsForUser(authRepository.currentUser?.uid ?: "")
+            .distinctUntilChanged(),
         _notificationsEnabled
-    ) { transactions, savingsGoals, budgets, notifications ->
-        val totalSavings = savingsGoals.sumOf { it.currentAmount }
-        val budgetStatus = when {
-            budgets.isEmpty() -> "No Budget"
-            else -> "Active"
-        }
-        
+    ) { transactions, savingsGoals, activeBudgets, notifications ->
         ProfileState(
-            userName = authRepository.currentUser?.displayName ?: "Pyera User",
-            email = authRepository.currentUser?.email ?: "user@example.com",
-            avatarInitials = getInitials(authRepository.currentUser?.displayName ?: "Pyera User"),
-            totalTransactions = transactions.size,
-            totalSavings = totalSavings,
-            budgetStatus = budgetStatus,
+            userName = authRepository.currentUser?.displayName ?: "",
+            email = authRepository.currentUser?.email ?: "",
+            avatarUrl = authRepository.currentUser?.photoUrl?.toString(),
+            transactionCount = transactions.size,
+            savingsGoalsCount = savingsGoals.size,
+            activeBudgetsCount = activeBudgets.size,
             notificationsEnabled = notifications,
-            currency = "PHP ₱",
-            appearance = "Dark",
-            appVersion = "1.0.0",
-            isBiometricAvailable = biometricAuthManager.isBiometricAvailable(),
-            isBiometricEnabled = authRepository.isBiometricEnabled()
+            appVersion = "1.0.0" // Replace with actual version
         )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
-        initialValue = ProfileState(
-            isBiometricAvailable = biometricAuthManager.isBiometricAvailable(),
-            isBiometricEnabled = authRepository.isBiometricEnabled()
-        )
+        initialValue = ProfileState()
     )
 
-    fun onEvent(event: ProfileEvent) {
-        when (event) {
-            is ProfileEvent.Logout -> {
-                viewModelScope.launch {
-                    // Handle logout logic
-                    authRepository.logout()
-                }
-            }
-            is ProfileEvent.ExportData -> {
-                viewModelScope.launch {
-                    // Handle data export logic
-                    exportUserData()
-                }
-            }
-            is ProfileEvent.ToggleNotifications -> {
-                _notificationsEnabled.value = event.enabled
-                // Save notification preference
-            }
-            is ProfileEvent.ToggleBiometric -> {
-                toggleBiometric(event.enabled)
-            }
-            else -> {
-                // Handle navigation events in the UI layer
-            }
-        }
-    }
-
-    private fun toggleBiometric(enabled: Boolean) {
-        if (enabled) {
-            // Enabling biometric - credentials should already be stored from login
-            authRepository.setBiometricEnabled(true)
-        } else {
-            // Disabling biometric - clear stored credentials
-            authRepository.setBiometricEnabled(false)
-            authRepository.clearStoredCredentials()
-        }
-    }
-
-    private suspend fun exportUserData(): String {
-        // Implementation for exporting user data
-        // Returns a JSON string or file path
-        return ""
+    fun setNotificationsEnabled(enabled: Boolean) {
+        _notificationsEnabled.value = enabled
     }
 
     fun logout() {
@@ -139,11 +62,20 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-    private fun getInitials(name: String): String {
-        return name.split(" ")
-            .take(2)
-            .mapNotNull { it.firstOrNull()?.uppercase() }
-            .joinToString("")
-            .ifEmpty { "PU" }
+    fun exportData() {
+        // TODO: Implement data export
     }
 }
+
+@Immutable
+data class ProfileState(
+    val userName: String = "",
+    val email: String = "",
+    val avatarUrl: String? = null,
+    val transactionCount: Int = 0,
+    val savingsGoalsCount: Int = 0,
+    val activeBudgetsCount: Int = 0,
+    val notificationsEnabled: Boolean = true,
+    val appVersion: String = "1.0.0",
+    val isLoading: Boolean = false
+)

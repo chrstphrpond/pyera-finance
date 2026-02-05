@@ -1,9 +1,9 @@
 package com.pyera.app.ui.auth
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,8 +15,7 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -28,17 +27,11 @@ import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -54,7 +47,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -63,28 +59,32 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.ui.platform.LocalContext
 import androidx.fragment.app.FragmentActivity
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.pyera.app.R
 import com.pyera.app.data.biometric.BiometricAuthManager
 import com.pyera.app.data.biometric.BiometricAuthResult
 import com.pyera.app.data.repository.GoogleAuthHelper
+import com.pyera.app.ui.components.ButtonSize
+import com.pyera.app.ui.components.PyeraButton
+import com.pyera.app.ui.components.PyeraTextField
 import com.pyera.app.ui.theme.AccentGreen
 import com.pyera.app.ui.theme.CardBackground
 import com.pyera.app.ui.theme.CardBorder
 import com.pyera.app.ui.theme.ColorError
 import com.pyera.app.ui.theme.DeepBackground
+import com.pyera.app.ui.theme.NeonYellow
+import com.pyera.app.ui.theme.Radius
+import com.pyera.app.ui.theme.Spacing
+import com.pyera.app.ui.theme.SurfaceElevated
 import com.pyera.app.ui.theme.TextSecondary
 import com.pyera.app.ui.theme.TextTertiary
-import com.pyera.app.R
-import androidx.compose.foundation.layout.wrapContentWidth
 
 @Composable
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
     onNavigateToRegister: () -> Unit,
+    onNavigateToForgotPassword: () -> Unit = {},
     viewModel: AuthViewModel = hiltViewModel(),
     googleAuthHelper: GoogleAuthHelper,
     biometricAuthManager: BiometricAuthManager
@@ -101,27 +101,32 @@ fun LoginScreen(
     val focusManager = LocalFocusManager.current
     val scrollState = rememberScrollState()
 
+    // Form validation
+    val isFormValid by remember(email, password) {
+        androidx.compose.runtime.derivedStateOf {
+            email.isValidEmail() && password.length >= 6
+        }
+    }
+
     // Google Sign-In Launcher
-    val googleSignInLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
+    val googleSignInLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        contract = androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        android.util.Log.d("GoogleSignIn", "Sign-in activity result received: resultCode=${result.resultCode}")
         if (result.resultCode == android.app.Activity.RESULT_OK) {
-            android.util.Log.d("GoogleSignIn", "Result OK, handling sign-in data")
             val signInResult = googleAuthHelper.handleSignInResult(result.data)
             signInResult.fold(
                 onSuccess = { idToken ->
-                    android.util.Log.d("GoogleSignIn", "Sign-in successful, got ID token, calling ViewModel")
+                    android.util.Log.d("GoogleSignIn", "Sign-in successful")
                     viewModel.signInWithGoogle(idToken)
                 },
                 onFailure = { e ->
                     googleError = e.message ?: "Google sign-in failed (Unknown error)"
-                    android.util.Log.e("GoogleSignIn", "Sign-in failed: ${e.message}", e)
+                    android.util.Log.e("GoogleSignIn", "Sign-in failed", e)
                 }
             )
         } else {
             googleError = "Google sign-in cancelled or failed"
-            android.util.Log.w("GoogleSignIn", "Sign-in cancelled or failed with resultCode: ${result.resultCode}")
+            android.util.Log.w("GoogleSignIn", "Sign-in cancelled or failed")
         }
     }
 
@@ -156,13 +161,13 @@ fun LoginScreen(
     ) {
         // Background Image
         Image(
-            painter = painterResource(id = com.pyera.app.R.drawable.bg_auth_green_flow),
+            painter = painterResource(id = R.drawable.bg_auth_green_flow),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop,
-            alpha = 0.6f // Dim the image slightly by default
+            alpha = 0.6f
         )
-        
+
         // Gradient Scrim for text readability
         Box(
             modifier = Modifier
@@ -183,15 +188,15 @@ fun LoginScreen(
                 .fillMaxSize()
                 .imePadding()
                 .verticalScroll(scrollState)
-                .padding(horizontal = 24.dp),
+                .padding(horizontal = Spacing.XLarge),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(60.dp))
+            Spacer(modifier = Modifier.height(Spacing.XXXLarge))
 
             // Logo Section
             LoginHeader()
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(Spacing.XLarge))
 
             // Biometric Login Button (if enabled and available)
             if (uiState.isBiometricAvailable && uiState.hasStoredCredentials) {
@@ -211,79 +216,67 @@ fun LoginScreen(
                         }
                     }
                 )
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(Spacing.Medium))
             }
 
-            // Login Form
+            // Login Form Card
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(20.dp))
+                    .clip(RoundedCornerShape(Radius.xl))
                     .background(CardBackground)
-                    .border(1.dp, CardBorder, RoundedCornerShape(20.dp))
-                    .padding(20.dp)
+                    .border(1.dp, CardBorder, RoundedCornerShape(Radius.xl))
+                    .padding(Spacing.XLarge)
             ) {
-                // Email Field
-                OutlinedTextField(
+                // Welcome Text
+                Text(
+                    text = "Welcome Back",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Text(
+                    text = "Sign in to continue",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = TextSecondary,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(Spacing.XLarge))
+
+                // Email Field using PyeraTextField
+                PyeraTextField(
                     value = email,
                     onValueChange = {
                         email = it
+                        googleError = null
                         if (authState is AuthState.Error) viewModel.clearError()
                     },
-                    label = { Text("Email") },
-                    placeholder = { Text("Enter your email") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Email,
-                            contentDescription = null,
-                            tint = TextTertiary
-                        )
-                    },
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Email,
-                        imeAction = ImeAction.Next
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                    ),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        focusedBorderColor = AccentGreen,
-                        unfocusedBorderColor = CardBorder,
-                        focusedLabelColor = AccentGreen,
-                        unfocusedLabelColor = TextTertiary,
-                        focusedLeadingIconColor = AccentGreen,
-                        unfocusedLeadingIconColor = TextTertiary,
-                        cursorColor = AccentGreen,
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent
-                    ),
-                    shape = RoundedCornerShape(12.dp)
+                    label = "Email",
+                    placeholder = "Enter your email",
+                    leadingIcon = Icons.Default.Email,
+                    keyboardType = KeyboardType.Email,
+                    imeAction = ImeAction.Next,
+                    isError = authState is AuthState.Error
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(Spacing.Large))
 
-                // Password Field
-                OutlinedTextField(
+                // Password Field using PyeraTextField with visibility toggle
+                PyeraTextField(
                     value = password,
                     onValueChange = {
                         password = it
+                        googleError = null
                         if (authState is AuthState.Error) viewModel.clearError()
                     },
-                    label = { Text("Password") },
-                    placeholder = { Text("Enter your password") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Lock,
-                            contentDescription = null,
-                            tint = TextTertiary
-                        )
-                    },
+                    label = "Password",
+                    placeholder = "Enter your password",
+                    leadingIcon = Icons.Default.Lock,
                     trailingIcon = {
                         IconButton(onClick = { viewModel.togglePasswordVisibility() }) {
                             Icon(
@@ -295,73 +288,37 @@ fun LoginScreen(
                             )
                         }
                     },
+                    keyboardType = KeyboardType.Password,
+                    imeAction = ImeAction.Done,
                     visualTransformation = if (uiState.isPasswordVisible)
                         VisualTransformation.None else PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Password,
-                        imeAction = ImeAction.Done
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onDone = {
+                    onDone = {
+                        if (isFormValid) {
                             focusManager.clearFocus()
                             viewModel.login(email, password)
                         }
-                    ),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        focusedBorderColor = AccentGreen,
-                        unfocusedBorderColor = CardBorder,
-                        focusedLabelColor = AccentGreen,
-                        unfocusedLabelColor = TextTertiary,
-                        focusedLeadingIconColor = AccentGreen,
-                        unfocusedLeadingIconColor = TextTertiary,
-                        cursorColor = AccentGreen,
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent
-                    ),
-                    shape = RoundedCornerShape(12.dp)
+                    },
+                    isError = authState is AuthState.Error
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(Spacing.Small))
 
-                // Remember Me and Forgot Password Row
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                // Forgot Password Link
+                TextButton(
+                    onClick = onNavigateToForgotPassword,
+                    modifier = Modifier.align(Alignment.End)
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Checkbox(
-                            checked = uiState.rememberMe,
-                            onCheckedChange = { viewModel.toggleRememberMe() },
-                            colors = CheckboxDefaults.colors(
-                                checkedColor = AccentGreen,
-                                uncheckedColor = TextTertiary,
-                                checkmarkColor = DeepBackground
-                            )
-                        )
-                        Text(
-                            text = "Remember me",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = TextSecondary
-                        )
-                    }
-
-                    TextButton(onClick = { /* TODO: Navigate to forgot password */ }) {
-                        Text(
-                            text = "Forgot Password?",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = AccentGreen
-                        )
-                    }
+                    Text(
+                        text = "Forgot Password?",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = AccentGreen
+                    )
                 }
+
+                Spacer(modifier = Modifier.height(Spacing.Small))
 
                 // Error Message
                 if (authState is AuthState.Error) {
-                    Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = authState.message,
                         style = MaterialTheme.typography.bodySmall,
@@ -369,27 +326,32 @@ fun LoginScreen(
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth()
                     )
+                    Spacer(modifier = Modifier.height(Spacing.Small))
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                // Google Error Message
+                googleError?.let { error ->
+                    Text(
+                        text = error,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = ColorError,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(Spacing.Small))
+                }
 
-                // Login Button
-                Button(
+                Spacer(modifier = Modifier.height(Spacing.Large))
+
+                // Login Button using PyeraButton
+                PyeraButton(
                     onClick = {
                         focusManager.clearFocus()
                         viewModel.login(email, password)
                     },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                    enabled = authState !is AuthState.Loading && email.isNotEmpty() && password.isNotEmpty(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = AccentGreen,
-                        contentColor = DeepBackground,
-                        disabledContainerColor = AccentGreen.copy(alpha = 0.3f),
-                        disabledContentColor = DeepBackground.copy(alpha = 0.5f)
-                    )
+                    modifier = Modifier.fillMaxWidth(),
+                    size = ButtonSize.Large,
+                    enabled = isFormValid && authState !is AuthState.Loading
                 ) {
                     if (authState is AuthState.Loading) {
                         CircularProgressIndicator(
@@ -399,7 +361,7 @@ fun LoginScreen(
                         )
                     } else {
                         Text(
-                            text = "Login",
+                            text = "Sign In",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -407,25 +369,13 @@ fun LoginScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Google Sign-In Error
-            googleError?.let { error ->
-                Text(
-                    text = error,
-                    color = ColorError,
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-            }
+            Spacer(modifier = Modifier.height(Spacing.XLarge))
 
             // Social Login Section
             SocialLoginSection(
                 onGoogleSignIn = {
-                    android.util.Log.d("GoogleSignIn", "Google Sign-In button clicked")
                     val signInIntent = googleAuthHelper.getSignInIntent()
                     if (signInIntent != null) {
-                        android.util.Log.d("GoogleSignIn", "Launching sign-in intent")
                         googleSignInLauncher.launch(signInIntent)
                     } else {
                         googleError = "Google Sign-In not initialized"
@@ -434,11 +384,13 @@ fun LoginScreen(
                 }
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(Spacing.XLarge))
 
             // Sign Up Link
             Row(
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
                     text = "Don't have an account?",
@@ -449,13 +401,13 @@ fun LoginScreen(
                     Text(
                         text = "Sign Up",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = AccentGreen,
+                        color = NeonYellow,
                         fontWeight = FontWeight.SemiBold
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(Spacing.XXLarge))
         }
 
         // Biometric Enable Dialog
@@ -489,9 +441,9 @@ private fun LoginHeader() {
             contentScale = ContentScale.Fit
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(Spacing.Large))
 
-        // Tagline - Uses Outfit font (body style)
+        // Tagline
         Text(
             text = "Your Personal Finance Assistant",
             style = MaterialTheme.typography.bodyMedium,
@@ -504,16 +456,10 @@ private fun LoginHeader() {
 private fun BiometricLoginButton(
     onClick: () -> Unit
 ) {
-    Button(
+    PyeraButton(
         onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(52.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = CardBackground,
-            contentColor = AccentGreen
-        )
+        modifier = Modifier.fillMaxWidth(),
+        size = ButtonSize.Large
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -524,7 +470,7 @@ private fun BiometricLoginButton(
                 contentDescription = null,
                 modifier = Modifier.size(24.dp)
             )
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(Spacing.Small))
             Text(
                 text = "Login with Biometrics",
                 style = MaterialTheme.typography.bodyMedium,
@@ -571,12 +517,8 @@ private fun BiometricEnableDialog(
             )
         },
         confirmButton = {
-            Button(
+            PyeraButton(
                 onClick = onEnable,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = AccentGreen,
-                    contentColor = DeepBackground
-                ),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
@@ -606,7 +548,8 @@ private fun SocialLoginSection(
     onGoogleSignIn: () -> Unit
 ) {
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.fillMaxWidth()
     ) {
         // Divider with "Or continue with" text
         Row(
@@ -628,7 +571,7 @@ private fun SocialLoginSection(
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(Spacing.Large))
 
         // Google Sign In Button
         GoogleSignInButton(onClick = onGoogleSignIn)
@@ -639,22 +582,16 @@ private fun SocialLoginSection(
 private fun GoogleSignInButton(
     onClick: () -> Unit
 ) {
-    Button(
+    PyeraButton(
         onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(52.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = CardBackground,
-            contentColor = Color.White
-        )
+        modifier = Modifier.fillMaxWidth(),
+        size = ButtonSize.Large
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
-            // Google "G" logo (simplified)
+            // Google "G" logo
             Box(
                 modifier = Modifier
                     .size(24.dp)
@@ -669,7 +606,7 @@ private fun GoogleSignInButton(
                     color = DeepBackground
                 )
             }
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(Spacing.Small))
             Text(
                 text = "Continue with Google",
                 style = MaterialTheme.typography.bodyMedium,
@@ -677,4 +614,9 @@ private fun GoogleSignInButton(
             )
         }
     }
+}
+
+// Extension function for email validation
+private fun String.isValidEmail(): Boolean {
+    return android.util.Patterns.EMAIL_ADDRESS.matcher(this).matches()
 }

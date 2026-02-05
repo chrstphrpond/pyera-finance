@@ -6,45 +6,21 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowDownward
-import androidx.compose.material.icons.filled.ArrowUpward
-import androidx.compose.material.icons.filled.Analytics
-import androidx.compose.material.icons.filled.Receipt
-import androidx.compose.material.icons.outlined.AccountBalanceWallet
-import androidx.compose.material.icons.outlined.CreditCard
-import androidx.compose.material.icons.outlined.Savings
+import androidx.compose.material.icons.automirrored.filled.ReceiptLong
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.pyera.app.ui.components.AccountSelectorPill
-import com.pyera.app.ui.components.AssetListItem
-import com.pyera.app.ui.components.BalanceDisplayLarge
-import com.pyera.app.ui.components.CircularActionButton
-import com.pyera.app.ui.components.PyeraCard
-import com.pyera.app.ui.theme.AccentGreen
-import com.pyera.app.ui.theme.ColorSuccess
-import com.pyera.app.ui.theme.DeepBackground
-import com.pyera.app.ui.theme.GreenGlowSubtle
-import com.pyera.app.ui.theme.NegativeChange
-import com.pyera.app.ui.theme.Orange
-import com.pyera.app.ui.theme.PaleViolet
-import com.pyera.app.ui.theme.PositiveChange
-import com.pyera.app.ui.theme.TextSecondary
-import com.pyera.app.ui.theme.TextTertiary
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.pyera.app.ui.components.*
+import com.pyera.app.ui.theme.*
 import com.pyera.app.ui.util.bounceClick
-import com.pyera.app.ui.util.pulseGlow
-import com.pyera.app.ui.util.staggeredSlideIn
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.geometry.Offset
 
 @Composable
 fun DashboardScreen(
@@ -58,17 +34,27 @@ fun DashboardScreen(
     onViewAllTransactionsClick: () -> Unit = {},
     onNotificationsClick: () -> Unit = {},
     onAnalysisClick: () -> Unit = {},
-    onAccountSelectorClick: () -> Unit = {}
+    onAccountSelectorClick: () -> Unit = {},
+    onProfileClick: () -> Unit = {},
+    onSettingsClick: () -> Unit = {}
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val scrollState = rememberScrollState()
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(DeepBackground)
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp, vertical = 16.dp)
+            .verticalScroll(scrollState)
+            .padding(Spacing.ScreenPadding)
     ) {
+        // Header with greeting and action icons
+        DashboardHeader(
+            onProfileClick = onProfileClick,
+            onSettingsClick = onSettingsClick
+        )
+
+        Spacer(modifier = Modifier.height(Spacing.Large))
+
         // Account Selector Pill (centered)
         Box(
             modifier = Modifier.fillMaxWidth(),
@@ -81,252 +67,328 @@ fun DashboardScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(Spacing.XLarge))
 
-        // Large Balance Display with ambient glow
-        Box(
-            modifier = Modifier.fillMaxWidth(),
-            contentAlignment = Alignment.Center
-        ) {
-            // Radial glow background
-            Box(
-                modifier = Modifier
-                    .size(280.dp)
-                    .background(
-                        brush = Brush.radialGradient(
-                            colors = listOf(
-                                GreenGlowSubtle,
-                                Color.Transparent
-                            ),
-                            center = Offset.Unspecified,
-                            radius = 400f
-                        )
-                    )
-            )
-            BalanceDisplayLarge(
-                balance = state.totalBalance,
-                label = "Current balance",
-                percentageChange = 0.25f,
-                changeTimeframe = "1d",
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        // Action Buttons Row
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            CircularActionButton(
-                icon = Icons.Default.Add,
-                label = "Add",
-                isHighlighted = true,
-                onClick = onAddTransactionClick,
-                modifier = Modifier.pulseGlow(enabled = true)
-            )
-            CircularActionButton(
-                icon = Icons.Default.Analytics,
-                label = "Analysis",
-                onClick = onAnalysisClick
-            )
-            CircularActionButton(
-                icon = Icons.Default.Receipt,
-                label = "Bills",
-                onClick = onBillsClick
-            )
-        }
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        // My Accounts Section
-        SectionHeader(
-            title = "My accounts",
-            onSeeAllClick = onViewAllTransactionsClick
+        // Enhanced Balance Card with NeonYellow accent
+        EnhancedBalanceCard(
+            balance = state.totalBalance,
+            income = state.totalIncome,
+            expenses = state.totalExpense
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(Spacing.XLarge))
 
-        Column(
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            AssetListItem(
-                icon = Icons.Outlined.Savings,
-                iconColor = AccentGreen,
-                title = "Savings",
-                subtitle = "Primary savings",
-                amount = "₱${String.format("%,.2f", state.totalIncome)}",
-                changePercent = 2.45f,
-                onClick = {},
-                modifier = Modifier.staggeredSlideIn(index = 0)
-            )
-            AssetListItem(
-                icon = Icons.Outlined.CreditCard,
-                iconColor = Orange,
-                title = "Expenses",
-                subtitle = "Monthly spending",
-                amount = "₱${String.format("%,.2f", state.totalExpense)}",
-                changePercent = -1.23f,
-                onClick = {},
-                modifier = Modifier.staggeredSlideIn(index = 1)
-            )
-            AssetListItem(
-                icon = Icons.Outlined.AccountBalanceWallet,
-                iconColor = PaleViolet,
-                title = "Budget",
-                subtitle = "Remaining budget",
-                amount = "₱${String.format("%,.2f", state.totalBalance)}",
-                onClick = onBudgetClick,
-                modifier = Modifier.staggeredSlideIn(index = 2)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Recent Transactions Section
-        SectionHeader(
-            title = "Recent transactions",
-            onSeeAllClick = onViewAllTransactionsClick
+        // Quick Actions Row with proper colors
+        QuickActionsRow(
+            onAddTransaction = onAddTransactionClick,
+            onScanReceipt = onScanReceiptClick,
+            onViewAnalysis = onAnalysisClick
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(Spacing.XLarge))
 
-        if (state.recentTransactions.isEmpty()) {
-            EmptyTransactionsState(onAddTransactionClick = onAddTransactionClick)
-        } else {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                state.recentTransactions.take(3).forEachIndexed { index, transaction ->
-                    TransactionItem(
-                        transaction = transaction,
-                        modifier = Modifier.staggeredSlideIn(index = index + 3) // Offset by asset list items
-                    )
-                }
-            }
-        }
+        // Recent Transactions Section with "View All" link
+        RecentTransactionsSection(
+            transactions = state.recentTransactions,
+            onViewAll = onViewAllTransactionsClick,
+            onAddTransaction = onAddTransactionClick
+        )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(Spacing.XXXLarge))
     }
 }
 
 @Composable
-private fun SectionHeader(
-    title: String,
-    onSeeAllClick: () -> Unit
+private fun DashboardHeader(
+    onProfileClick: () -> Unit,
+    onSettingsClick: () -> Unit
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onBackground,
-            fontWeight = FontWeight.SemiBold
-        )
-
-        TextButton(onClick = onSeeAllClick) {
+        Column {
             Text(
-                text = "see all",
-                style = MaterialTheme.typography.labelMedium,
-                color = AccentGreen
-            )
-        }
-    }
-}
-
-@Composable
-internal fun EmptyTransactionsState(onAddTransactionClick: () -> Unit) {
-    PyeraCard(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(56.dp)
-                    .clip(CircleShape)
-                    .background(AccentGreen.copy(alpha = 0.15f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Add Transaction",
-                    tint = AccentGreen,
-                    modifier = Modifier.size(28.dp)
-                )
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "No transactions yet",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onBackground,
-                fontWeight = FontWeight.Medium
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "Tap + to add your first transaction",
+                text = "Good Morning,",
                 style = MaterialTheme.typography.bodyMedium,
                 color = TextSecondary
             )
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(
-                onClick = onAddTransactionClick,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = AccentGreen,
-                    contentColor = DeepBackground
-                ),
-                modifier = Modifier.bounceClick(onClick = onAddTransactionClick)
-            ) {
+            Text(
+                text = "User",
+                style = MaterialTheme.typography.headlineSmall,
+                color = TextPrimary,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+
+        Row {
+            IconButton(onClick = onSettingsClick) {
                 Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
+                    imageVector = Icons.Default.Settings,
+                    contentDescription = "Settings",
+                    tint = TextSecondary
                 )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Add Transaction")
+            }
+            IconButton(onClick = onProfileClick) {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = "Profile",
+                    tint = TextSecondary
+                )
             }
         }
     }
 }
 
 @Composable
-internal fun TransactionItem(
-    transaction: TransactionUiModel,
+private fun EnhancedBalanceCard(
+    balance: Double,
+    income: Double,
+    expenses: Double
+) {
+    PyeraCard(
+        borderColor = NeonYellow.copy(alpha = 0.3f)
+    ) {
+        Column(
+            modifier = Modifier.padding(Spacing.XLarge),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Total Balance Label
+            Text(
+                text = "Total Balance",
+                style = MaterialTheme.typography.labelLarge,
+                color = TextSecondary
+            )
+
+            Spacer(modifier = Modifier.height(Spacing.Small))
+
+            // Balance Amount
+            PyeraCurrencyText(
+                amount = balance,
+                style = MaterialTheme.typography.displaySmall,
+                showSign = false
+            )
+
+            Spacer(modifier = Modifier.height(Spacing.Large))
+
+            // Income/Expense Row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                IncomeExpenseIndicator(
+                    label = "Income",
+                    amount = income,
+                    isPositive = true,
+                    icon = Icons.Default.ArrowDownward
+                )
+
+                Divider(
+                    modifier = Modifier
+                        .height(40.dp)
+                        .width(1.dp),
+                    color = ColorBorder
+                )
+
+                IncomeExpenseIndicator(
+                    label = "Expense",
+                    amount = expenses,
+                    isPositive = false,
+                    icon = Icons.Default.ArrowUpward
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun IncomeExpenseIndicator(
+    label: String,
+    amount: Double,
+    isPositive: Boolean,
+    icon: androidx.compose.ui.graphics.vector.ImageVector
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = if (isPositive) ColorIncome else ColorExpense,
+                modifier = Modifier.size(16.dp)
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                color = TextSecondary
+            )
+        }
+        Spacer(modifier = Modifier.height(4.dp))
+        PyeraCurrencyText(
+            amount = amount,
+            style = MaterialTheme.typography.titleMedium,
+            isPositive = isPositive,
+            showSign = false
+        )
+    }
+}
+
+@Composable
+private fun QuickActionsRow(
+    onAddTransaction: () -> Unit,
+    onScanReceipt: () -> Unit,
+    onViewAnalysis: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(Spacing.Medium)
+    ) {
+        QuickActionButton(
+            icon = Icons.Default.Add,
+            label = "Add",
+            onClick = onAddTransaction,
+            containerColor = NeonYellow,
+            contentColor = DarkGreen,
+            modifier = Modifier.weight(1f)
+        )
+
+        QuickActionButton(
+            icon = Icons.Default.CameraAlt,
+            label = "Scan",
+            onClick = onScanReceipt,
+            containerColor = SurfaceElevated,
+            contentColor = TextPrimary,
+            modifier = Modifier.weight(1f)
+        )
+
+        QuickActionButton(
+            icon = Icons.Default.BarChart,
+            label = "Analysis",
+            onClick = onViewAnalysis,
+            containerColor = SurfaceElevated,
+            contentColor = TextPrimary,
+            modifier = Modifier.weight(1f)
+        )
+    }
+}
+
+@Composable
+private fun QuickActionButton(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    onClick: () -> Unit,
+    containerColor: androidx.compose.ui.graphics.Color,
+    contentColor: androidx.compose.ui.graphics.Color,
     modifier: Modifier = Modifier
 ) {
-    val amountColor = if (transaction.isIncome) PositiveChange else MaterialTheme.colorScheme.onBackground
-    val sign = if (transaction.isIncome) "+" else "-"
-    val iconColor = if (transaction.isIncome) PositiveChange else NegativeChange
+    Surface(
+        onClick = onClick,
+        modifier = modifier.height(80.dp),
+        shape = MaterialTheme.shapes.large,
+        color = containerColor
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = label,
+                tint = contentColor
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                color = contentColor
+            )
+        }
+    }
+}
 
+@Composable
+private fun RecentTransactionsSection(
+    transactions: List<TransactionUiModel>,
+    onViewAll: () -> Unit,
+    onAddTransaction: () -> Unit
+) {
+    Column {
+        // Header with "View All" link
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Recent Transactions",
+                style = MaterialTheme.typography.titleMedium,
+                color = TextPrimary,
+                fontWeight = FontWeight.SemiBold
+            )
+
+            if (transactions.isNotEmpty()) {
+                TextButton(onClick = onViewAll) {
+                    Text("View All", color = NeonYellow)
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(Spacing.Medium))
+
+        // Content - Empty State or Transaction List
+        if (transactions.isEmpty()) {
+            EmptyState(
+                icon = Icons.AutoMirrored.Filled.ReceiptLong,
+                title = "No transactions yet",
+                subtitle = "Start tracking your expenses by adding your first transaction",
+                actionLabel = "Add Transaction",
+                onAction = onAddTransaction
+            )
+        } else {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(Spacing.Small)
+            ) {
+                transactions.take(5).forEach { transaction ->
+                    TransactionListItem(transaction = transaction)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TransactionListItem(transaction: TransactionUiModel) {
     PyeraCard(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxWidth()
             .bounceClick()
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(Spacing.CardPadding),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(Spacing.Medium)
             ) {
+                // Category Icon with background
                 Box(
                     modifier = Modifier
                         .size(44.dp)
                         .clip(CircleShape)
-                        .background(iconColor.copy(alpha = 0.15f)),
+                        .background(
+                            if (transaction.isIncome) 
+                                ColorIncome.copy(alpha = 0.15f) 
+                            else 
+                                ColorExpense.copy(alpha = 0.15f)
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -335,7 +397,7 @@ internal fun TransactionItem(
                         else
                             Icons.Default.ArrowUpward,
                         contentDescription = if (transaction.isIncome) "Income" else "Expense",
-                        tint = iconColor,
+                        tint = if (transaction.isIncome) ColorIncome else ColorExpense,
                         modifier = Modifier.size(22.dp)
                     )
                 }
@@ -344,7 +406,7 @@ internal fun TransactionItem(
                     Text(
                         text = transaction.title,
                         style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onBackground,
+                        color = TextPrimary,
                         fontWeight = FontWeight.Medium
                     )
                     Text(
@@ -355,6 +417,9 @@ internal fun TransactionItem(
                 }
             }
 
+            // Amount
+            val amountColor = if (transaction.isIncome) ColorIncome else TextPrimary
+            val sign = if (transaction.isIncome) "+" else "-"
             Text(
                 text = "$sign ₱${transaction.amount}",
                 style = MaterialTheme.typography.bodyLarge,

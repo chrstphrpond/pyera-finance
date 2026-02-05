@@ -2,7 +2,10 @@ package com.pyera.app.ui.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -13,28 +16,28 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.pyera.app.ui.theme.CardBackground
-import com.pyera.app.ui.theme.CardBorder
-import com.pyera.app.ui.theme.GlassOverlay
+import com.pyera.app.ui.theme.*
 
 @Composable
 fun PyeraCard(
     modifier: Modifier = Modifier,
     cornerRadius: Dp = 20.dp,
-    borderColor: Color = CardBorder,
+    borderColor: Color = ColorBorder,
     borderWidth: Dp = 1.dp,
-    containerColor: Color = CardBackground,
+    containerColor: Color = SurfaceElevated,
     contentColor: Color = MaterialTheme.colorScheme.onSurface,
     elevation: Dp = 0.dp,
     enableGlassEffect: Boolean = false,
     gradientBrush: Brush? = null,
-    content: @Composable () -> Unit
+    onClick: (() -> Unit)? = null,
+    enabled: Boolean = true,
+    content: @Composable ColumnScope.() -> Unit
 ) {
     val effectiveGradient = when {
         gradientBrush != null -> gradientBrush
         enableGlassEffect -> Brush.verticalGradient(
             colors = listOf(
-                GlassOverlay,
+                ColorOverlayHover,
                 Color.Transparent
             )
         )
@@ -53,8 +56,15 @@ fun PyeraCard(
         )
     }
 
+    val cardModifier = modifier
+        .then(
+            if (onClick != null) {
+                Modifier.clickable(enabled = enabled, onClick = onClick)
+            } else Modifier
+        )
+
     Card(
-        modifier = modifier,
+        modifier = cardModifier,
         shape = RoundedCornerShape(cornerRadius),
         colors = cardColors,
         border = BorderStroke(borderWidth, borderColor),
@@ -66,10 +76,14 @@ fun PyeraCard(
                     brush = effectiveGradient
                 ).background(containerColor)
             ) {
-                content()
+                Column {
+                    content()
+                }
             }
         } else {
-            content()
+            Column {
+                content()
+            }
         }
     }
 }
@@ -80,16 +94,21 @@ fun PyeraFeatureCard(
     cornerRadius: Dp = 20.dp,
     gradientColors: List<Color> = listOf(
         MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
-        CardBackground
+        SurfaceElevated
     ),
-    borderColor: Color = CardBorder,
-    content: @Composable () -> Unit
+    borderColor: Color = ColorBorder,
+    onClick: (() -> Unit)? = null,
+    enabled: Boolean = true,
+    content: @Composable ColumnScope.() -> Unit
 ) {
     PyeraCard(
         modifier = modifier,
         cornerRadius = cornerRadius,
         borderColor = borderColor,
         gradientBrush = Brush.verticalGradient(colors = gradientColors),
-        content = content
-    )
+        onClick = onClick,
+        enabled = enabled
+    ) {
+        content()
+    }
 }

@@ -39,12 +39,12 @@ fun BudgetScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     var showSetBudgetDialog by remember { mutableStateOf<BudgetItem?>(null) }
 
-    if (showSetBudgetDialog != null) {
+    showSetBudgetDialog?.let { budgetItem ->
         SetBudgetDialog(
-            item = showSetBudgetDialog!!,
+            item = budgetItem,
             onDismiss = { showSetBudgetDialog = null },
             onConfirm = { amount ->
-                viewModel.setBudget(showSetBudgetDialog!!.category.id, amount)
+                viewModel.setBudget(budgetItem.category.id, amount)
                 showSetBudgetDialog = null
             }
         )

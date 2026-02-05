@@ -1,30 +1,33 @@
 package com.pyera.app.ui.components
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.pyera.app.ui.theme.AccentGreen
-import com.pyera.app.ui.theme.CardBackground
-import com.pyera.app.ui.theme.ColorError
-import com.pyera.app.ui.theme.ColorSuccess
-import com.pyera.app.ui.theme.DeepBackground
-import com.pyera.app.ui.theme.TextSecondary
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.Warning
+import com.pyera.app.ui.theme.*
 
 /**
  * A reusable confirmation dialog with customizable title, message, and button colors.
@@ -44,8 +47,8 @@ fun ConfirmDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = CardBackground,
-        titleContentColor = Color.White,
+        containerColor = SurfaceElevated,
+        titleContentColor = TextPrimary,
         textContentColor = TextSecondary,
         icon = icon?.let {
             {
@@ -116,8 +119,8 @@ fun ErrorDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = CardBackground,
-        titleContentColor = Color.White,
+        containerColor = SurfaceElevated,
+        titleContentColor = TextPrimary,
         textContentColor = TextSecondary,
         icon = {
             Icon(
@@ -175,8 +178,8 @@ fun SuccessDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = CardBackground,
-        titleContentColor = Color.White,
+        containerColor = SurfaceElevated,
+        titleContentColor = TextPrimary,
         textContentColor = TextSecondary,
         icon = {
             Icon(
@@ -207,7 +210,7 @@ fun SuccessDialog(
                 onClick = onDismiss,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = ColorSuccess,
-                    contentColor = DeepBackground
+                    contentColor = DarkGreen
                 ),
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -240,8 +243,8 @@ fun InfoDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = CardBackground,
-        titleContentColor = Color.White,
+        containerColor = SurfaceElevated,
+        titleContentColor = TextPrimary,
         textContentColor = TextSecondary,
         title = {
             Text(
@@ -263,8 +266,8 @@ fun InfoDialog(
             Button(
                 onClick = onDismiss,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = AccentGreen,
-                    contentColor = DeepBackground
+                    containerColor = NeonYellow,
+                    contentColor = DarkGreen
                 ),
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -275,4 +278,104 @@ fun InfoDialog(
             }
         }
     )
+}
+
+/**
+ * A reusable error container component to display error states inline.
+ * Features an error icon, title, and optional message in a styled card.
+ *
+ * @param title The error title text
+ * @param message Optional detailed error message
+ * @param modifier Modifier for customizing the layout
+ */
+@Composable
+fun ErrorContainer(
+    title: String,
+    message: String? = null,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = ColorError.copy(alpha = 0.1f)
+        ),
+        border = BorderStroke(
+            width = 1.dp,
+            color = ColorError.copy(alpha = 0.3f)
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                imageVector = Icons.Default.Error,
+                contentDescription = "Error",
+                tint = ColorError,
+                modifier = Modifier.size(48.dp)
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                color = ColorError,
+                textAlign = TextAlign.Center
+            )
+
+            message?.let {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = ColorError.copy(alpha = 0.8f),
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+    }
+}
+
+/**
+ * A reusable error container component for displaying error states with optional retry.
+ * Used when content fails to load.
+ */
+@Composable
+fun ErrorContainer(
+    message: String,
+    onRetry: (() -> Unit)? = null,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Icon(
+            imageVector = Icons.Default.Error,
+            contentDescription = "Error",
+            tint = ColorError,
+            modifier = Modifier.size(48.dp)
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = message,
+            style = MaterialTheme.typography.bodyMedium,
+            color = ColorError,
+            textAlign = TextAlign.Center
+        )
+        if (onRetry != null) {
+            Spacer(modifier = Modifier.height(16.dp))
+            PyeraButton(
+                onClick = onRetry,
+                variant = ButtonVariant.Primary
+            ) {
+                Text("Retry")
+            }
+        }
+    }
 }

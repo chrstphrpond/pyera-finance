@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
@@ -22,16 +21,13 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.pyera.app.ui.theme.AccentGreen
-import com.pyera.app.ui.theme.CardBackground
-import com.pyera.app.ui.theme.DeepBackground
-import com.pyera.app.ui.theme.TextSecondary
+import com.pyera.app.ui.theme.*
 
 /**
  * A reusable empty state component that displays when there's no data to show.
  * Features a large icon, title, optional subtitle, and optional action button.
  *
- * @param icon The icon to display (64.dp, tinted with AccentGreen)
+ * @param icon The icon to display (64.dp, tinted with NeonYellow)
  * @param title The main title text (white, 18.sp)
  * @param subtitle Optional subtitle text (gray, 14.sp)
  * @param actionLabel Optional label for the action button
@@ -47,7 +43,7 @@ fun EmptyState(
 ) {
     PyeraCard(
         modifier = Modifier.fillMaxWidth(),
-        containerColor = CardBackground
+        containerColor = SurfaceElevated
     ) {
         Column(
             modifier = Modifier
@@ -56,11 +52,11 @@ fun EmptyState(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Large icon with AccentGreen tint
+            // Large icon with NeonYellow tint
             Icon(
                 imageVector = icon,
                 contentDescription = "$title icon",
-                tint = AccentGreen,
+                tint = NeonYellow,
                 modifier = Modifier.size(64.dp)
             )
 
@@ -93,19 +89,10 @@ fun EmptyState(
             // Optional action button
             if (actionLabel != null && onAction != null) {
                 Spacer(modifier = Modifier.height(20.dp))
-                Button(
+                PyeraButton(
                     onClick = onAction,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = AccentGreen,
-                        contentColor = DeepBackground
-                    )
+                    variant = ButtonVariant.Primary
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
                     Text(actionLabel)
                 }
             }
@@ -132,7 +119,7 @@ fun CompactEmptyState(
         Icon(
             imageVector = icon,
             contentDescription = "$title icon",
-            tint = AccentGreen.copy(alpha = 0.7f),
+            tint = NeonYellow.copy(alpha = 0.7f),
             modifier = Modifier.size(48.dp)
         )
 
@@ -153,6 +140,59 @@ fun CompactEmptyState(
                 color = TextSecondary,
                 textAlign = TextAlign.Center
             )
+        }
+    }
+}
+
+@Composable
+fun PyeraEmptyState(
+    icon: ImageVector,
+    title: String,
+    description: String,
+    modifier: Modifier = Modifier,
+    actionLabel: String? = null,
+    onAction: (() -> Unit)? = null
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(Spacing.XXLarge),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            modifier = Modifier.size(64.dp),
+            tint = TextSecondary
+        )
+        
+        Spacer(modifier = Modifier.height(Spacing.Large))
+        
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleLarge,
+            color = TextPrimary,
+            textAlign = TextAlign.Center
+        )
+        
+        Spacer(modifier = Modifier.height(Spacing.Small))
+        
+        Text(
+            text = description,
+            style = MaterialTheme.typography.bodyMedium,
+            color = TextSecondary,
+            textAlign = TextAlign.Center
+        )
+        
+        if (actionLabel != null && onAction != null) {
+            Spacer(modifier = Modifier.height(Spacing.XLarge))
+            PyeraButton(
+                onClick = onAction,
+                variant = ButtonVariant.Primary
+            ) {
+                Text(actionLabel)
+            }
         }
     }
 }

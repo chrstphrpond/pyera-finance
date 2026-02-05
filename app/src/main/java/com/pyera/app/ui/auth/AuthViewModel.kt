@@ -312,6 +312,41 @@ class AuthViewModel @Inject constructor(
             hasStoredCredentials = repository.hasStoredCredentials()
         )
     }
+
+    // ==================== Validation Methods ====================
+    
+    fun validateEmail(email: String): ValidationResult {
+        return when {
+            email.isBlank() -> ValidationResult.Error("Email is required")
+            !email.isValidEmail() -> ValidationResult.Error("Invalid email format")
+            else -> ValidationResult.Success
+        }
+    }
+    
+    fun validatePassword(password: String): ValidationResult {
+        return when {
+            password.isBlank() -> ValidationResult.Error("Password is required")
+            password.length < 6 -> ValidationResult.Error("Password must be at least 6 characters")
+            else -> ValidationResult.Success
+        }
+    }
+    
+    fun validateConfirmPassword(password: String, confirmPassword: String): ValidationResult {
+        return when {
+            confirmPassword.isBlank() -> ValidationResult.Error("Please confirm your password")
+            password != confirmPassword -> ValidationResult.Error("Passwords do not match")
+            else -> ValidationResult.Success
+        }
+    }
+    
+    fun validateName(name: String): ValidationResult {
+        return when {
+            name.isBlank() -> ValidationResult.Error("Name is required")
+            name.length < 2 -> ValidationResult.Error("Name must be at least 2 characters")
+            name.length > 50 -> ValidationResult.Error("Name is too long")
+            else -> ValidationResult.Success
+        }
+    }
 }
 
 data class AuthUiState(
@@ -342,6 +377,15 @@ sealed class BiometricAuthState {
     object Success : BiometricAuthState()
     data class Error(val message: String) : BiometricAuthState()
     object Cancelled : BiometricAuthState()
+}
+
+sealed class ValidationResult {
+    object Success : ValidationResult()
+    data class Error(val message: String) : ValidationResult()
+}
+
+private fun String.isValidEmail(): Boolean {
+    return android.util.Patterns.EMAIL_ADDRESS.matcher(this).matches()
 }
 
 /**

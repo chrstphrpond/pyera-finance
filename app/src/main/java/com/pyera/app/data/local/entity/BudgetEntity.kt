@@ -30,9 +30,10 @@ enum class BudgetPeriod {
         )
     ],
     indices = [
-        Index("categoryId"),
-        Index("userId"),
-        Index("isActive")
+        Index(value = ["categoryId"], name = "idx_budgets_category"),
+        Index(value = ["userId"], name = "idx_budgets_user"),
+        Index(value = ["isActive"], name = "idx_budgets_active"),
+        Index(value = ["startDate", "endDate"], name = "idx_budgets_dates")
     ]
 )
 data class BudgetEntity(
@@ -43,6 +44,7 @@ data class BudgetEntity(
     val amount: Double,
     val period: BudgetPeriod = BudgetPeriod.MONTHLY,
     val startDate: Long = System.currentTimeMillis(), // When the budget period starts
+    val endDate: Long = System.currentTimeMillis() + 30 * 24 * 60 * 60 * 1000L, // Default 30 days
     val isActive: Boolean = true,
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis(),

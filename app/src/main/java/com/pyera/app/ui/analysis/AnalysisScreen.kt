@@ -7,7 +7,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,7 +28,7 @@ import com.pyera.app.ui.theme.TextTertiary
 fun AnalysisScreen(
     viewModel: AnalysisViewModel = hiltViewModel()
 ) {
-    val state by viewModel.state.collectAsState()
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
     Column(
         modifier = Modifier
@@ -81,9 +81,9 @@ fun AnalysisScreen(
             Text("Export Data to CSV")
         }
 
-        if (state.exportMessage != null) {
+        state.exportMessage?.let { message ->
             Text(
-                text = state.exportMessage!!,
+                text = message,
                 color = AccentGreen,
                 fontSize = 12.sp,
                 modifier = Modifier.padding(top = 8.dp)

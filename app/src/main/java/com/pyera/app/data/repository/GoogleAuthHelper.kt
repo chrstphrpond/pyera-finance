@@ -29,7 +29,7 @@ class GoogleAuthHelper @Inject constructor() {
     fun initialize(context: Context) {
         val webClientId = context.getString(R.string.default_web_client_id)
         if (BuildConfig.DEBUG) {
-            Log.d(TAG, "Initializing Google Sign-In with Web Client ID: $webClientId")
+            Log.d(TAG, "Initializing Google Sign-In...")
         }
         
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -72,7 +72,7 @@ class GoogleAuthHelper @Inject constructor() {
             }
             val account = task.getResult(ApiException::class.java)
             if (BuildConfig.DEBUG) {
-                Log.d(TAG, "Account retrieved: ${account?.displayName}, email: ${account?.email}")
+                Log.d(TAG, "Account retrieved successfully")
             }
             if (account?.idToken != null) {
                 Log.d(TAG, "ID Token obtained successfully")

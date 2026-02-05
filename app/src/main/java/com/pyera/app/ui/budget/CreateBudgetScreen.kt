@@ -140,6 +140,7 @@ fun CreateBudgetScreen(
             // Category Selection
             CategorySelectionSection(
                 categories = categories,
+                expenseCategories = expenseCategories,
                 selectedCategory = selectedCategory,
                 onCategorySelected = { selectedCategory = it }
             )
@@ -182,8 +183,7 @@ fun CreateBudgetScreen(
                 },
                 enabled = selectedCategory != null &&
                         amountText.isNotBlank() &&
-                        amountText.toDoubleOrNull() != null &&
-                        amountText.toDoubleOrNull()!! > 0 &&
+                        amountText.toDoubleOrNull()?.let { it > 0 } == true &&
                         !isLoading,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -203,6 +203,7 @@ fun CreateBudgetScreen(
 @Composable
 private fun CategorySelectionSection(
     categories: List<CategoryEntity>,
+    expenseCategories: List<CategoryEntity>,
     selectedCategory: CategoryEntity?,
     onCategorySelected: (CategoryEntity) -> Unit
 ) {
@@ -223,7 +224,7 @@ private fun CategorySelectionSection(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            if (categories.isEmpty()) {
+            if (expenseCategories.isEmpty()) {
                 Text(
                     text = "No expense categories available",
                     color = TextSecondary,
@@ -276,7 +277,7 @@ private fun CategorySelectionSection(
                         onDismissRequest = { expanded = false },
                         modifier = Modifier.background(CardBackground)
                     ) {
-                        categories.forEach { category ->
+                        expenseCategories.forEach { category ->
                             DropdownMenuItem(
                                 text = {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
