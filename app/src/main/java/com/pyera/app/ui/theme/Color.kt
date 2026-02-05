@@ -2,6 +2,10 @@ package com.pyera.app.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
+// ============================================
+// DARK THEME COLORS (Original Pyera Brand)
+// ============================================
+
 // Primary Brand Colors
 val NeonYellow = Color(0xFFD4FF00)
 val NeonYellowDark = Color(0xFFB8E600)
@@ -42,7 +46,50 @@ val ColorIncome = ColorSuccess
 val ColorExpense = ColorError
 val ColorDebt = ColorWarning
 
-// Legacy aliases for backward compatibility
+
+// ============================================
+// LIGHT THEME COLORS
+// ============================================
+
+// Primary Colors (Green-based for finance app)
+val ColorPrimaryLight = Color(0xFF2E7D32)
+val ColorPrimaryDark = Color(0xFF1B5E20)
+val ColorPrimaryContainerLight = Color(0xFFB9F6CA)
+
+// Secondary Colors
+val ColorSecondaryLight = Color(0xFF4CAF50)
+val ColorSecondaryDark = Color(0xFF388E3C)
+val ColorSecondaryContainerLight = Color(0xFFC8E6C9)
+
+// Tertiary Colors (Accent)
+val ColorTertiaryLight = Color(0xFF00897B)
+val ColorTertiaryDark = Color(0xFF00695C)
+val ColorTertiaryContainerLight = Color(0xFFB2DFDB)
+
+// Background & Surface Colors
+val ColorBackgroundLight = Color(0xFFF5F5F5)
+val ColorSurfaceLight = Color(0xFFFFFFFF)
+val ColorSurfaceVariantLight = Color(0xFFEEEEEE)
+
+// Text Colors for Light Theme
+val ColorOnBackgroundLight = Color(0xFF1A1C1E)
+val ColorOnSurfaceLight = Color(0xFF1A1C1E)
+val ColorOnSurfaceVariantLight = Color(0xFF5F6368)
+
+// Semantic Colors for Light Theme
+val ColorErrorLight = Color(0xFFD32F2F)
+val ColorErrorDark = Color(0xFFB71C1C)
+val ColorErrorContainerLight = Color(0xFFFFEBEE)
+
+// Outline Colors
+val ColorOutlineLight = Color(0xFFBDBDBD)
+val ColorOutlineVariantLight = Color(0xFFE0E0E0)
+
+
+// ============================================
+// LEGACY ALIASES (Backward Compatibility)
+// ============================================
+
 val Inchworm = NeonYellow
 val Gunmetal = SurfaceDark
 val Orange = ColorWarning
@@ -59,7 +106,7 @@ val NegativeChange = ColorError
 val SuccessContainer = ColorSuccessContainer
 val WarningContainer = ColorWarningContainer
 val ErrorContainer = ColorErrorContainer
-val InfoContainer = Color(0xFF0A1A2A)
+val InfoContainer = Color(0xFF1A1A2A)
 val CardBorder = ColorBorder
 val GlassOverlay = ColorOverlayHover
 val GreenGlow = NeonYellow.copy(alpha = 0.2f)

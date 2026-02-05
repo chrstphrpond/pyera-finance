@@ -119,6 +119,7 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.analytics)
+    implementation(libs.firebase.storage)
 
     // ML Kit
     implementation("com.google.android.gms:play-services-mlkit-text-recognition:19.0.0")
@@ -185,4 +186,11 @@ dependencies {
     implementation("androidx.glance:glance:1.0.0")
     implementation("androidx.glance:glance-appwidget:1.0.0")
     implementation("androidx.glance:glance-material3:1.0.0")
+    
+    // For Excel export
+    implementation("org.apache.poi:poi:5.2.3")
+    implementation("org.apache.poi:poi-ooxml:5.2.3")
+
+    // For PDF export
+    implementation("com.itextpdf:itext7-core:8.0.2")
 }

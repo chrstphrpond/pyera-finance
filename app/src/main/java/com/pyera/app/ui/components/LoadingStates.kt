@@ -33,8 +33,11 @@ import com.pyera.app.ui.theme.AccentGreen
 import com.pyera.app.ui.theme.CardBackground
 import com.pyera.app.ui.theme.CardBorder
 import com.pyera.app.ui.theme.DeepBackground
+import com.pyera.app.ui.theme.NeonYellow
 import com.pyera.app.ui.theme.SurfaceDark
 import com.pyera.app.ui.theme.SurfaceElevated
+import com.pyera.app.ui.theme.Spacing
+import com.pyera.app.ui.theme.TextSecondary
 
 /**
  * A centered circular progress indicator with the brand's AccentGreen color.
@@ -232,6 +235,41 @@ fun ShimmerLoadingList(
                 ShimmerListItem()
             }
         }
+    }
+}
+
+/**
+ * A reusable loading state component with a message.
+ *
+ * @param message The loading message to display
+ * @param modifier Modifier for styling
+ */
+@Composable
+fun PyeraLoadingState(
+    message: String = "Loading...",
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(Spacing.XXLarge),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        CircularProgressIndicator(
+            color = NeonYellow,
+            strokeWidth = 4.dp,
+            modifier = Modifier.size(48.dp)
+        )
+        
+        Spacer(modifier = Modifier.height(Spacing.Large))
+        
+        Text(
+            text = message,
+            style = MaterialTheme.typography.bodyMedium,
+            color = TextSecondary,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+        )
     }
 }
 

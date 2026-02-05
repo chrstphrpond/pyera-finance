@@ -64,9 +64,9 @@ fun SecuritySettingsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     
-    var showTimeoutDialog by remember { mutableStateOf(false) }
-    var showDisableDialog by remember { mutableStateOf(false) }
-    var showBiometricError by remember { mutableStateOf<String?>(null) }
+    var showTimeoutDialog by rememberSaveable { mutableStateOf(false) }
+    var showDisableDialog by rememberSaveable { mutableStateOf(false) }
+    var showBiometricError by rememberSaveable { mutableStateOf<String?>(null) }
     
     Scaffold(
         topBar = {

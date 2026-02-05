@@ -1,5 +1,15 @@
 package com.pyera.app.ui.dashboard
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.with
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -14,13 +24,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pyera.app.ui.components.*
+import com.pyera.app.ui.dashboard.QuickTemplatesRow
+import com.pyera.app.ui.navigation.Screen
 import com.pyera.app.ui.theme.*
+import androidx.compose.ui.res.stringResource
+import com.pyera.app.R
 import com.pyera.app.ui.util.bounceClick
+import java.util.Calendar
 
 @Composable
 fun DashboardScreen(
@@ -37,7 +53,8 @@ fun DashboardScreen(
     onInsightsClick: () -> Unit = {},
     onAccountSelectorClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
-    onSettingsClick: () -> Unit = {}
+    onSettingsClick: () -> Unit = {},
+    onTemplatesClick: () -> Unit = {}
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val scrollState = rememberScrollState()
@@ -50,6 +67,7 @@ fun DashboardScreen(
     ) {
         // Header with greeting and action icons
         DashboardHeader(
+            userName = state.userName,
             onProfileClick = onProfileClick,
             onSettingsClick = onSettingsClick
         )
@@ -62,8 +80,8 @@ fun DashboardScreen(
             contentAlignment = Alignment.Center
         ) {
             AccountSelectorPill(
-                accountName = "Main Account",
-                accountIdentifier = "Pyera User",
+                accountName = stringResource(R.string.dashboard_main_account),
+                accountIdentifier = stringResource(R.string.dashboard_account_identifier),
                 onClick = onAccountSelectorClick
             )
         }
@@ -77,6 +95,15 @@ fun DashboardScreen(
             expenses = state.totalExpense
         )
 
+        Spacer(modifier = Modifier.height(Spacing.Large))
+
+        // Quick Stats Row showing transaction count, budgets, and goals
+        QuickStatsRow(
+            transactionCount = state.transactionCount,
+            activeBudgetsCount = state.activeBudgetsCount,
+            savingsGoalsCount = state.savingsGoalsCount
+        )
+
         Spacer(modifier = Modifier.height(Spacing.XLarge))
 
         // Quick Actions Row with proper colors
@@ -85,6 +112,19 @@ fun DashboardScreen(
             onScanReceipt = onScanReceiptClick,
             onViewAnalysis = onAnalysisClick,
             onViewInsights = onInsightsClick
+        )
+
+        Spacer(modifier = Modifier.height(Spacing.XLarge))
+
+        // Quick Templates Row - shows most used templates for one-tap entry
+        QuickTemplatesRow(
+            onTemplateClick = { templateId ->
+                // Navigate to add transaction screen with template ID
+                // Template data will be pre-filled
+                onAddTransactionClick()
+            },
+            onSeeAllClick = onTemplatesClick,
+            onAddTemplateClick = onTemplatesClick
         )
 
         Spacer(modifier = Modifier.height(Spacing.XLarge))
@@ -102,9 +142,12 @@ fun DashboardScreen(
 
 @Composable
 private fun DashboardHeader(
+    userName: String,
     onProfileClick: () -> Unit,
     onSettingsClick: () -> Unit
 ) {
+    val greeting = getGreeting()
+    
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -112,12 +155,12 @@ private fun DashboardHeader(
     ) {
         Column {
             Text(
-                text = "Good Morning,",
+                text = "$greeting,",
                 style = MaterialTheme.typography.bodyMedium,
                 color = TextSecondary
             )
             Text(
-                text = "User",
+                text = userName,
                 style = MaterialTheme.typography.headlineSmall,
                 color = TextPrimary,
                 fontWeight = FontWeight.SemiBold
@@ -128,18 +171,27 @@ private fun DashboardHeader(
             IconButton(onClick = onSettingsClick) {
                 Icon(
                     imageVector = Icons.Default.Settings,
-                    contentDescription = "Settings",
+                    contentDescription = stringResource(R.string.dashboard_settings_content_desc),
                     tint = TextSecondary
                 )
             }
             IconButton(onClick = onProfileClick) {
                 Icon(
                     imageVector = Icons.Default.Person,
-                    contentDescription = "Profile",
+                    contentDescription = stringResource(R.string.dashboard_profile_content_desc),
                     tint = TextSecondary
                 )
             }
         }
+    }
+}
+
+private fun getGreeting(): String {
+    val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+    return when (hour) {
+        in 0..11 -> stringResource(R.string.dashboard_greeting_morning).trimEnd(',')
+        in 12..17 -> stringResource(R.string.dashboard_greeting_afternoon).trimEnd(',')
+        else -> stringResource(R.string.dashboard_greeting_evening).trimEnd(',')
     }
 }
 
@@ -149,6 +201,16 @@ private fun EnhancedBalanceCard(
     income: Double,
     expenses: Double
 ) {
+    // Scale animation for balance changes
+    val scale by animateFloatAsState(
+        targetValue = 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "balance_scale"
+    )
+    
     PyeraCard(
         borderColor = NeonYellow.copy(alpha = 0.3f)
     ) {
@@ -158,19 +220,29 @@ private fun EnhancedBalanceCard(
         ) {
             // Total Balance Label
             Text(
-                text = "Total Balance",
+                text = stringResource(R.string.dashboard_total_balance),
                 style = MaterialTheme.typography.labelLarge,
                 color = TextSecondary
             )
 
             Spacer(modifier = Modifier.height(Spacing.Small))
 
-            // Balance Amount
-            PyeraCurrencyText(
-                amount = balance,
-                style = MaterialTheme.typography.displaySmall,
-                showSign = false
-            )
+            // Balance Amount with animation
+            AnimatedContent(
+                targetState = balance,
+                transitionSpec = {
+                    fadeIn(animationSpec = tween(300)) togetherWith 
+                    fadeOut(animationSpec = tween(300))
+                },
+                label = "balance_animation"
+            ) { targetBalance ->
+                PyeraCurrencyText(
+                    amount = targetBalance,
+                    style = MaterialTheme.typography.displaySmall,
+                    showSign = false,
+                    modifier = Modifier.scale(scale)
+                )
+            }
 
             Spacer(modifier = Modifier.height(Spacing.Large))
 
@@ -180,7 +252,7 @@ private fun EnhancedBalanceCard(
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 IncomeExpenseIndicator(
-                    label = "Income",
+                    label = stringResource(R.string.dashboard_income),
                     amount = income,
                     isPositive = true,
                     icon = Icons.Default.ArrowDownward
@@ -194,7 +266,7 @@ private fun EnhancedBalanceCard(
                 )
 
                 IncomeExpenseIndicator(
-                    label = "Expense",
+                    label = stringResource(R.string.dashboard_expense),
                     amount = expenses,
                     isPositive = false,
                     icon = Icons.Default.ArrowUpward
@@ -218,7 +290,7 @@ private fun IncomeExpenseIndicator(
         ) {
             Icon(
                 imageVector = icon,
-                contentDescription = null,
+                contentDescription = if (isPositive) "Income indicator" else "Expense indicator",
                 tint = if (isPositive) ColorIncome else ColorExpense,
                 modifier = Modifier.size(16.dp)
             )
@@ -247,20 +319,25 @@ private fun QuickActionsRow(
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(Spacing.Medium)
+        horizontalArrangement = Arrangement.spacedBy(Spacing.Medium),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        QuickActionButton(
-            icon = Icons.Default.Add,
-            label = "Add",
+        // Main Add Button - Using FilledIconButton with NeonYellow as specified
+        FilledIconButton(
             onClick = onAddTransaction,
-            containerColor = NeonYellow,
-            contentColor = DarkGreen,
-            modifier = Modifier.weight(1f)
-        )
+            colors = IconButtonDefaults.filledIconButtonColors(
+                containerColor = NeonYellow,
+                contentColor = DarkGreen
+            ),
+            modifier = Modifier.size(56.dp)
+        ) {
+            Icon(Icons.Default.Add, contentDescription = stringResource(R.string.dashboard_quick_action_add))
+        }
 
+        // Other quick action buttons
         QuickActionButton(
             icon = Icons.Default.CameraAlt,
-            label = "Scan",
+            label = stringResource(R.string.dashboard_quick_action_scan),
             onClick = onScanReceipt,
             containerColor = SurfaceElevated,
             contentColor = TextPrimary,
@@ -269,7 +346,7 @@ private fun QuickActionsRow(
 
         QuickActionButton(
             icon = Icons.Default.Lightbulb,
-            label = "Insights",
+            label = stringResource(R.string.dashboard_quick_action_insights),
             onClick = onViewInsights,
             containerColor = SurfaceElevated,
             contentColor = TextPrimary,
@@ -327,7 +404,7 @@ private fun RecentTransactionsSection(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Recent Transactions",
+                text = stringResource(R.string.dashboard_recent_transactions),
                 style = MaterialTheme.typography.titleMedium,
                 color = TextPrimary,
                 fontWeight = FontWeight.SemiBold
@@ -335,7 +412,7 @@ private fun RecentTransactionsSection(
 
             if (transactions.isNotEmpty()) {
                 TextButton(onClick = onViewAll) {
-                    Text("View All", color = NeonYellow)
+                    Text(stringResource(R.string.dashboard_view_all), color = NeonYellow)
                 }
             }
         }
@@ -344,11 +421,12 @@ private fun RecentTransactionsSection(
 
         // Content - Empty State or Transaction List
         if (transactions.isEmpty()) {
-            EmptyState(
+            // Using transaction-appropriate icon with proper accessibility
+            PyeraEmptyState(
                 icon = Icons.AutoMirrored.Filled.ReceiptLong,
-                title = "No transactions yet",
-                subtitle = "Start tracking your expenses by adding your first transaction",
-                actionLabel = "Add Transaction",
+                title = stringResource(R.string.transaction_list_empty_title),
+                description = stringResource(R.string.empty_state_transactions_description),
+                actionLabel = stringResource(R.string.empty_state_transactions_button),
                 onAction = onAddTransaction
             )
         } else {
@@ -359,6 +437,78 @@ private fun RecentTransactionsSection(
                     TransactionListItem(transaction = transaction)
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun QuickStatsRow(
+    transactionCount: Int,
+    activeBudgetsCount: Int,
+    savingsGoalsCount: Int
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(Spacing.Medium)
+    ) {
+        QuickStatItem(
+            icon = Icons.Default.ReceiptLong,
+            value = transactionCount.toString(),
+            label = stringResource(R.string.dashboard_stat_transactions),
+            modifier = Modifier.weight(1f)
+        )
+        QuickStatItem(
+            icon = Icons.Default.AccountBalanceWallet,
+            value = activeBudgetsCount.toString(),
+            label = stringResource(R.string.dashboard_stat_budgets),
+            modifier = Modifier.weight(1f)
+        )
+        QuickStatItem(
+            icon = Icons.Default.Savings,
+            value = savingsGoalsCount.toString(),
+            label = stringResource(R.string.dashboard_stat_goals),
+            modifier = Modifier.weight(1f)
+        )
+    }
+}
+
+@Composable
+private fun QuickStatItem(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    value: String,
+    label: String,
+    modifier: Modifier = Modifier
+) {
+    PyeraCard(
+        modifier = modifier,
+        containerColor = SurfaceElevated,
+        borderColor = ColorBorder
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(Spacing.Medium),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = stringResource(R.string.dashboard_stat_transactions, label),
+                tint = NeonYellow,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.height(Spacing.XSmall))
+            Text(
+                text = value,
+                style = MaterialTheme.typography.titleMedium,
+                color = TextPrimary,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = TextSecondary
+            )
         }
     }
 }
@@ -399,7 +549,7 @@ private fun TransactionListItem(transaction: TransactionUiModel) {
                             Icons.Default.ArrowDownward
                         else
                             Icons.Default.ArrowUpward,
-                        contentDescription = if (transaction.isIncome) "Income" else "Expense",
+                        contentDescription = if (transaction.isIncome) stringResource(R.string.dashboard_income) else stringResource(R.string.dashboard_expense),
                         tint = if (transaction.isIncome) ColorIncome else ColorExpense,
                         modifier = Modifier.size(22.dp)
                     )
@@ -420,11 +570,11 @@ private fun TransactionListItem(transaction: TransactionUiModel) {
                 }
             }
 
-            // Amount
+            // Amount using ₱ symbol consistently
             val amountColor = if (transaction.isIncome) ColorIncome else TextPrimary
             val sign = if (transaction.isIncome) "+" else "-"
             Text(
-                text = "$sign ₱${transaction.amount}",
+                text = "$sign₱${transaction.amount}",
                 style = MaterialTheme.typography.bodyLarge,
                 color = amountColor,
                 fontWeight = FontWeight.SemiBold

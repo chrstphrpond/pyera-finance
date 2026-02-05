@@ -75,6 +75,22 @@ sealed class Screen(val route: String) {
             fun createRoute(id: Long) = "recurring/edit/$id"
         }
     }
+    
+    // Transaction Rules screens
+    object TransactionRules : Screen("rules/list")
+    object AddTransactionRule : Screen("rules/add")
+    object EditTransactionRule : Screen("rules/edit/{ruleId}") {
+        fun createRoute(ruleId: Long) = "rules/edit/$ruleId"
+    }
+    
+    // Transaction Templates screens
+    object Templates {
+        object List : Screen("templates/list")
+        object Add : Screen("templates/add")
+        object Edit : Screen("templates/edit/{templateId}") {
+            fun createRoute(templateId: Long) = "templates/edit/$templateId"
+        }
+    }
 }
 
 // Bottom Navigation - 5 Items Maximum

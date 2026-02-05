@@ -10,11 +10,11 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import com.pyera.app.data.preferences.ThemeMode
 
 private val DarkColorScheme = darkColorScheme(
     primary = NeonYellow,
@@ -42,36 +42,54 @@ private val DarkColorScheme = darkColorScheme(
     onErrorContainer = ColorError,
     outline = ColorBorder,
     outlineVariant = ColorBorder.copy(alpha = 0.5f),
-    scrim = Color(0xFF000000)
+    scrim = androidx.compose.ui.graphics.Color(0xFF000000)
 )
 
-// Light scheme as fallback - primarily using dark mode as brand identity
-private val LightColorScheme = lightColorScheme(
-    primary = NeonYellow,
-    onPrimary = DarkGreen,
-    primaryContainer = NeonYellow.copy(alpha = 0.15f),
-    onPrimaryContainer = NeonYellowDark,
-    secondary = SurfaceElevated,
-    onSecondary = TextPrimary,
-    background = Color(0xFFF5F5F5),
-    onBackground = DarkGreen,
-    surface = Color(0xFFFFFFFF),
-    onSurface = DarkGreen,
-    surfaceVariant = Color(0xFFE8E8E8),
-    onSurfaceVariant = TextSecondary,
-    error = ColorError,
-    onError = Color(0xFFFFFFFF),
-    errorContainer = ColorErrorContainer,
-    outline = ColorBorder
+// Light Color Scheme - Material You inspired with Pyera brand colors
+val LightColorScheme = lightColorScheme(
+    primary = ColorPrimaryLight,
+    onPrimary = Color.White,
+    primaryContainer = ColorPrimaryContainerLight,
+    onPrimaryContainer = ColorPrimaryDark,
+    secondary = ColorSecondaryLight,
+    onSecondary = Color.White,
+    secondaryContainer = ColorSecondaryContainerLight,
+    onSecondaryContainer = ColorSecondaryDark,
+    tertiary = ColorTertiaryLight,
+    onTertiary = Color.White,
+    tertiaryContainer = ColorTertiaryContainerLight,
+    onTertiaryContainer = ColorTertiaryDark,
+    background = ColorBackgroundLight,
+    onBackground = ColorOnBackgroundLight,
+    surface = ColorSurfaceLight,
+    onSurface = ColorOnSurfaceLight,
+    surfaceVariant = ColorSurfaceVariantLight,
+    onSurfaceVariant = ColorOnSurfaceVariantLight,
+    surfaceTint = ColorPrimaryLight,
+    error = ColorErrorLight,
+    onError = Color.White,
+    errorContainer = ColorErrorContainerLight,
+    onErrorContainer = ColorErrorDark,
+    outline = ColorOutlineLight,
+    outlineVariant = ColorOutlineVariantLight,
+    scrim = androidx.compose.ui.graphics.Color(0xFF000000)
 )
 
 @Composable
 fun PyeraTheme(
-    darkTheme: Boolean = true, // Force dark theme by default as per design
+    themeMode: ThemeMode = ThemeMode.SYSTEM,
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = false, // Disable dynamic color to stick to brand identity
     content: @Composable () -> Unit
 ) {
+    val systemInDarkTheme = isSystemInDarkTheme()
+    
+    val darkTheme = when (themeMode) {
+        ThemeMode.LIGHT -> false
+        ThemeMode.DARK -> true
+        ThemeMode.SYSTEM -> systemInDarkTheme
+    }
+    
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
@@ -80,6 +98,7 @@ fun PyeraTheme(
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
     }
+    
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
@@ -92,6 +111,23 @@ fun PyeraTheme(
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
+        content = content
+    )
+}
+
+/**
+ * Legacy overload for backward compatibility
+ */
+@Composable
+fun PyeraTheme(
+    darkTheme: Boolean = true,
+    dynamicColor: Boolean = false,
+    content: @Composable () -> Unit
+) {
+    val themeMode = if (darkTheme) ThemeMode.DARK else ThemeMode.LIGHT
+    PyeraTheme(
+        themeMode = themeMode,
+        dynamicColor = dynamicColor,
         content = content
     )
 }

@@ -58,7 +58,7 @@ fun AppLockScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     
-    var pin by remember { mutableStateOf("") }
+    var pin by rememberSaveable { mutableStateOf("") }
     
     // Handle events
     LaunchedEffect(Unit) {

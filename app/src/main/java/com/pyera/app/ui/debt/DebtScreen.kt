@@ -28,6 +28,7 @@ import androidx.compose.material.icons.outlined.MoneyOff
 import androidx.compose.material.icons.outlined.AttachMoney
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,7 +43,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.SwipeRefreshIndicator
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.pyera.app.data.local.entity.DebtEntity
+import com.pyera.app.ui.components.ConfirmationDialog
+import com.pyera.app.ui.components.EmptyDebt
 import com.pyera.app.ui.components.PyeraCard
 import com.pyera.app.ui.theme.ColorError
 import com.pyera.app.ui.theme.ColorSuccess
@@ -64,15 +70,20 @@ fun DebtScreen(
     viewModel: DebtViewModel = hiltViewModel()
 ) {
     val debts by viewModel.debts.collectAsStateWithLifecycle()
-    var selectedTab by remember { mutableStateOf(0) } // 0: I Owe, 1: Owed to Me
-    var showAddDialog by remember { mutableStateOf(false) }
-    var debtToEdit by remember { mutableStateOf<DebtEntity?>(null) }
-    var debtToDelete by remember { mutableStateOf<DebtEntity?>(null) }
-    var debtToMarkPaid by remember { mutableStateOf<DebtEntity?>(null) }
-    var showCelebration by remember { mutableStateOf(false) }
+    val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
+    var selectedTab by rememberSaveable { mutableStateOf(0) } // 0: I Owe, 1: Owed to Me
+    var showAddDialog by rememberSaveable { mutableStateOf(false) }
+    var debtToEditId by rememberSaveable { mutableStateOf<Long?>(null) }
+    val debtToEdit = debtToEditId?.let { id -> debts.find { it.id == id } }
+    var debtToDeleteId by rememberSaveable { mutableStateOf<Long?>(null) }
+    val debtToDelete = debtToDeleteId?.let { id -> debts.find { it.id == id } }
+    var debtToMarkPaidId by rememberSaveable { mutableStateOf<Long?>(null) }
+    val debtToMarkPaid = debtToMarkPaidId?.let { id -> debts.find { it.id == id } }
+    var showCelebration by rememberSaveable { mutableStateOf(false) }
 
     val listState = rememberLazyListState()
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshing)
 
     // Calculate summary values
     val totalYouOwe = debts.filter { it.type == "PAYABLE" && !it.isPaid }.sumOf { it.amount }
@@ -93,26 +104,34 @@ fun DebtScreen(
 
     // Delete confirmation dialog
     debtToDelete?.let { debt ->
-        DeleteConfirmationDialog(
-            debt = debt,
+        ConfirmationDialog(
+            title = "Delete Debt?",
+            message = "Are you sure you want to delete the debt with ${debt.name} for ${formatCurrency(debt.amount)}? This action cannot be undone.",
+            confirmText = "Delete",
+            dismissText = "Cancel",
+            isDestructive = true,
             onConfirm = {
                 viewModel.deleteDebt(debt)
-                debtToDelete = null
+                debtToDeleteId = null
             },
-            onDismiss = { debtToDelete = null }
+            onDismiss = { debtToDeleteId = null }
         )
     }
 
     // Mark as paid confirmation dialog
     debtToMarkPaid?.let { debt ->
-        MarkPaidConfirmationDialog(
-            debt = debt,
+        ConfirmationDialog(
+            title = "Mark as Paid?",
+            message = "Mark the debt with ${debt.name} for ${formatCurrency(debt.amount)} as paid?",
+            confirmText = "Mark Paid",
+            dismissText = "Cancel",
+            isDestructive = false,
             onConfirm = {
                 viewModel.markAsPaid(debt)
                 showCelebration = true
-                debtToMarkPaid = null
+                debtToMarkPaidId = null
             },
-            onDismiss = { debtToMarkPaid = null }
+            onDismiss = { debtToMarkPaidId = null }
         )
     }
 
@@ -123,7 +142,7 @@ fun DebtScreen(
             type = if (selectedTab == 0) "PAYABLE" else "RECEIVABLE",
             onDismiss = {
                 showAddDialog = false
-                debtToEdit = null
+                debtToEditId = null
             },
             onConfirm = { name, amount, date, type ->
                 debtToEdit?.let { existingDebt ->
@@ -132,7 +151,7 @@ fun DebtScreen(
                     viewModel.addDebt(name, amount, date, type)
                 }
                 showAddDialog = false
-                debtToEdit = null
+                debtToEditId = null
             }
         )
     }
@@ -174,7 +193,7 @@ fun DebtScreen(
                 FloatingActionButton(
                     onClick = { showAddDialog = true },
                     containerColor = AccentGreen,
-                    contentColor = Color.Black,
+                    contentColor = DeepBackground,
                     shape = CircleShape
                 ) {
                     Icon(Icons.Default.Add, contentDescription = "Add Debt")
@@ -207,41 +226,57 @@ fun DebtScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Debt List
-            Box(modifier = Modifier.fillMaxSize()) {
-                if (filteredDebts.isEmpty()) {
-                        EmptyDebtState(
+            // Debt List with Pull-to-Refresh
+            SwipeRefresh(
+                state = swipeRefreshState,
+                onRefresh = {
+                    viewModel.refresh()
+                },
+                indicator = { state, trigger ->
+                    SwipeRefreshIndicator(
+                        state = state,
+                        refreshTriggerDistance = trigger,
+                        backgroundColor = SurfaceElevated,
+                        contentColor = AccentGreen
+                    )
+                },
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    if (filteredDebts.isEmpty()) {
+                        EmptyDebt(
                             isIOwe = selectedTab == 0,
                             onAddClick = { showAddDialog = true }
                         )
-                } else {
-                    LazyColumn(
-                        state = listState,
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        items(
-                            items = filteredDebts,
-                            key = { it.id }
-                        ) { debt ->
-                            DebtItem(
-                                debt = debt,
-                                onMarkPaid = { debtToMarkPaid = debt },
-                                onDelete = { debtToDelete = debt },
-                                onEdit = { debtToEdit = debt }
-                            )
+                    } else {
+                        LazyColumn(
+                            state = listState,
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            items(
+                                items = filteredDebts,
+                                key = { it.id }
+                            ) { debt ->
+                                DebtItem(
+                                    debt = debt,
+                                    onMarkPaid = { debtToMarkPaid = debt },
+                                    onDelete = { debtToDelete = debt },
+                                    onEdit = { debtToEdit = debt }
+                                )
+                            }
+                            // Bottom spacer for FAB
+                            item { Spacer(modifier = Modifier.height(80.dp)) }
                         }
-                        // Bottom spacer for FAB
-                        item { Spacer(modifier = Modifier.height(80.dp)) }
                     }
-                }
 
-                // Celebration overlay
-                if (showCelebration) {
-                    CelebrationAnimation(
-                        modifier = Modifier.align(Alignment.Center)
-                    )
+                    // Celebration overlay
+                    if (showCelebration) {
+                        CelebrationAnimation(
+                            modifier = Modifier.align(Alignment.Center)
+                        )
+                    }
                 }
             }
         }
@@ -437,7 +472,7 @@ private fun DebtTabRow(
                                 Text(
                                     text = count.toString(),
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = if (isSelected) Color.Black else TextPrimary,
+                                    color = if (isSelected) DeepBackground else TextPrimary,
                                     textAlign = TextAlign.Center,
                                     modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                                 )
@@ -637,156 +672,7 @@ private fun DebtItem(
     }
 }
 
-@Composable
-private fun EmptyDebtState(
-    isIOwe: Boolean,
-    onAddClick: () -> Unit
-) {
-    val title = if (isIOwe) "No debts!" else "No receivables!"
-    val message = if (isIOwe) {
-        "Great job managing your finances. You don't owe anyone money."
-    } else {
-        "No one owes you money. Tap below to add a debt someone owes you."
-    }
-    val icon = if (isIOwe) Icons.Outlined.MoneyOff else Icons.Outlined.AttachMoney
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(32.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = AccentGreen.copy(alpha = 0.5f),
-                modifier = Modifier.size(80.dp)
-            )
-
-            Text(
-                text = title,
-                style = MaterialTheme.typography.headlineSmall,
-                color = TextPrimary,
-                textAlign = TextAlign.Center
-            )
-
-            Text(
-                text = message,
-                style = MaterialTheme.typography.bodyMedium,
-                color = TextSecondary,
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Button(
-                onClick = onAddClick,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = AccentGreen,
-                    contentColor = Color.Black
-                )
-            ) {
-                Icon(Icons.Default.Add, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Add First Debt")
-            }
-        }
-    }
-}
-
-@Composable
-private fun DeleteConfirmationDialog(
-    debt: DebtEntity,
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        icon = {
-            Icon(
-                imageVector = Icons.Default.Delete,
-                contentDescription = null,
-                tint = ColorError
-            )
-        },
-        title = {
-            Text("Delete Debt?")
-        },
-        text = {
-            Text(
-                "Are you sure you want to delete the debt with ${debt.name} for ${formatCurrency(debt.amount)}? This action cannot be undone."
-            )
-        },
-        confirmButton = {
-            Button(
-                onClick = onConfirm,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = ColorError
-                )
-            ) {
-                Text("Delete")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
-        },
-        containerColor = SurfaceElevated,
-        iconContentColor = ColorError,
-        titleContentColor = TextPrimary,
-        textContentColor = TextSecondary
-    )
-}
-
-@Composable
-private fun MarkPaidConfirmationDialog(
-    debt: DebtEntity,
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        icon = {
-            Icon(
-                imageVector = Icons.Default.Check,
-                contentDescription = null,
-                tint = ColorSuccess
-            )
-        },
-        title = {
-            Text("Mark as Paid?")
-        },
-        text = {
-            Text(
-                "Mark the debt with ${debt.name} for ${formatCurrency(debt.amount)} as paid?"
-            )
-        },
-        confirmButton = {
-            Button(
-                onClick = onConfirm,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = ColorSuccess
-                )
-            ) {
-                Text("Mark Paid")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
-        },
-        containerColor = SurfaceElevated,
-        iconContentColor = ColorSuccess,
-        titleContentColor = TextPrimary,
-        textContentColor = TextSecondary
-    )
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -797,12 +683,12 @@ private fun AddEditDebtDialog(
     onConfirm: (String, Double, Long, String) -> Unit
 ) {
     val isEdit = debt != null
-    var name by remember { mutableStateOf(debt?.name ?: "") }
-    var amountText by remember { mutableStateOf(debt?.amount?.toString() ?: "") }
-    var selectedDate by remember { mutableStateOf(debt?.dueDate ?: (System.currentTimeMillis() + 7 * 24 * 60 * 60 * 1000)) }
-    var showDatePicker by remember { mutableStateOf(false) }
-    var nameError by remember { mutableStateOf<String?>(null) }
-    var amountError by remember { mutableStateOf<String?>(null) }
+    var name by rememberSaveable { mutableStateOf(debt?.name ?: "") }
+    var amountText by rememberSaveable { mutableStateOf(debt?.amount?.toString() ?: "") }
+    var selectedDate by rememberSaveable { mutableStateOf(debt?.dueDate ?: (System.currentTimeMillis() + 7 * 24 * 60 * 60 * 1000)) }
+    var showDatePicker by rememberSaveable { mutableStateOf(false) }
+    var nameError by rememberSaveable { mutableStateOf<String?>(null) }
+    var amountError by rememberSaveable { mutableStateOf<String?>(null) }
 
     val dateFormatter = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
 
@@ -967,7 +853,7 @@ private fun AddEditDebtDialog(
                         },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = AccentGreen,
-                            contentColor = Color.Black
+                            contentColor = DeepBackground
                         )
                     ) {
                         Text(if (isEdit) "Update" else "Save")
@@ -1007,7 +893,7 @@ private fun AddEditDebtDialog(
                 state = datePickerState,
                 colors = DatePickerDefaults.colors(
                     selectedDayContainerColor = AccentGreen,
-                    selectedDayContentColor = Color.Black,
+                    selectedDayContentColor = DeepBackground,
                     todayDateBorderColor = AccentGreen,
                     todayContentColor = AccentGreen,
                     titleContentColor = TextPrimary,

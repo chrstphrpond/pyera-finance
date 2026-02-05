@@ -13,6 +13,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,20 +43,22 @@ fun TransferScreen(
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
     
-    var fromAccount by remember { mutableStateOf<AccountEntity?>(null) }
-    var toAccount by remember { mutableStateOf<AccountEntity?>(null) }
-    var amount by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
-    var selectedDate by remember { mutableStateOf(System.currentTimeMillis()) }
-    var showDatePicker by remember { mutableStateOf(false) }
-    var showFromAccountPicker by remember { mutableStateOf(false) }
-    var showToAccountPicker by remember { mutableStateOf(false) }
-    var isAmountError by remember { mutableStateOf(false) }
+    var fromAccountId by rememberSaveable { mutableStateOf<Long?>(null) }
+    val fromAccount = fromAccountId?.let { id -> accounts.find { it.id == id } }
+    var toAccountId by rememberSaveable { mutableStateOf<Long?>(null) }
+    val toAccount = toAccountId?.let { id -> accounts.find { it.id == id } }
+    var amount by rememberSaveable { mutableStateOf("") }
+    var description by rememberSaveable { mutableStateOf("") }
+    var selectedDate by rememberSaveable { mutableStateOf(System.currentTimeMillis()) }
+    var showDatePicker by rememberSaveable { mutableStateOf(false) }
+    var showFromAccountPicker by rememberSaveable { mutableStateOf(false) }
+    var showToAccountPicker by rememberSaveable { mutableStateOf(false) }
+    var isAmountError by rememberSaveable { mutableStateOf(false) }
     
     // Set initial from account if provided
     LaunchedEffect(fromAccountId, accounts) {
         if (fromAccount == null && fromAccountId != null) {
-            fromAccount = accounts.find { it.id == fromAccountId }
+            fromAccountId = fromAccountId
         }
     }
     
@@ -549,9 +552,9 @@ private fun TransferDatePickerDialog(
     val calendar = Calendar.getInstance()
     calendar.timeInMillis = selectedDate
     
-    var year by remember { mutableStateOf(calendar.get(Calendar.YEAR)) }
-    var month by remember { mutableStateOf(calendar.get(Calendar.MONTH)) }
-    var day by remember { mutableStateOf(calendar.get(Calendar.DAY_OF_MONTH)) }
+    var year by rememberSaveable { mutableStateOf(calendar.get(Calendar.YEAR)) }
+    var month by rememberSaveable { mutableStateOf(calendar.get(Calendar.MONTH)) }
+    var day by rememberSaveable { mutableStateOf(calendar.get(Calendar.DAY_OF_MONTH)) }
     
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -564,7 +567,7 @@ private fun TransferDatePickerDialog(
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     // Month
-                    var monthExpanded by remember { mutableStateOf(false) }
+                    var monthExpanded by rememberSaveable { mutableStateOf(false) }
                     Box {
                         OutlinedButton(onClick = { monthExpanded = true }) {
                             Text(Calendar.getInstance().apply { set(Calendar.MONTH, month) }
@@ -590,7 +593,7 @@ private fun TransferDatePickerDialog(
                     }
                     
                     // Day
-                    var dayExpanded by remember { mutableStateOf(false) }
+                    var dayExpanded by rememberSaveable { mutableStateOf(false) }
                     Box {
                         OutlinedButton(onClick = { dayExpanded = true }) {
                             Text(day.toString())
@@ -616,7 +619,7 @@ private fun TransferDatePickerDialog(
                     }
                     
                     // Year
-                    var yearExpanded by remember { mutableStateOf(false) }
+                    var yearExpanded by rememberSaveable { mutableStateOf(false) }
                     Box {
                         OutlinedButton(onClick = { yearExpanded = true }) {
                             Text(year.toString())

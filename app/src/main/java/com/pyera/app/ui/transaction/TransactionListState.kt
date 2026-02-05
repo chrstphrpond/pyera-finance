@@ -5,30 +5,54 @@ import com.pyera.app.data.local.entity.AccountEntity
 import com.pyera.app.data.local.entity.CategoryEntity
 import com.pyera.app.data.local.entity.TransactionEntity
 
-enum class TransactionTypeFilter {
+/**
+ * Filter options for transaction type
+ */
+enum class TransactionFilter {
     ALL, INCOME, EXPENSE
 }
 
-enum class DateRangeFilter {
-    ALL, THIS_WEEK, THIS_MONTH, CUSTOM
+/**
+ * Sort options for transaction list
+ */
+enum class TransactionSort {
+    DATE_DESC,
+    DATE_ASC,
+    AMOUNT_DESC,
+    AMOUNT_ASC,
+    CATEGORY_ASC
 }
 
+/**
+ * Enhanced state class for Transaction List screen
+ */
 @Immutable
-data class TransactionState(
+data class TransactionListState(
     val transactions: List<TransactionEntity> = emptyList(),
     val filteredTransactions: List<TransactionEntity> = emptyList(),
     val categories: List<CategoryEntity> = emptyList(),
     val accounts: List<AccountEntity> = emptyList(),
-    val defaultAccount: AccountEntity? = null,
     val isLoading: Boolean = false,
     val isRefreshing: Boolean = false,
     val error: String? = null,
     
-    // Search and filter states
+    // Search
     val searchQuery: String = "",
-    val typeFilter: TransactionTypeFilter = TransactionTypeFilter.ALL,
+    
+    // Filter
+    val selectedFilter: TransactionFilter = TransactionFilter.ALL,
+    val selectedCategoryId: Int? = null,
     val dateRangeFilter: DateRangeFilter = DateRangeFilter.ALL,
-    val selectedCategoryFilter: Int? = null,
     val customStartDate: Long? = null,
-    val customEndDate: Long? = null
+    val customEndDate: Long? = null,
+    
+    // Sort
+    val selectedSort: TransactionSort = TransactionSort.DATE_DESC
 )
+
+/**
+ * Date range filter options
+ */
+enum class DateRangeFilter {
+    ALL, TODAY, THIS_WEEK, THIS_MONTH, CUSTOM
+}

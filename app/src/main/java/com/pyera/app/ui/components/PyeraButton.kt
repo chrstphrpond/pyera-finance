@@ -1,9 +1,15 @@
 package com.pyera.app.ui.components
 
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -20,6 +26,7 @@ fun PyeraButton(
     variant: ButtonVariant = ButtonVariant.Primary,
     size: ButtonSize = ButtonSize.Medium,
     enabled: Boolean = true,
+    isLoading: Boolean = false,
     content: @Composable RowScope.() -> Unit
 ) {
     val colors = when (variant) {
@@ -49,11 +56,27 @@ fun PyeraButton(
         ButtonSize.Large -> 56.dp
     }
     
+    val contentColor = when (variant) {
+        ButtonVariant.Primary -> DarkGreen
+        ButtonVariant.Secondary -> TextPrimary
+        ButtonVariant.Tertiary -> NeonYellow
+        ButtonVariant.Destructive -> ColorError
+    }
+    
     Button(
         onClick = onClick,
         modifier = modifier.height(height),
         colors = colors,
-        enabled = enabled,
-        content = content
-    )
+        enabled = enabled && !isLoading,
+    ) {
+        if (isLoading) {
+            CircularProgressIndicator(
+                color = contentColor,
+                strokeWidth = 2.dp,
+                modifier = Modifier.size(20.dp)
+            )
+        } else {
+            content()
+        }
+    }
 }

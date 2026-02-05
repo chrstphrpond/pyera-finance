@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,9 +50,9 @@ fun AddRecurringTransactionScreen(
         // For now, we'll use an empty list and rely on the viewModel to manage this
     }
     
-    var showStartDatePicker by remember { mutableStateOf(false) }
-    var showEndDatePicker by remember { mutableStateOf(false) }
-    var isAmountError by remember { mutableStateOf(false) }
+    var showStartDatePicker by rememberSaveable { mutableStateOf(false) }
+    var showEndDatePicker by rememberSaveable { mutableStateOf(false) }
+    var isAmountError by rememberSaveable { mutableStateOf(false) }
 
     // Reset form state when screen is first shown
     LaunchedEffect(Unit) {
@@ -470,9 +471,9 @@ fun DatePickerDialog(
     val calendar = Calendar.getInstance()
     calendar.timeInMillis = selectedDate
 
-    var year by remember { mutableStateOf(calendar.get(Calendar.YEAR)) }
-    var month by remember { mutableStateOf(calendar.get(Calendar.MONTH)) }
-    var day by remember { mutableStateOf(calendar.get(Calendar.DAY_OF_MONTH)) }
+    var year by rememberSaveable { mutableStateOf(calendar.get(Calendar.YEAR)) }
+    var month by rememberSaveable { mutableStateOf(calendar.get(Calendar.MONTH)) }
+    var day by rememberSaveable { mutableStateOf(calendar.get(Calendar.DAY_OF_MONTH)) }
 
     Dialog(onDismissRequest = onDismiss) {
         Surface(
@@ -494,7 +495,7 @@ fun DatePickerDialog(
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     // Month picker
-                    var monthExpanded by remember { mutableStateOf(false) }
+                    var monthExpanded by rememberSaveable { mutableStateOf(false) }
                     Box {
                         OutlinedButton(onClick = { monthExpanded = true }) {
                             Text(Calendar.getInstance().apply { set(Calendar.MONTH, month) }
@@ -520,7 +521,7 @@ fun DatePickerDialog(
                     }
 
                     // Day picker
-                    var dayExpanded by remember { mutableStateOf(false) }
+                    var dayExpanded by rememberSaveable { mutableStateOf(false) }
                     Box {
                         OutlinedButton(onClick = { dayExpanded = true }) {
                             Text(day.toString())
@@ -546,7 +547,7 @@ fun DatePickerDialog(
                     }
 
                     // Year picker
-                    var yearExpanded by remember { mutableStateOf(false) }
+                    var yearExpanded by rememberSaveable { mutableStateOf(false) }
                     Box {
                         OutlinedButton(onClick = { yearExpanded = true }) {
                             Text(year.toString())

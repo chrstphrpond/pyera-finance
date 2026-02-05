@@ -1,10 +1,8 @@
 package com.pyera.app.ui.auth
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -20,22 +18,19 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -46,11 +41,11 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -59,29 +54,18 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.pyera.app.R
-import com.pyera.app.ui.components.ButtonSize
-import com.pyera.app.ui.components.PyeraButton
-import com.pyera.app.ui.components.PyeraTextField
-import com.pyera.app.ui.theme.AccentGreen
-import com.pyera.app.ui.theme.CardBackground
-import com.pyera.app.ui.theme.CardBorder
-import com.pyera.app.ui.theme.ColorError
-import com.pyera.app.ui.theme.ColorSuccess
-import com.pyera.app.ui.theme.ColorWarning
-import com.pyera.app.ui.theme.DeepBackground
-import com.pyera.app.ui.theme.NeonYellow
-import com.pyera.app.ui.theme.Radius
-import com.pyera.app.ui.theme.Spacing
-import com.pyera.app.ui.theme.SurfaceElevated
-import com.pyera.app.ui.theme.TextSecondary
-import com.pyera.app.ui.theme.TextTertiary
+import com.pyera.app.ui.components.PyeraAuthButton
+import com.pyera.app.ui.components.PyeraAuthTextField
+import com.pyera.app.ui.components.PyeraPasswordField
+import com.pyera.app.ui.components.PasswordStrength
+import com.pyera.app.ui.components.calculatePasswordStrength
+import androidx.compose.ui.res.stringResource
+import com.pyera.app.R
+import com.pyera.app.ui.theme.*
 
 @Composable
 fun RegisterScreen(
@@ -92,10 +76,13 @@ fun RegisterScreen(
     val uiState by viewModel.uiState.collectAsState()
     val authState = uiState.authState
 
-    var name by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
+    var name by rememberSaveable { mutableStateOf("") }
+    var email by rememberSaveable { mutableStateOf("") }
+    var password by rememberSaveable { mutableStateOf("") }
+    var confirmPassword by rememberSaveable { mutableStateOf("") }
+    
+    // Field-level validation errors
+    var fieldErrors by rememberSaveable { mutableStateOf(RegisterValidationErrors()) }
 
     val focusManager = LocalFocusManager.current
     val scrollState = rememberScrollState()
@@ -134,13 +121,28 @@ fun RegisterScreen(
             .fillMaxSize()
             .background(DeepBackground)
     ) {
+        // Background gradient for visual interest
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            DarkGreen,
+                            SurfaceDark.copy(alpha = 0.8f),
+                            DeepBackground
+                        )
+                    )
+                )
+        )
+
         // Background Image
         Image(
             painter = painterResource(id = R.drawable.bg_auth_green_flow),
-            contentDescription = null,
+            contentDescription = stringResource(R.string.auth_background_content_desc),
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop,
-            alpha = 0.6f
+            alpha = 0.4f
         )
 
         // Gradient Scrim for text readability
@@ -150,8 +152,8 @@ fun RegisterScreen(
                 .background(
                     brush = Brush.verticalGradient(
                         colors = listOf(
-                            DeepBackground.copy(alpha = 0.4f),
-                            DeepBackground.copy(alpha = 0.8f),
+                            DeepBackground.copy(alpha = 0.3f),
+                            DeepBackground.copy(alpha = 0.7f),
                             DeepBackground
                         )
                     )
@@ -163,28 +165,28 @@ fun RegisterScreen(
                 .fillMaxSize()
                 .imePadding()
                 .verticalScroll(scrollState)
-                .padding(horizontal = Spacing.XLarge),
+                .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(Spacing.XXLarge))
+            Spacer(modifier = Modifier.height(40.dp))
 
             // Top Section - Logo and Branding
             RegisterHeader()
 
-            Spacer(modifier = Modifier.height(Spacing.XLarge))
+            Spacer(modifier = Modifier.height(24.dp))
 
-            // Registration Form Card
+            // Registration Form Card with elevated surface
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(Radius.xl))
-                    .background(CardBackground)
-                    .border(1.dp, CardBorder, RoundedCornerShape(Radius.xl))
-                    .padding(Spacing.XLarge)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(SurfaceElevated)
+                    .border(1.dp, ColorBorder.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                    .padding(24.dp)
             ) {
                 // Create Account Text
                 Text(
-                    text = "Create Account",
+                    text = stringResource(R.string.auth_register_title),
                     style = MaterialTheme.typography.headlineSmall,
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
@@ -193,145 +195,159 @@ fun RegisterScreen(
                 )
 
                 Text(
-                    text = "Sign up to get started",
+                    text = stringResource(R.string.auth_register_subtitle),
                     style = MaterialTheme.typography.bodyMedium,
                     color = TextSecondary,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Spacer(modifier = Modifier.height(Spacing.XLarge))
+                Spacer(modifier = Modifier.height(24.dp))
 
-                // Full Name Field using PyeraTextField
-                PyeraTextField(
+                // Full Name Field
+                PyeraAuthTextField(
                     value = name,
                     onValueChange = {
                         name = it
+                        fieldErrors = fieldErrors.copy(nameError = null)
                         if (authState is AuthState.Error) viewModel.clearError()
                     },
-                    label = "Full Name",
-                    placeholder = "Enter your full name",
+                    label = stringResource(R.string.auth_register_name_label),
+                    placeholder = stringResource(R.string.auth_register_name_placeholder),
                     leadingIcon = Icons.Default.Person,
                     keyboardType = KeyboardType.Text,
-                    imeAction = ImeAction.Next
+                    imeAction = ImeAction.Next,
+                    isError = fieldErrors.nameError != null,
+                    errorMessage = fieldErrors.nameError
                 )
 
-                Spacer(modifier = Modifier.height(Spacing.Large))
+                Spacer(modifier = Modifier.height(16.dp))
 
-                // Email Field using PyeraTextField
-                PyeraTextField(
+                // Email Field
+                PyeraAuthTextField(
                     value = email,
                     onValueChange = {
                         email = it
+                        fieldErrors = fieldErrors.copy(emailError = null)
                         if (authState is AuthState.Error) viewModel.clearError()
                     },
-                    label = "Email",
-                    placeholder = "Enter your email",
+                    label = stringResource(R.string.auth_register_email_label),
+                    placeholder = stringResource(R.string.auth_register_email_placeholder),
                     leadingIcon = Icons.Default.Email,
                     keyboardType = KeyboardType.Email,
-                    imeAction = ImeAction.Next
+                    imeAction = ImeAction.Next,
+                    isError = fieldErrors.emailError != null,
+                    errorMessage = fieldErrors.emailError
                 )
 
-                Spacer(modifier = Modifier.height(Spacing.Large))
+                Spacer(modifier = Modifier.height(16.dp))
 
-                // Password Field using PyeraTextField
-                PyeraTextField(
+                // Password Field with strength indicator
+                PyeraPasswordField(
                     value = password,
                     onValueChange = {
                         password = it
+                        fieldErrors = fieldErrors.copy(passwordError = null)
                         if (authState is AuthState.Error) viewModel.clearError()
                     },
-                    label = "Password",
-                    placeholder = "Create a password",
-                    leadingIcon = Icons.Default.Lock,
-                    trailingIcon = {
-                        IconButton(onClick = { viewModel.togglePasswordVisibility() }) {
-                            Icon(
-                                imageVector = if (uiState.isPasswordVisible)
-                                    Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                contentDescription = if (uiState.isPasswordVisible)
-                                    "Hide password" else "Show password",
-                                tint = TextTertiary
-                            )
-                        }
-                    },
-                    keyboardType = KeyboardType.Password,
+                    label = stringResource(R.string.auth_register_password_label),
+                    placeholder = stringResource(R.string.auth_register_password_placeholder),
+                    isPasswordVisible = uiState.isPasswordVisible,
+                    onPasswordVisibilityChange = { viewModel.togglePasswordVisibility() },
                     imeAction = ImeAction.Next,
-                    visualTransformation = if (uiState.isPasswordVisible)
-                        VisualTransformation.None else PasswordVisualTransformation()
+                    isError = fieldErrors.passwordError != null,
+                    errorMessage = fieldErrors.passwordError,
+                    showStrengthIndicator = true,
+                    passwordStrength = passwordStrength
                 )
 
-                // Password Strength Indicator
-                AnimatedVisibility(
-                    visible = password.isNotEmpty(),
-                    enter = fadeIn() + expandVertically(),
-                    exit = fadeOut() + shrinkVertically()
-                ) {
-                    Column {
-                        Spacer(modifier = Modifier.height(Spacing.Small))
-                        PasswordStrengthIndicator(strength = passwordStrength)
-                    }
-                }
+                Spacer(modifier = Modifier.height(16.dp))
 
-                Spacer(modifier = Modifier.height(Spacing.Large))
-
-                // Confirm Password Field using PyeraTextField
-                PyeraTextField(
+                // Confirm Password Field with matching indicator
+                PyeraAuthTextField(
                     value = confirmPassword,
                     onValueChange = {
                         confirmPassword = it
+                        fieldErrors = fieldErrors.copy(confirmPasswordError = null)
                         if (authState is AuthState.Error) viewModel.clearError()
                     },
-                    label = "Confirm Password",
-                    placeholder = "Confirm your password",
+                    label = stringResource(R.string.auth_register_confirm_password_label),
+                    placeholder = stringResource(R.string.auth_register_confirm_password_placeholder),
+                    isPassword = true,
+                    isPasswordVisible = uiState.isConfirmPasswordVisible,
+                    onPasswordVisibilityChange = { viewModel.toggleConfirmPasswordVisibility() },
                     leadingIcon = Icons.Default.Lock,
-                    trailingIcon = {
-                        IconButton(onClick = { viewModel.toggleConfirmPasswordVisibility() }) {
-                            Icon(
-                                imageVector = if (uiState.isConfirmPasswordVisible)
-                                    Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                contentDescription = if (uiState.isConfirmPasswordVisible)
-                                    "Hide password" else "Show password",
-                                tint = TextTertiary
-                            )
-                        }
-                    },
                     keyboardType = KeyboardType.Password,
                     imeAction = ImeAction.Done,
-                    visualTransformation = if (uiState.isConfirmPasswordVisible)
-                        VisualTransformation.None else PasswordVisualTransformation(),
-                    onDone = {
+                    isError = fieldErrors.confirmPasswordError != null || (!passwordsMatch && confirmPassword.isNotEmpty()),
+                    errorMessage = fieldErrors.confirmPasswordError ?: if (!passwordsMatch && confirmPassword.isNotEmpty()) "Passwords do not match" else null,
+                    onImeAction = {
                         if (isFormValid) {
                             focusManager.clearFocus()
-                            viewModel.register(email, password, name)
+                            val errors = viewModel.validateRegisterFields(
+                                name, email, password, confirmPassword, uiState.termsAccepted
+                            )
+                            fieldErrors = errors
+                            if (errors.nameError == null && errors.emailError == null && 
+                                errors.passwordError == null && errors.confirmPasswordError == null && errors.termsError == null) {
+                                viewModel.register(email, password, name)
+                            }
                         }
-                    },
-                    isError = !passwordsMatch && confirmPassword.isNotEmpty(),
-                    errorMessage = if (!passwordsMatch && confirmPassword.isNotEmpty()) "Passwords do not match" else null
+                    }
                 )
 
-                Spacer(modifier = Modifier.height(Spacing.Large))
+                // Password match indicator
+                AnimatedVisibility(
+                    visible = confirmPassword.isNotEmpty() && passwordsMatch,
+                    enter = fadeIn(),
+                    exit = fadeOut()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.CheckCircle,
+                            contentDescription = stringResource(R.string.auth_register_passwords_match_content_desc),
+                            modifier = Modifier.size(16.dp),
+                            tint = ColorSuccess
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = stringResource(R.string.auth_register_error_passwords_match),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = ColorSuccess
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
 
                 // Terms & Conditions Checkbox
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    androidx.compose.material3.Checkbox(
+                    Checkbox(
                         checked = uiState.termsAccepted,
-                        onCheckedChange = { viewModel.toggleTermsAccepted() },
-                        colors = androidx.compose.material3.CheckboxDefaults.colors(
+                        onCheckedChange = { 
+                            viewModel.toggleTermsAccepted()
+                            fieldErrors = fieldErrors.copy(termsError = null)
+                        },
+                        colors = CheckboxDefaults.colors(
                             checkedColor = AccentGreen,
-                            uncheckedColor = TextTertiary,
+                            uncheckedColor = if (fieldErrors.termsError != null) ColorError else TextTertiary,
                             checkmarkColor = DeepBackground
                         )
                     )
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(start = Spacing.Small)
+                        modifier = Modifier.padding(start = 8.dp)
                     ) {
                         Text(
-                            text = "I accept the ",
+                            text = stringResource(R.string.auth_register_terms_prefix),
                             style = MaterialTheme.typography.bodySmall,
                             color = TextSecondary
                         )
@@ -342,53 +358,69 @@ fun RegisterScreen(
                             Text(
                                 text = "Terms & Conditions",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = AccentGreen
+                                color = AccentGreen,
+                                fontWeight = FontWeight.Medium
                             )
                         }
                     }
                 }
-
-                // Error Message
-                if (authState is AuthState.Error) {
-                    Spacer(modifier = Modifier.height(Spacing.Small))
+                
+                // Terms error message
+                AnimatedVisibility(
+                    visible = fieldErrors.termsError != null,
+                    enter = fadeIn(),
+                    exit = fadeOut()
+                ) {
                     Text(
-                        text = authState.message,
+                        text = fieldErrors.termsError ?: "",
                         style = MaterialTheme.typography.bodySmall,
                         color = ColorError,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.padding(start = 48.dp, top = 4.dp)
                     )
                 }
 
-                Spacer(modifier = Modifier.height(Spacing.XLarge))
-
-                // Create Account Button using PyeraButton
-                PyeraButton(
-                    onClick = {
-                        focusManager.clearFocus()
-                        viewModel.register(email, password, name)
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    size = ButtonSize.Large,
-                    enabled = isFormValid && authState !is AuthState.Loading
+                // General Error Message
+                AnimatedVisibility(
+                    visible = authState is AuthState.Error,
+                    enter = fadeIn(),
+                    exit = fadeOut()
                 ) {
-                    if (authState is AuthState.Loading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
-                            color = DeepBackground,
-                            strokeWidth = 2.dp
-                        )
-                    } else {
+                    if (authState is AuthState.Error) {
+                        Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Sign Up",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.SemiBold
+                            text = authState.message,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = ColorError,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
                         )
                     }
                 }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Create Account Button with loading state
+                PyeraAuthButton(
+                    text = stringResource(R.string.auth_register_button),
+                    onClick = {
+                        // Validate all fields before submitting
+                        val errors = viewModel.validateRegisterFields(
+                            name, email, password, confirmPassword, uiState.termsAccepted
+                        )
+                        fieldErrors = errors
+                        
+                        if (errors.nameError == null && errors.emailError == null && 
+                            errors.passwordError == null && errors.confirmPasswordError == null && errors.termsError == null) {
+                            focusManager.clearFocus()
+                            viewModel.register(email, password, name)
+                        }
+                    },
+                    isLoading = authState is AuthState.Loading,
+                    enabled = authState !is AuthState.Loading
+                )
             }
 
-            Spacer(modifier = Modifier.height(Spacing.XLarge))
+            Spacer(modifier = Modifier.height(24.dp))
 
             // Login Link
             Row(
@@ -397,13 +429,13 @@ fun RegisterScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = "Already have an account?",
+                    text = stringResource(R.string.auth_register_has_account),
                     style = MaterialTheme.typography.bodyMedium,
                     color = TextSecondary
                 )
                 TextButton(onClick = onNavigateToLogin) {
                     Text(
-                        text = "Sign In",
+                        text = stringResource(R.string.auth_register_sign_in),
                         style = MaterialTheme.typography.bodyMedium,
                         color = NeonYellow,
                         fontWeight = FontWeight.SemiBold
@@ -411,7 +443,24 @@ fun RegisterScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(Spacing.XXLarge))
+            Spacer(modifier = Modifier.height(32.dp))
+        }
+
+        // Loading Overlay
+        AnimatedVisibility(
+            visible = authState is AuthState.Loading,
+            enter = fadeIn(),
+            exit = fadeOut(),
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.3f)),
+                contentAlignment = Alignment.Center
+            ) {
+                // Loading is handled inside button, but overlay prevents interaction
+            }
         }
     }
 }
@@ -421,105 +470,25 @@ private fun RegisterHeader() {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // App Logo Icon
-        Box(
+        // App Logo
+        Image(
+            painter = painterResource(id = R.drawable.ic_logo_full),
+            contentDescription = stringResource(R.string.auth_login_logo_content_desc),
             modifier = Modifier
-                .size(80.dp)
-                .clip(RoundedCornerShape(Radius.lg))
-                .background(AccentGreen),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "₱",
-                fontSize = 40.sp,
-                fontWeight = FontWeight.Bold,
-                color = DeepBackground
-            )
-        }
-
-        Spacer(modifier = Modifier.height(Spacing.Large))
-
-        // Title
-        Text(
-            text = "Join Pyera",
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.White
+                .height(50.dp)
+                .wrapContentWidth(),
+            contentScale = ContentScale.Fit
         )
 
-        Spacer(modifier = Modifier.height(Spacing.XSmall))
+        Spacer(modifier = Modifier.height(12.dp))
 
         // Subtitle
         Text(
-            text = "Start your financial journey",
+            text = stringResource(R.string.auth_register_header_subtitle),
             style = MaterialTheme.typography.bodyMedium,
-            color = TextSecondary
+            color = TextSecondary,
+            textAlign = TextAlign.Center
         )
-    }
-}
-
-@Composable
-private fun PasswordStrengthIndicator(strength: PasswordStrength) {
-    val progress = when (strength) {
-        PasswordStrength.EMPTY -> 0f
-        PasswordStrength.WEAK -> 0.33f
-        PasswordStrength.MEDIUM -> 0.66f
-        PasswordStrength.STRONG -> 1f
-    }
-
-    val color = when (strength) {
-        PasswordStrength.EMPTY -> CardBorder
-        PasswordStrength.WEAK -> ColorError
-        PasswordStrength.MEDIUM -> ColorWarning
-        PasswordStrength.STRONG -> ColorSuccess
-    }
-
-    val label = when (strength) {
-        PasswordStrength.EMPTY -> ""
-        PasswordStrength.WEAK -> "Weak"
-        PasswordStrength.MEDIUM -> "Medium"
-        PasswordStrength.STRONG -> "Strong"
-    }
-
-    val icon = when (strength) {
-        PasswordStrength.EMPTY -> null
-        PasswordStrength.WEAK -> null
-        PasswordStrength.MEDIUM -> null
-        PasswordStrength.STRONG -> Icons.Default.Check
-    }
-
-    Column {
-        LinearProgressIndicator(
-            progress = { progress },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(4.dp)
-                .clip(RoundedCornerShape(2.dp)),
-            color = color,
-            trackColor = CardBorder.copy(alpha = 0.3f)
-        )
-
-        if (label.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(4.dp))
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Text(
-                    text = "Password strength: $label",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = color
-                )
-                icon?.let {
-                    Icon(
-                        imageVector = it,
-                        contentDescription = null,
-                        modifier = Modifier.size(12.dp),
-                        tint = color
-                    )
-                }
-            }
-        }
     }
 }
 

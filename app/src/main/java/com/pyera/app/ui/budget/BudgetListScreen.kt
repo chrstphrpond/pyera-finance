@@ -213,7 +213,7 @@ private fun PeriodSelector(
     selectedPeriod: BudgetPeriod,
     onPeriodChange: (BudgetPeriod) -> Unit
 ) {
-    var expanded by remember { mutableStateOf(false) }
+    var expanded by rememberSaveable { mutableStateOf(false) }
 
     Box {
         Row(

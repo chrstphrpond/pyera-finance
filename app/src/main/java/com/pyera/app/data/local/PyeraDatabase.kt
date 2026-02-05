@@ -8,9 +8,12 @@ import com.pyera.app.data.local.dao.BudgetDao
 import com.pyera.app.data.local.dao.CategoryDao
 import com.pyera.app.data.local.dao.DebtDao
 import com.pyera.app.data.local.dao.InvestmentDao
+import com.pyera.app.data.local.dao.NetWorthDao
 import com.pyera.app.data.local.dao.RecurringTransactionDao
 import com.pyera.app.data.local.dao.SavingsGoalDao
 import com.pyera.app.data.local.dao.TransactionDao
+import com.pyera.app.data.local.dao.TransactionRuleDao
+import com.pyera.app.data.local.dao.TransactionTemplateDao
 import com.pyera.app.data.local.entity.AccountEntity
 import com.pyera.app.data.local.entity.BillEntity
 import com.pyera.app.data.local.entity.BudgetEntity
@@ -20,6 +23,8 @@ import com.pyera.app.data.local.entity.InvestmentEntity
 import com.pyera.app.data.local.entity.RecurringTransactionEntity
 import com.pyera.app.data.local.entity.SavingsGoalEntity
 import com.pyera.app.data.local.entity.TransactionEntity
+import com.pyera.app.data.local.entity.TransactionRuleEntity
+import com.pyera.app.data.local.entity.TransactionTemplateEntity
 
 /**
  * Main Room database for the Pyera Finance app.
@@ -39,6 +44,12 @@ import com.pyera.app.data.local.entity.TransactionEntity
  *   - Updated TransactionEntity with accountId, userId, isTransfer, transferAccountId
  *   - Added account-related indexes
  * - v6: Added RecurringTransactionEntity for recurring transactions feature
+ * - v7: Added receipt attachment support to TransactionEntity
+ *   - Added receiptImagePath, receiptCloudUrl, hasReceipt fields
+ * - v8: Added TransactionRuleEntity for auto-categorization rules
+ *   - User-defined rules to automatically categorize transactions based on patterns
+ * - v9: Added TransactionTemplateEntity for quick transaction templates
+ *   - Save frequent transactions as templates for one-tap entry
  */
 @Database(
     entities = [
@@ -50,9 +61,11 @@ import com.pyera.app.data.local.entity.TransactionEntity
         BillEntity::class,
         InvestmentEntity::class,
         AccountEntity::class,
-        RecurringTransactionEntity::class
+        RecurringTransactionEntity::class,
+        TransactionRuleEntity::class,
+        TransactionTemplateEntity::class
     ],
-    version = 6,
+    version = 9,
     exportSchema = false
 )
 abstract class PyeraDatabase : RoomDatabase() {
@@ -65,4 +78,7 @@ abstract class PyeraDatabase : RoomDatabase() {
     abstract fun investmentDao(): InvestmentDao
     abstract fun accountDao(): AccountDao
     abstract fun recurringTransactionDao(): RecurringTransactionDao
+    abstract fun netWorthDao(): NetWorthDao
+    abstract fun transactionRuleDao(): TransactionRuleDao
+    abstract fun transactionTemplateDao(): TransactionTemplateDao
 }

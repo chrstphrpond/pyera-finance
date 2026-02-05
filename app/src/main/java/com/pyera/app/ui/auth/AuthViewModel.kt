@@ -6,6 +6,8 @@ import com.pyera.app.data.biometric.BiometricAuthManager
 import com.pyera.app.data.biometric.BiometricAuthResult
 import com.pyera.app.data.biometric.BiometricCapability
 import com.pyera.app.data.repository.AuthRepository
+import com.pyera.app.ui.components.PasswordStrength
+import com.pyera.app.ui.components.calculatePasswordStrength
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -347,6 +349,64 @@ class AuthViewModel @Inject constructor(
             else -> ValidationResult.Success
         }
     }
+
+    /**
+     * Validate all login fields and return individual error messages
+     */
+    fun validateLoginFields(email: String, password: String): LoginValidationErrors {
+        val emailError = when {
+            email.isBlank() -> "Email is required"
+            !email.isValidEmail() -> "Please enter a valid email"
+            else -> null
+        }
+        val passwordError = when {
+            password.isBlank() -> "Password is required"
+            password.length < 6 -> "Password must be at least 6 characters"
+            else -> null
+        }
+        return LoginValidationErrors(emailError, passwordError)
+    }
+
+    /**
+     * Validate all registration fields and return individual error messages
+     */
+    fun validateRegisterFields(
+        name: String,
+        email: String,
+        password: String,
+        confirmPassword: String,
+        termsAccepted: Boolean
+    ): RegisterValidationErrors {
+        val nameError = when {
+            name.isBlank() -> "Name is required"
+            name.length < 2 -> "Name must be at least 2 characters"
+            else -> null
+        }
+        val emailError = when {
+            email.isBlank() -> "Email is required"
+            !email.isValidEmail() -> "Please enter a valid email"
+            else -> null
+        }
+        val passwordError = when {
+            password.isBlank() -> "Password is required"
+            password.length < 6 -> "Password must be at least 6 characters"
+            else -> null
+        }
+        val confirmPasswordError = when {
+            confirmPassword.isBlank() -> "Please confirm your password"
+            password != confirmPassword -> "Passwords do not match"
+            else -> null
+        }
+        val termsError = if (!termsAccepted) "You must accept the terms" else null
+        
+        return RegisterValidationErrors(
+            nameError = nameError,
+            emailError = emailError,
+            passwordError = passwordError,
+            confirmPasswordError = confirmPasswordError,
+            termsError = termsError
+        )
+    }
 }
 
 data class AuthUiState(
@@ -384,30 +444,19 @@ sealed class ValidationResult {
     data class Error(val message: String) : ValidationResult()
 }
 
+data class LoginValidationErrors(
+    val emailError: String? = null,
+    val passwordError: String? = null
+)
+
+data class RegisterValidationErrors(
+    val nameError: String? = null,
+    val emailError: String? = null,
+    val passwordError: String? = null,
+    val confirmPasswordError: String? = null,
+    val termsError: String? = null
+)
+
 private fun String.isValidEmail(): Boolean {
     return android.util.Patterns.EMAIL_ADDRESS.matcher(this).matches()
-}
-
-/**
- * Password strength levels for validation
- */
-enum class PasswordStrength {
-    EMPTY, WEAK, MEDIUM, STRONG
-}
-
-fun calculatePasswordStrength(password: String): PasswordStrength {
-    if (password.isEmpty()) return PasswordStrength.EMPTY
-    
-    var score = 0
-    if (password.length >= 8) score++
-    if (password.any { it.isUpperCase() }) score++
-    if (password.any { it.isLowerCase() }) score++
-    if (password.any { it.isDigit() }) score++
-    if (password.any { !it.isLetterOrDigit() }) score++
-    
-    return when (score) {
-        0, 1, 2 -> PasswordStrength.WEAK
-        3 -> PasswordStrength.MEDIUM
-        else -> PasswordStrength.STRONG
-    }
 }

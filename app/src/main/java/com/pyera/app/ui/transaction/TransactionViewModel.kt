@@ -1,7 +1,5 @@
 package com.pyera.app.ui.transaction
 
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pyera.app.data.local.entity.AccountEntity
@@ -11,6 +9,7 @@ import com.pyera.app.data.repository.AccountRepository
 import com.pyera.app.data.repository.AuthRepository
 import com.pyera.app.data.repository.CategoryRepository
 import com.pyera.app.data.repository.TransactionRepository
+import com.pyera.app.data.repository.TransactionRuleRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,15 +19,14 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 import java.io.IOException
 import android.database.sqlite.SQLiteException
 import android.net.Uri
 import com.pyera.app.data.repository.OcrRepository
-
 import com.pyera.app.domain.smart.SmartCategorizer
 import com.pyera.app.util.ValidationUtils
 import java.util.Calendar
+import javax.inject.Inject
 
 @HiltViewModel
 class TransactionViewModel @Inject constructor(
@@ -37,14 +35,15 @@ class TransactionViewModel @Inject constructor(
     private val accountRepository: AccountRepository,
     private val authRepository: AuthRepository,
     private val ocrRepository: OcrRepository,
-    private val smartCategorizer: SmartCategorizer
+    private val smartCategorizer: SmartCategorizer,
+    private val transactionRuleRepository: TransactionRuleRepository
 ) : ViewModel() {
     
     private val currentUserId: String
         get() = authRepository.currentUser?.uid ?: ""
 
-    private val _state = MutableStateFlow(TransactionState())
-    val state: StateFlow<TransactionState> = _state.asStateFlow()
+    private val _state = MutableStateFlow(TransactionListState())
+    val state: StateFlow<TransactionListState> = _state.asStateFlow()
 
     init {
         loadData()
@@ -63,7 +62,7 @@ class TransactionViewModel @Inject constructor(
                 .collect { transactions ->
                     _state.update { 
                         val newState = it.copy(isLoading = false, transactions = transactions)
-                        newState.copy(filteredTransactions = applyFilters(newState))
+                        newState.copy(filteredTransactions = applyFiltersAndSort(newState))
                     }
                 }
         }
@@ -96,18 +95,21 @@ class TransactionViewModel @Inject constructor(
      * Refreshes the transaction list.
      * Sets isRefreshing to true during the operation for pull-to-refresh indicators.
      */
-    fun refresh() {
+    fun refreshTransactions() {
         viewModelScope.launch {
             _state.update { it.copy(isRefreshing = true) }
             try {
-                // Re-trigger data collection by reloading
                 transactionRepository.getAllTransactions()
                     .catch { e -> 
                         _state.update { it.copy(error = e.message, isRefreshing = false) }
                     }
                     .collect { transactions ->
-                        val newState = _state.value.copy(transactions = transactions, isRefreshing = false, error = null)
-                        _state.update { newState.copy(filteredTransactions = applyFilters(newState)) }
+                        val newState = _state.value.copy(
+                            transactions = transactions, 
+                            isRefreshing = false, 
+                            error = null
+                        )
+                        _state.update { newState.copy(filteredTransactions = applyFiltersAndSort(newState)) }
                     }
             } catch (e: IOException) {
                 _state.update { it.copy(error = "Network error: ${e.message}", isRefreshing = false) }
@@ -125,35 +127,55 @@ class TransactionViewModel @Inject constructor(
         _state.update { it.copy(error = null) }
     }
 
-    // Search and Filter Methods
-    fun setSearchQuery(query: String) {
+    // ==================== SEARCH ====================
+
+    /**
+     * Search transactions by query string.
+     * Searches in description, category name, and amount.
+     */
+    fun searchTransactions(query: String) {
         _state.update { 
             val newState = it.copy(searchQuery = query)
-            newState.copy(filteredTransactions = applyFilters(newState))
+            newState.copy(filteredTransactions = applyFiltersAndSort(newState))
         }
     }
 
-    fun setTypeFilter(filter: TransactionTypeFilter) {
+    // ==================== FILTER ====================
+
+    /**
+     * Filter transactions by type (All, Income, Expense).
+     */
+    fun filterTransactions(filter: TransactionFilter) {
         _state.update { 
-            val newState = it.copy(typeFilter = filter)
-            newState.copy(filteredTransactions = applyFilters(newState))
+            val newState = it.copy(selectedFilter = filter)
+            newState.copy(filteredTransactions = applyFiltersAndSort(newState))
         }
     }
 
-    fun setDateRangeFilter(filter: DateRangeFilter) {
+    /**
+     * Filter transactions by category ID.
+     * Pass null to clear category filter.
+     */
+    fun filterByCategory(categoryId: Int?) {
         _state.update { 
-            val newState = it.copy(dateRangeFilter = filter)
-            newState.copy(filteredTransactions = applyFilters(newState))
+            val newState = it.copy(selectedCategoryId = categoryId)
+            newState.copy(filteredTransactions = applyFiltersAndSort(newState))
         }
     }
 
-    fun setCategoryFilter(categoryId: Int?) {
+    /**
+     * Filter transactions by date range.
+     */
+    fun filterByDateRange(dateRange: DateRangeFilter) {
         _state.update { 
-            val newState = it.copy(selectedCategoryFilter = categoryId)
-            newState.copy(filteredTransactions = applyFilters(newState))
+            val newState = it.copy(dateRangeFilter = dateRange)
+            newState.copy(filteredTransactions = applyFiltersAndSort(newState))
         }
     }
 
+    /**
+     * Set custom date range filter.
+     */
     fun setCustomDateRange(startDate: Long?, endDate: Long?) {
         _state.update { 
             val newState = it.copy(
@@ -161,25 +183,83 @@ class TransactionViewModel @Inject constructor(
                 customEndDate = endDate,
                 dateRangeFilter = DateRangeFilter.CUSTOM
             )
-            newState.copy(filteredTransactions = applyFilters(newState))
+            newState.copy(filteredTransactions = applyFiltersAndSort(newState))
         }
     }
 
+    /**
+     * Clear all filters and search query.
+     */
     fun clearFilters() {
         _state.update { 
             val newState = it.copy(
                 searchQuery = "",
-                typeFilter = TransactionTypeFilter.ALL,
+                selectedFilter = TransactionFilter.ALL,
                 dateRangeFilter = DateRangeFilter.ALL,
-                selectedCategoryFilter = null,
+                selectedCategoryId = null,
                 customStartDate = null,
-                customEndDate = null
+                customEndDate = null,
+                selectedSort = TransactionSort.DATE_DESC
             )
-            newState.copy(filteredTransactions = applyFilters(newState))
+            newState.copy(filteredTransactions = applyFiltersAndSort(newState))
         }
     }
 
-    private fun applyFilters(state: TransactionState): List<TransactionEntity> {
+    // ==================== SORT ====================
+
+    /**
+     * Sort transactions by the specified sort option.
+     */
+    fun sortTransactions(sort: TransactionSort) {
+        _state.update { 
+            val newState = it.copy(selectedSort = sort)
+            newState.copy(filteredTransactions = applyFiltersAndSort(newState))
+        }
+    }
+
+    // ==================== DELETE ====================
+
+    /**
+     * Delete a transaction by its ID.
+     * Should be called after user confirmation.
+     */
+    fun deleteTransaction(id: Long) {
+        viewModelScope.launch {
+            try {
+                val transaction = state.value.transactions.find { it.id == id }
+                transaction?.let {
+                    transactionRepository.deleteTransaction(it)
+                }
+            } catch (e: IOException) {
+                _state.update { it.copy(error = "Network error: ${e.message}") }
+            } catch (e: SQLiteException) {
+                _state.update { it.copy(error = "Database error: ${e.message}") }
+            }
+        }
+    }
+
+    /**
+     * Delete a transaction entity directly.
+     */
+    fun deleteTransaction(transaction: TransactionEntity) {
+        viewModelScope.launch {
+            try {
+                transactionRepository.deleteTransaction(transaction)
+            } catch (e: IOException) {
+                _state.update { it.copy(error = "Network error: ${e.message}") }
+            } catch (e: SQLiteException) {
+                _state.update { it.copy(error = "Database error: ${e.message}") }
+            }
+        }
+    }
+
+    // ==================== PRIVATE HELPERS ====================
+
+    /**
+     * Apply all filters and sorting to the transactions list.
+     * This combines search, type filter, category filter, date range, and sorting.
+     */
+    private fun applyFiltersAndSort(state: TransactionListState): List<TransactionEntity> {
         var result = state.transactions
 
         // Apply search query filter
@@ -193,86 +273,166 @@ class TransactionViewModel @Inject constructor(
         }
 
         // Apply type filter
-        result = when (state.typeFilter) {
-            TransactionTypeFilter.INCOME -> result.filter { it.type == "INCOME" }
-            TransactionTypeFilter.EXPENSE -> result.filter { it.type == "EXPENSE" }
-            TransactionTypeFilter.ALL -> result
+        result = when (state.selectedFilter) {
+            TransactionFilter.INCOME -> result.filter { it.type == "INCOME" }
+            TransactionFilter.EXPENSE -> result.filter { it.type == "EXPENSE" }
+            TransactionFilter.ALL -> result
         }
 
         // Apply date range filter
+        result = applyDateRangeFilter(result, state)
+
+        // Apply category filter
+        if (state.selectedCategoryId != null) {
+            result = result.filter { it.categoryId == state.selectedCategoryId }
+        }
+
+        // Apply sorting
+        result = applySorting(result, state.selectedSort)
+
+        return result
+    }
+
+    /**
+     * Apply date range filter to transactions.
+     */
+    private fun applyDateRangeFilter(
+        transactions: List<TransactionEntity>, 
+        state: TransactionListState
+    ): List<TransactionEntity> {
         val calendar = Calendar.getInstance()
-        result = when (state.dateRangeFilter) {
+        
+        return when (state.dateRangeFilter) {
+            DateRangeFilter.TODAY -> {
+                calendar.set(Calendar.HOUR_OF_DAY, 0)
+                calendar.set(Calendar.MINUTE, 0)
+                calendar.set(Calendar.SECOND, 0)
+                calendar.set(Calendar.MILLISECOND, 0)
+                val startOfDay = calendar.timeInMillis
+                val endOfDay = startOfDay + (24 * 60 * 60 * 1000) - 1
+                transactions.filter { it.date in startOfDay..endOfDay }
+            }
             DateRangeFilter.THIS_WEEK -> {
                 calendar.set(Calendar.DAY_OF_WEEK, calendar.firstDayOfWeek)
                 calendar.set(Calendar.HOUR_OF_DAY, 0)
                 calendar.set(Calendar.MINUTE, 0)
                 calendar.set(Calendar.SECOND, 0)
+                calendar.set(Calendar.MILLISECOND, 0)
                 val startOfWeek = calendar.timeInMillis
-                result.filter { it.date >= startOfWeek }
+                transactions.filter { it.date >= startOfWeek }
             }
             DateRangeFilter.THIS_MONTH -> {
                 calendar.set(Calendar.DAY_OF_MONTH, 1)
                 calendar.set(Calendar.HOUR_OF_DAY, 0)
                 calendar.set(Calendar.MINUTE, 0)
                 calendar.set(Calendar.SECOND, 0)
+                calendar.set(Calendar.MILLISECOND, 0)
                 val startOfMonth = calendar.timeInMillis
-                result.filter { it.date >= startOfMonth }
+                transactions.filter { it.date >= startOfMonth }
             }
             DateRangeFilter.CUSTOM -> {
                 val start = state.customStartDate
                 val end = state.customEndDate
                 if (start != null && end != null) {
-                    result.filter { it.date in start..end }
+                    transactions.filter { it.date in start..end }
                 } else {
-                    result
+                    transactions
                 }
             }
-            DateRangeFilter.ALL -> result
+            DateRangeFilter.ALL -> transactions
         }
-
-        // Apply category filter
-        if (state.selectedCategoryFilter != null) {
-            result = result.filter { it.categoryId == state.selectedCategoryFilter }
-        }
-
-        return result.sortedByDescending { it.date }
     }
 
-    // Group transactions by date for display
+    /**
+     * Apply sorting to transactions.
+     */
+    private fun applySorting(
+        transactions: List<TransactionEntity>, 
+        sort: TransactionSort
+    ): List<TransactionEntity> {
+        return when (sort) {
+            TransactionSort.DATE_DESC -> transactions.sortedByDescending { it.date }
+            TransactionSort.DATE_ASC -> transactions.sortedBy { it.date }
+            TransactionSort.AMOUNT_DESC -> transactions.sortedByDescending { it.amount }
+            TransactionSort.AMOUNT_ASC -> transactions.sortedBy { it.amount }
+            TransactionSort.CATEGORY_ASC -> transactions.sortedBy { 
+                _state.value.categories.find { cat -> cat.id == it.categoryId }?.name ?: "" 
+            }
+        }
+    }
+
+    // ==================== GROUPING FOR DISPLAY ====================
+
+    /**
+     * Group transactions by date for display with date headers.
+     * Returns a map of date header string to list of transactions.
+     */
     fun getGroupedTransactions(): Map<String, List<TransactionEntity>> {
         val transactions = state.value.filteredTransactions
         if (transactions.isEmpty()) return emptyMap()
 
-        val today = calendar.apply {
+        val today = Calendar.getInstance().apply {
             set(Calendar.HOUR_OF_DAY, 0)
             set(Calendar.MINUTE, 0)
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
         }.timeInMillis
 
-        calendar.add(Calendar.DAY_OF_YEAR, -1)
-        val yesterday = calendar.timeInMillis
+        val yesterday = Calendar.getInstance().apply {
+            timeInMillis = today
+            add(Calendar.DAY_OF_YEAR, -1)
+        }.timeInMillis
 
-        return transactions.groupBy { transaction ->
+        // Group by date header
+        val grouped = transactions.groupBy { transaction ->
             when {
                 transaction.date >= today -> "Today"
                 transaction.date >= yesterday -> "Yesterday"
                 else -> dateFormatter.format(java.util.Date(transaction.date))
             }
         }
-    }
 
-    private fun seedCategories() {
-        val defaultCategories = listOf(
-            CategoryEntity(name = "Food", icon = "fastfood", color = Color(0xFFFF5252).toArgb(), type = "EXPENSE"),
-            CategoryEntity(name = "Transport", icon = "directions_car", color = Color(0xFF448AFF).toArgb(), type = "EXPENSE"),
-            CategoryEntity(name = "Shopping", icon = "shopping_bag", color = Color(0xFFFFAB40).toArgb(), type = "EXPENSE"),
-            CategoryEntity(name = "Salary", icon = "payments", color = Color(0xFF69F0AE).toArgb(), type = "INCOME")
-        )
-        viewModelScope.launch {
-            defaultCategories.forEach { categoryRepository.insertCategory(it) }
+        // Sort each group by date (newest first within each group)
+        return grouped.mapValues { (_, txs) ->
+            txs.sortedByDescending { it.date }
         }
     }
+
+    // ==================== LEGACY COMPATIBILITY ====================
+
+    /**
+     * Legacy refresh method - delegates to refreshTransactions.
+     */
+    fun refresh() = refreshTransactions()
+
+    /**
+     * Legacy search method - delegates to searchTransactions.
+     */
+    fun setSearchQuery(query: String) = searchTransactions(query)
+
+    /**
+     * Legacy type filter method - delegates to filterTransactions.
+     */
+    fun setTypeFilter(filter: TransactionTypeFilter) {
+        val newFilter = when (filter) {
+            TransactionTypeFilter.ALL -> TransactionFilter.ALL
+            TransactionTypeFilter.INCOME -> TransactionFilter.INCOME
+            TransactionTypeFilter.EXPENSE -> TransactionFilter.EXPENSE
+        }
+        filterTransactions(newFilter)
+    }
+
+    /**
+     * Legacy date range filter method - delegates to filterByDateRange.
+     */
+    fun setDateRangeFilter(filter: DateRangeFilter) = filterByDateRange(filter)
+
+    /**
+     * Legacy category filter method - delegates to filterByCategory.
+     */
+    fun setCategoryFilter(categoryId: Int?) = filterByCategory(categoryId)
+
+    // ==================== TRANSACTION CRUD ====================
 
     fun addTransaction(transaction: TransactionEntity) {
         // Validate input
@@ -292,16 +452,32 @@ class TransactionViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 var finalTransaction = transaction
-                // Smart Categorization if category is not selected (assuming 0 or -1 is 'Uncategorized')
+                
+                // Auto-categorization: Priority = User Rules > SmartCategorizer > Manual
                 if (transaction.categoryId == null || transaction.categoryId <= 0) {
-                     val predictedCategoryName = smartCategorizer.predict(transaction.note)
-                     if (predictedCategoryName != null) {
-                         val category = categoryRepository.getCategoryByName(predictedCategoryName)
-                         if (category != null) {
-                             finalTransaction = transaction.copy(categoryId = category.id)
-                         }
-                     }
+                    var categoryId: Int? = null
+                    
+                    // 1. Try user-defined rules first (highest priority)
+                    categoryId = transactionRuleRepository.applyRulesToTransaction(
+                        userId = currentUserId,
+                        description = transaction.note
+                    )
+                    
+                    // 2. Fall back to SmartCategorizer if no rule matches
+                    if (categoryId == null) {
+                        val predictedCategoryName = smartCategorizer.predict(transaction.note)
+                        if (predictedCategoryName != null) {
+                            val category = categoryRepository.getCategoryByName(predictedCategoryName)
+                            categoryId = category?.id
+                        }
+                    }
+                    
+                    // Apply the category if found
+                    if (categoryId != null) {
+                        finalTransaction = transaction.copy(categoryId = categoryId)
+                    }
                 }
+                
                 transactionRepository.insertTransaction(finalTransaction)
             } catch (e: IOException) {
                 _state.update { it.copy(error = "Network error: ${e.message}") }
@@ -310,23 +486,26 @@ class TransactionViewModel @Inject constructor(
             }
         }
     }
+    
+    /**
+     * Creates a categorization rule from an existing transaction.
+     * Used when user manually categorizes a transaction and wants to save it as a rule.
+     */
+    suspend fun createRuleFromTransaction(
+        description: String,
+        categoryId: Int
+    ): Result<Long> {
+        return transactionRuleRepository.createRuleFromTransaction(
+            userId = currentUserId,
+            description = description,
+            categoryId = categoryId
+        )
+    }
 
     fun updateTransaction(transaction: TransactionEntity) {
         viewModelScope.launch {
             try {
                 transactionRepository.updateTransaction(transaction)
-            } catch (e: IOException) {
-                _state.update { it.copy(error = "Network error: ${e.message}") }
-            } catch (e: SQLiteException) {
-                _state.update { it.copy(error = "Database error: ${e.message}") }
-            }
-        }
-    }
-
-    fun deleteTransaction(transaction: TransactionEntity) {
-        viewModelScope.launch {
-            try {
-                transactionRepository.deleteTransaction(transaction)
             } catch (e: IOException) {
                 _state.update { it.copy(error = "Network error: ${e.message}") }
             } catch (e: SQLiteException) {

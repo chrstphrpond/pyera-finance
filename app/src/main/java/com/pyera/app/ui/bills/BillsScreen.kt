@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -38,7 +39,7 @@ fun BillsScreen(
     viewModel: BillsViewModel = hiltViewModel()
 ) {
     val bills by viewModel.bills.collectAsState()
-    var showAddDialog by remember { mutableStateOf(false) }
+    var showAddDialog by rememberSaveable { mutableStateOf(false) }
 
     // Filter to show upcoming (unpaid) bills first
     val sortedBills = bills.sortedBy { it.dueDate }
@@ -156,9 +157,9 @@ fun AddBillDialog(
     onDismiss: () -> Unit,
     onConfirm: (String, Double, Long, String) -> Unit
 ) {
-    var name by remember { mutableStateOf("") }
-    var amountText by remember { mutableStateOf("") }
-    var selectedFrequency by remember { mutableStateOf("MONTHLY") }
+    var name by rememberSaveable { mutableStateOf("") }
+    var amountText by rememberSaveable { mutableStateOf("") }
+    var selectedFrequency by rememberSaveable { mutableStateOf("MONTHLY") }
     // Default to 1 week from now
     val defaultDate = System.currentTimeMillis() + 7L * 24 * 60 * 60 * 1000
 

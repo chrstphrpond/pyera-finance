@@ -23,10 +23,14 @@ import javax.inject.Inject
 
 @Immutable
 data class DashboardState(
+    val userName: String = "User",
     val totalBalance: Double = 0.0,
     val totalIncome: Double = 0.0,
     val totalExpense: Double = 0.0,
     val recentTransactions: List<TransactionUiModel> = emptyList(),
+    val transactionCount: Int = 0,
+    val activeBudgetsCount: Int = 0,
+    val savingsGoalsCount: Int = 0,
     val isLoading: Boolean = false,
     val error: String? = null
 )
@@ -70,10 +74,14 @@ class DashboardViewModel @Inject constructor(
                     .map { t -> t.toUiModel() }
                 
                 _state.value = DashboardState(
+                    userName = "Pyera User", // TODO: Get from user repository
                     totalBalance = balance,
                     totalIncome = income,
                     totalExpense = expense,
                     recentTransactions = recentTransactions,
+                    transactionCount = transactions.size,
+                    activeBudgetsCount = 0, // TODO: Get from budgets repository
+                    savingsGoalsCount = 0, // TODO: Get from goals repository
                     isLoading = false,
                     error = null
                 )

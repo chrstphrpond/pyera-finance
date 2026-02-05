@@ -46,5 +46,9 @@ data class TransactionEntity(
     val isTransfer: Boolean = false, // Flag for transfer transactions
     val transferAccountId: Long? = null, // For transfers, the destination account
     val createdAt: Long = System.currentTimeMillis(),
-    val updatedAt: Long = System.currentTimeMillis()
+    val updatedAt: Long = System.currentTimeMillis(),
+    // Receipt attachment fields
+    val receiptImagePath: String? = null, // Local file path
+    val receiptCloudUrl: String? = null,  // Firebase Storage URL
+    val hasReceipt: Boolean = false
 )

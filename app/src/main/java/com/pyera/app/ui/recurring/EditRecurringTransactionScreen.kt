@@ -14,6 +14,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -41,10 +42,10 @@ fun EditRecurringTransactionScreen(
     val formState by viewModel.formState.collectAsState()
     val uiState by viewModel.uiState.collectAsState()
 
-    var showStartDatePicker by remember { mutableStateOf(false) }
-    var showEndDatePicker by remember { mutableStateOf(false) }
-    var isAmountError by remember { mutableStateOf(false) }
-    var showApplyOptions by remember { mutableStateOf(false) }
+    var showStartDatePicker by rememberSaveable { mutableStateOf(false) }
+    var showEndDatePicker by rememberSaveable { mutableStateOf(false) }
+    var isAmountError by rememberSaveable { mutableStateOf(false) }
+    var showApplyOptions by rememberSaveable { mutableStateOf(false) }
 
     // Load the recurring transaction when the screen is shown
     LaunchedEffect(recurringId) {
@@ -565,9 +566,9 @@ fun DatePickerDialogEdit(
     val calendar = Calendar.getInstance()
     calendar.timeInMillis = selectedDate
 
-    var year by remember { mutableStateOf(calendar.get(Calendar.YEAR)) }
-    var month by remember { mutableStateOf(calendar.get(Calendar.MONTH)) }
-    var day by remember { mutableStateOf(calendar.get(Calendar.DAY_OF_MONTH)) }
+    var year by rememberSaveable { mutableStateOf(calendar.get(Calendar.YEAR)) }
+    var month by rememberSaveable { mutableStateOf(calendar.get(Calendar.MONTH)) }
+    var day by rememberSaveable { mutableStateOf(calendar.get(Calendar.DAY_OF_MONTH)) }
 
     Dialog(onDismissRequest = onDismiss) {
         Surface(
@@ -589,7 +590,7 @@ fun DatePickerDialogEdit(
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     // Month picker
-                    var monthExpanded by remember { mutableStateOf(false) }
+                    var monthExpanded by rememberSaveable { mutableStateOf(false) }
                     Box {
                         OutlinedButton(onClick = { monthExpanded = true }) {
                             Text(Calendar.getInstance().apply { set(Calendar.MONTH, month) }
@@ -615,7 +616,7 @@ fun DatePickerDialogEdit(
                     }
 
                     // Day picker
-                    var dayExpanded by remember { mutableStateOf(false) }
+                    var dayExpanded by rememberSaveable { mutableStateOf(false) }
                     Box {
                         OutlinedButton(onClick = { dayExpanded = true }) {
                             Text(day.toString())
@@ -641,7 +642,7 @@ fun DatePickerDialogEdit(
                     }
 
                     // Year picker
-                    var yearExpanded by remember { mutableStateOf(false) }
+                    var yearExpanded by rememberSaveable { mutableStateOf(false) }
                     Box {
                         OutlinedButton(onClick = { yearExpanded = true }) {
                             Text(year.toString())

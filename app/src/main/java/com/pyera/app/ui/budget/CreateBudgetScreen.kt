@@ -46,6 +46,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -83,10 +84,11 @@ fun CreateBudgetScreen(
 
     val snackbarHostState = remember { SnackbarHostState() }
     val categories by viewModel.categories.collectAsStateWithLifecycle()
-    var amountText by remember { mutableStateOf("") }
-    var selectedPeriod by remember { mutableStateOf(BudgetPeriod.MONTHLY) }
-    var selectedCategory by remember { mutableStateOf<CategoryEntity?>(null) }
-    var alertThreshold by remember { mutableStateOf(0.8f) }
+    var amountText by rememberSaveable { mutableStateOf("") }
+    var selectedPeriod by rememberSaveable { mutableStateOf(BudgetPeriod.MONTHLY) }
+    var selectedCategoryId by rememberSaveable { mutableStateOf<Int?>(null) }
+    val selectedCategory = selectedCategoryId?.let { id -> categories.find { it.id == id } }
+    var alertThreshold by rememberSaveable { mutableStateOf(0.8f) }
 
     // Filter expense categories
     val expenseCategories = remember(categories) {
@@ -207,7 +209,7 @@ private fun CategorySelectionSection(
     selectedCategory: CategoryEntity?,
     onCategorySelected: (CategoryEntity) -> Unit
 ) {
-    var expanded by remember { mutableStateOf(false) }
+    var expanded by rememberSaveable { mutableStateOf(false) }
 
     PyeraCard(
         modifier = Modifier.fillMaxWidth()

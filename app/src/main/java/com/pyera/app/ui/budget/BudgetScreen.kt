@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,6 +24,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.pyera.app.data.local.entity.CategoryEntity
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.SwipeRefreshIndicator
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import com.pyera.app.ui.components.EmptyBudget
 import com.pyera.app.ui.components.PyeraCard
 import com.pyera.app.ui.theme.AccentGreen
 import com.pyera.app.ui.theme.CardBackground
@@ -37,15 +42,20 @@ fun BudgetScreen(
     viewModel: BudgetViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    var showSetBudgetDialog by remember { mutableStateOf<BudgetItem?>(null) }
+    var showSetBudgetDialogCategoryId by rememberSaveable { mutableStateOf<Int?>(null) }
+    val showSetBudgetDialog = showSetBudgetDialogCategoryId?.let { catId ->
+        state.items.find { it.category.id == catId }
+    }
+    var isRefreshing by rememberSaveable { mutableStateOf(false) }
+    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshing || state.isLoading)
 
     showSetBudgetDialog?.let { budgetItem ->
         SetBudgetDialog(
             item = budgetItem,
-            onDismiss = { showSetBudgetDialog = null },
+            onDismiss = { showSetBudgetDialogCategoryId = null },
             onConfirm = { amount ->
                 viewModel.setBudget(budgetItem.category.id, amount)
-                showSetBudgetDialog = null
+                showSetBudgetDialogCategoryId = null
             }
         )
     }
@@ -68,19 +78,51 @@ fun BudgetScreen(
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        if (state.isLoading) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = AccentGreen)
-            }
-        } else {
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                items(state.items) { item ->
-                    BudgetItemCard(
-                        item = item,
-                        onClick = { showSetBudgetDialog = item }
-                    )
+        // Budget List with Pull-to-Refresh
+        SwipeRefresh(
+            state = swipeRefreshState,
+            onRefresh = {
+                isRefreshing = true
+                viewModel.refreshBudgets()
+                isRefreshing = false
+            },
+            indicator = { refreshState, trigger ->
+                SwipeRefreshIndicator(
+                    state = refreshState,
+                    refreshTriggerDistance = trigger,
+                    backgroundColor = CardBackground,
+                    contentColor = AccentGreen
+                )
+            },
+            modifier = Modifier.fillMaxSize()
+        ) {
+            when {
+                state.isLoading -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = AccentGreen)
+                    }
+                }
+                state.items.isEmpty() -> {
+                    EmptyBudget(onCreateClick = { showSetBudgetDialogCategoryId = -1 // Placeholder for new budget
+                    })
+                        category = CategoryEntity(name = "New Budget", color = AccentGreen.hashCode(), icon = "", type = "EXPENSE"),
+                        spentAmount = 0.0,
+                        budgetAmount = 0.0,
+                        progress = 0f,
+                        remaining = 0.0
+                    ) })
+                }
+                else -> {
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        items(state.items) { item ->
+                            BudgetItemCard(
+                                item = item,
+                                onClick = { showSetBudgetDialogCategoryId = item.category.id }
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -189,7 +231,7 @@ fun SetBudgetDialog(
     onDismiss: () -> Unit,
     onConfirm: (Double) -> Unit
 ) {
-    var amountText by remember { mutableStateOf(if (item.budgetAmount > 0) item.budgetAmount.toString() else "") }
+    var amountText by rememberSaveable { mutableStateOf(if (item.budgetAmount > 0) item.budgetAmount.toString() else "") }
 
     Dialog(onDismissRequest = onDismiss) {
         Card(

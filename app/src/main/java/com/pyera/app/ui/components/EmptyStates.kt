@@ -9,6 +9,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AccountBalanceWallet
+import androidx.compose.material.icons.filled.AttachMoney
+import androidx.compose.material.icons.filled.MoneyOff
+import androidx.compose.material.icons.filled.Savings
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -21,6 +27,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.pyera.app.R
 import com.pyera.app.ui.theme.*
 
 /**
@@ -55,7 +63,7 @@ fun EmptyState(
             // Large icon with NeonYellow tint
             Icon(
                 imageVector = icon,
-                contentDescription = "$title icon",
+                contentDescription = null,
                 tint = NeonYellow,
                 modifier = Modifier.size(64.dp)
             )
@@ -118,7 +126,7 @@ fun CompactEmptyState(
     ) {
         Icon(
             imageVector = icon,
-            contentDescription = "$title icon",
+            contentDescription = null,
             tint = NeonYellow.copy(alpha = 0.7f),
             modifier = Modifier.size(48.dp)
         )
@@ -144,6 +152,16 @@ fun CompactEmptyState(
     }
 }
 
+/**
+ * A flexible empty state component that can be used anywhere.
+ *
+ * @param icon The icon to display
+ * @param title The main title text
+ * @param description The description text
+ * @param modifier Modifier for layout
+ * @param actionLabel Optional label for the action button
+ * @param onAction Optional callback when the action button is clicked
+ */
 @Composable
 fun PyeraEmptyState(
     icon: ImageVector,
@@ -164,7 +182,7 @@ fun PyeraEmptyState(
             imageVector = icon,
             contentDescription = null,
             modifier = Modifier.size(64.dp),
-            tint = TextSecondary
+            tint = NeonYellow
         )
         
         Spacer(modifier = Modifier.height(Spacing.Large))
@@ -195,4 +213,118 @@ fun PyeraEmptyState(
             }
         }
     }
+}
+
+// ============================================================================
+// Pre-configured Empty States for Specific Features
+// ============================================================================
+
+/**
+ * Empty state for the Transactions screen.
+ */
+@Composable
+fun EmptyTransactions(
+    onAddClick: () -> Unit
+) {
+    PyeraEmptyState(
+        icon = Icons.Default.AttachMoney,
+        title = stringResource(R.string.empty_state_transactions_title),
+        description = stringResource(R.string.empty_state_transactions_description),
+        actionLabel = stringResource(R.string.empty_state_transactions_button),
+        onAction = onAddClick
+    )
+}
+
+/**
+ * Empty state for the Debt screen (I Owe tab).
+ */
+@Composable
+fun EmptyDebt(
+    onAddClick: () -> Unit,
+    isIOwe: Boolean = true
+) {
+    val title = if (isIOwe) stringResource(R.string.empty_state_no_debts_owe_title) else stringResource(R.string.empty_state_no_debts_owed_title),
+    val description = if (isIOwe) {
+        stringResource(R.string.empty_state_no_debts_owe_description)
+    } else {
+        stringResource(R.string.empty_state_no_debts_owed_description)
+    }
+    val icon = if (isIOwe) Icons.Default.MoneyOff else Icons.Default.AttachMoney
+    
+    PyeraEmptyState(
+        icon = icon,
+        title = title,
+        description = description,
+        actionLabel = stringResource(R.string.empty_state_debt_button_first),
+        onAction = onAddClick
+    )
+}
+
+/**
+ * Empty state for the Budget screen.
+ */
+@Composable
+fun EmptyBudget(
+    onCreateClick: () -> Unit
+) {
+    PyeraEmptyState(
+        icon = Icons.Default.AccountBalanceWallet,
+        title = stringResource(R.string.empty_state_budget_title),
+        description = stringResource(R.string.empty_state_budget_description),
+        actionLabel = stringResource(R.string.empty_state_budget_button),
+        onAction = onCreateClick
+    )
+}
+
+/**
+ * Empty state for the Savings screen.
+ */
+@Composable
+fun EmptySavings(
+    onAddClick: () -> Unit
+) {
+    PyeraEmptyState(
+        icon = Icons.Default.Savings,
+        title = stringResource(R.string.empty_state_savings_title),
+        description = stringResource(R.string.empty_state_savings_description),
+        actionLabel = stringResource(R.string.empty_state_savings_button),
+        onAction = onAddClick
+    )
+}
+
+/**
+ * Empty state for search results.
+ */
+@Composable
+fun EmptySearch(
+    query: String,
+    onClearSearch: (() -> Unit)? = null
+) {
+    PyeraEmptyState(
+        icon = Icons.Default.Search,
+        title = if (query.isBlank()) stringResource(R.string.empty_state_search_blank_title) else stringResource(R.string.empty_state_search_title),
+        description = if (query.isBlank()) {
+            stringResource(R.string.empty_state_search_blank_description)
+        } else {
+            stringResource(R.string.empty_state_search_no_results_description, query)
+        },
+        actionLabel = if (onClearSearch != null && query.isNotBlank()) "Clear Search" else null,
+        onAction = onClearSearch
+    )
+}
+
+/**
+ * Empty state for the Investments screen.
+ */
+@Composable
+fun EmptyInvestments(
+    onAddClick: () -> Unit
+) {
+    PyeraEmptyState(
+        icon = Icons.Default.TrendingUp,
+        title = stringResource(R.string.empty_state_investments_title),
+        description = stringResource(R.string.empty_state_investments_description),
+        actionLabel = stringResource(R.string.empty_state_investments_button),
+        onAction = onAddClick
+    )
 }

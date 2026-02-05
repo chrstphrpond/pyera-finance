@@ -1,5 +1,8 @@
 package com.pyera.app.ui.auth
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -18,19 +21,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -40,11 +37,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -54,8 +51,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -65,20 +60,12 @@ import com.pyera.app.R
 import com.pyera.app.data.biometric.BiometricAuthManager
 import com.pyera.app.data.biometric.BiometricAuthResult
 import com.pyera.app.data.repository.GoogleAuthHelper
-import com.pyera.app.ui.components.ButtonSize
-import com.pyera.app.ui.components.PyeraButton
-import com.pyera.app.ui.components.PyeraTextField
-import com.pyera.app.ui.theme.AccentGreen
-import com.pyera.app.ui.theme.CardBackground
-import com.pyera.app.ui.theme.CardBorder
-import com.pyera.app.ui.theme.ColorError
-import com.pyera.app.ui.theme.DeepBackground
-import com.pyera.app.ui.theme.NeonYellow
-import com.pyera.app.ui.theme.Radius
-import com.pyera.app.ui.theme.Spacing
-import com.pyera.app.ui.theme.SurfaceElevated
-import com.pyera.app.ui.theme.TextSecondary
-import com.pyera.app.ui.theme.TextTertiary
+import com.pyera.app.ui.components.PyeraAuthButton
+import com.pyera.app.ui.components.PyeraAuthTextField
+import com.pyera.app.ui.components.PyeraSocialButton
+import androidx.compose.ui.res.stringResource
+import com.pyera.app.R
+import com.pyera.app.ui.theme.*
 
 @Composable
 fun LoginScreen(
@@ -94,9 +81,12 @@ fun LoginScreen(
     val context = LocalContext.current
     val activity = context as? FragmentActivity
 
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var googleError by remember { mutableStateOf<String?>(null) }
+    var email by rememberSaveable { mutableStateOf("") }
+    var password by rememberSaveable { mutableStateOf("") }
+    var googleError by rememberSaveable { mutableStateOf<String?>(null) }
+    
+    // Field-level validation errors
+    var fieldErrors by rememberSaveable { mutableStateOf(LoginValidationErrors()) }
 
     val focusManager = LocalFocusManager.current
     val scrollState = rememberScrollState()
@@ -143,10 +133,10 @@ fun LoginScreen(
         if (viewModel.canUseBiometricLogin() && activity != null) {
             biometricAuthManager.showBiometricPrompt(
                 activity = activity,
-                title = "Biometric Login",
-                subtitle = "Use your fingerprint or face to log in",
-                description = "Authenticate to access your Pyera account",
-                negativeButtonText = "Use Password",
+                title = stringResource(R.string.auth_login_biometric_title),
+                subtitle = stringResource(R.string.auth_login_biometric_subtitle),
+                description = stringResource(R.string.auth_login_biometric_description),
+                negativeButtonText = stringResource(R.string.auth_login_biometric_negative_button),
                 onResult = { result ->
                     viewModel.onBiometricAuthResult(result)
                 }
@@ -159,13 +149,28 @@ fun LoginScreen(
             .fillMaxSize()
             .background(DeepBackground)
     ) {
+        // Background gradient for visual interest
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            DarkGreen,
+                            SurfaceDark.copy(alpha = 0.8f),
+                            DeepBackground
+                        )
+                    )
+                )
+        )
+
         // Background Image
         Image(
             painter = painterResource(id = R.drawable.bg_auth_green_flow),
-            contentDescription = null,
+            contentDescription = stringResource(R.string.auth_background_content_desc),
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop,
-            alpha = 0.6f
+            alpha = 0.4f
         )
 
         // Gradient Scrim for text readability
@@ -175,8 +180,8 @@ fun LoginScreen(
                 .background(
                     brush = Brush.verticalGradient(
                         colors = listOf(
-                            DeepBackground.copy(alpha = 0.4f),
-                            DeepBackground.copy(alpha = 0.8f),
+                            DeepBackground.copy(alpha = 0.3f),
+                            DeepBackground.copy(alpha = 0.7f),
                             DeepBackground
                         )
                     )
@@ -188,15 +193,15 @@ fun LoginScreen(
                 .fillMaxSize()
                 .imePadding()
                 .verticalScroll(scrollState)
-                .padding(horizontal = Spacing.XLarge),
+                .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(Spacing.XXXLarge))
+            Spacer(modifier = Modifier.height(48.dp))
 
-            // Logo Section
+            // Logo Section with enhanced branding
             LoginHeader()
 
-            Spacer(modifier = Modifier.height(Spacing.XLarge))
+            Spacer(modifier = Modifier.height(32.dp))
 
             // Biometric Login Button (if enabled and available)
             if (uiState.isBiometricAvailable && uiState.hasStoredCredentials) {
@@ -216,21 +221,21 @@ fun LoginScreen(
                         }
                     }
                 )
-                Spacer(modifier = Modifier.height(Spacing.Medium))
+                Spacer(modifier = Modifier.height(16.dp))
             }
 
-            // Login Form Card
+            // Login Form Card with elevated surface
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(Radius.xl))
-                    .background(CardBackground)
-                    .border(1.dp, CardBorder, RoundedCornerShape(Radius.xl))
-                    .padding(Spacing.XLarge)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(SurfaceElevated)
+                    .border(1.dp, ColorBorder.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                    .padding(24.dp)
             ) {
                 // Welcome Text
                 Text(
-                    text = "Welcome Back",
+                    text = stringResource(R.string.auth_login_title),
                     style = MaterialTheme.typography.headlineSmall,
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
@@ -239,137 +244,138 @@ fun LoginScreen(
                 )
 
                 Text(
-                    text = "Sign in to continue",
+                    text = stringResource(R.string.auth_login_subtitle),
                     style = MaterialTheme.typography.bodyMedium,
                     color = TextSecondary,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Spacer(modifier = Modifier.height(Spacing.XLarge))
+                Spacer(modifier = Modifier.height(24.dp))
 
-                // Email Field using PyeraTextField
-                PyeraTextField(
+                // Email Field with validation
+                PyeraAuthTextField(
                     value = email,
                     onValueChange = {
                         email = it
                         googleError = null
+                        fieldErrors = fieldErrors.copy(emailError = null)
                         if (authState is AuthState.Error) viewModel.clearError()
                     },
-                    label = "Email",
-                    placeholder = "Enter your email",
+                    label = stringResource(R.string.auth_login_email_label),
+                    placeholder = stringResource(R.string.auth_login_email_placeholder),
                     leadingIcon = Icons.Default.Email,
                     keyboardType = KeyboardType.Email,
                     imeAction = ImeAction.Next,
-                    isError = authState is AuthState.Error
+                    isError = fieldErrors.emailError != null || authState is AuthState.Error,
+                    errorMessage = fieldErrors.emailError,
+                    onImeAction = { /* Focus moves to next field automatically */ }
                 )
 
-                Spacer(modifier = Modifier.height(Spacing.Large))
+                Spacer(modifier = Modifier.height(16.dp))
 
-                // Password Field using PyeraTextField with visibility toggle
-                PyeraTextField(
+                // Password Field with visibility toggle
+                PyeraAuthTextField(
                     value = password,
                     onValueChange = {
                         password = it
                         googleError = null
+                        fieldErrors = fieldErrors.copy(passwordError = null)
                         if (authState is AuthState.Error) viewModel.clearError()
                     },
-                    label = "Password",
-                    placeholder = "Enter your password",
+                    label = stringResource(R.string.auth_login_password_label),
+                    placeholder = stringResource(R.string.auth_login_password_placeholder),
+                    isPassword = true,
+                    isPasswordVisible = uiState.isPasswordVisible,
+                    onPasswordVisibilityChange = { viewModel.togglePasswordVisibility() },
                     leadingIcon = Icons.Default.Lock,
-                    trailingIcon = {
-                        IconButton(onClick = { viewModel.togglePasswordVisibility() }) {
-                            Icon(
-                                imageVector = if (uiState.isPasswordVisible)
-                                    Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                contentDescription = if (uiState.isPasswordVisible)
-                                    "Hide password" else "Show password",
-                                tint = TextTertiary
-                            )
-                        }
-                    },
                     keyboardType = KeyboardType.Password,
                     imeAction = ImeAction.Done,
-                    visualTransformation = if (uiState.isPasswordVisible)
-                        VisualTransformation.None else PasswordVisualTransformation(),
-                    onDone = {
+                    isError = fieldErrors.passwordError != null || authState is AuthState.Error,
+                    errorMessage = fieldErrors.passwordError,
+                    onImeAction = {
                         if (isFormValid) {
                             focusManager.clearFocus()
                             viewModel.login(email, password)
                         }
-                    },
-                    isError = authState is AuthState.Error
+                    }
                 )
 
-                Spacer(modifier = Modifier.height(Spacing.Small))
-
                 // Forgot Password Link
-                TextButton(
-                    onClick = onNavigateToForgotPassword,
-                    modifier = Modifier.align(Alignment.End)
-                ) {
-                    Text(
-                        text = "Forgot Password?",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = AccentGreen
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(Spacing.Small))
-
-                // Error Message
-                if (authState is AuthState.Error) {
-                    Text(
-                        text = authState.message,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = ColorError,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Spacer(modifier = Modifier.height(Spacing.Small))
-                }
-
-                // Google Error Message
-                googleError?.let { error ->
-                    Text(
-                        text = error,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = ColorError,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Spacer(modifier = Modifier.height(Spacing.Small))
-                }
-
-                Spacer(modifier = Modifier.height(Spacing.Large))
-
-                // Login Button using PyeraButton
-                PyeraButton(
-                    onClick = {
-                        focusManager.clearFocus()
-                        viewModel.login(email, password)
-                    },
+                Row(
                     modifier = Modifier.fillMaxWidth(),
-                    size = ButtonSize.Large,
-                    enabled = isFormValid && authState !is AuthState.Loading
+                    horizontalArrangement = Arrangement.End
                 ) {
-                    if (authState is AuthState.Loading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
-                            color = DeepBackground,
-                            strokeWidth = 2.dp
-                        )
-                    } else {
+                    TextButton(
+                        onClick = onNavigateToForgotPassword,
+                        modifier = Modifier.padding(top = 4.dp)
+                    ) {
                         Text(
-                            text = "Sign In",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.SemiBold
+                            text = stringResource(R.string.auth_login_forgot_password),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = AccentGreen,
+                            fontWeight = FontWeight.Medium
                         )
                     }
                 }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // General Error Message (from auth state)
+                AnimatedVisibility(
+                    visible = authState is AuthState.Error,
+                    enter = fadeIn(),
+                    exit = fadeOut()
+                ) {
+                    if (authState is AuthState.Error) {
+                        Text(
+                            text = authState.message,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = ColorError,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
+
+                // Google Error Message
+                AnimatedVisibility(
+                    visible = googleError != null,
+                    enter = fadeIn(),
+                    exit = fadeOut()
+                ) {
+                    googleError?.let { error ->
+                        Text(
+                            text = error,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = ColorError,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Login Button with loading state
+                PyeraAuthButton(
+                    text = stringResource(R.string.auth_login_button),
+                    onClick = {
+                        // Validate fields before submitting
+                        val errors = viewModel.validateLoginFields(email, password)
+                        fieldErrors = errors
+                        
+                        if (errors.emailError == null && errors.passwordError == null) {
+                            focusManager.clearFocus()
+                            viewModel.login(email, password)
+                        }
+                    },
+                    isLoading = authState is AuthState.Loading,
+                    enabled = authState !is AuthState.Loading
+                )
             }
 
-            Spacer(modifier = Modifier.height(Spacing.XLarge))
+            Spacer(modifier = Modifier.height(24.dp))
 
             // Social Login Section
             SocialLoginSection(
@@ -378,13 +384,13 @@ fun LoginScreen(
                     if (signInIntent != null) {
                         googleSignInLauncher.launch(signInIntent)
                     } else {
-                        googleError = "Google Sign-In not initialized"
+                        googleError = stringResource(R.string.auth_login_google_sign_in_not_initialized)
                         android.util.Log.e("GoogleSignIn", "Sign-in intent is null")
                     }
                 }
             )
 
-            Spacer(modifier = Modifier.height(Spacing.XLarge))
+            Spacer(modifier = Modifier.height(24.dp))
 
             // Sign Up Link
             Row(
@@ -393,13 +399,13 @@ fun LoginScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = "Don't have an account?",
+                    text = stringResource(R.string.auth_login_no_account),
                     style = MaterialTheme.typography.bodyMedium,
                     color = TextSecondary
                 )
                 TextButton(onClick = onNavigateToRegister) {
                     Text(
-                        text = "Sign Up",
+                        text = stringResource(R.string.auth_login_sign_up),
                         style = MaterialTheme.typography.bodyMedium,
                         color = NeonYellow,
                         fontWeight = FontWeight.SemiBold
@@ -407,7 +413,24 @@ fun LoginScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(Spacing.XXLarge))
+            Spacer(modifier = Modifier.height(32.dp))
+        }
+
+        // Loading Overlay
+        AnimatedVisibility(
+            visible = authState is AuthState.Loading,
+            enter = fadeIn(),
+            exit = fadeOut(),
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.3f)),
+                contentAlignment = Alignment.Center
+            ) {
+                // Loading is handled inside button, but overlay prevents interaction
+            }
         }
 
         // Biometric Enable Dialog
@@ -434,20 +457,21 @@ private fun LoginHeader() {
         // App Logo using SVG vector drawable
         Image(
             painter = painterResource(id = R.drawable.ic_logo_full),
-            contentDescription = "Pyera Logo",
+            contentDescription = stringResource(R.string.auth_login_logo_content_desc),
             modifier = Modifier
                 .height(60.dp)
                 .wrapContentWidth(),
             contentScale = ContentScale.Fit
         )
 
-        Spacer(modifier = Modifier.height(Spacing.Large))
+        Spacer(modifier = Modifier.height(16.dp))
 
-        // Tagline
+        // Tagline with NeonYellow accent
         Text(
-            text = "Your Personal Finance Assistant",
+            text = stringResource(R.string.auth_login_tagline),
             style = MaterialTheme.typography.bodyMedium,
-            color = TextSecondary
+            color = TextSecondary,
+            textAlign = TextAlign.Center
         )
     }
 }
@@ -456,28 +480,18 @@ private fun LoginHeader() {
 private fun BiometricLoginButton(
     onClick: () -> Unit
 ) {
-    PyeraButton(
+    PyeraSocialButton(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-        size = ButtonSize.Large
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
+        text = stringResource(R.string.auth_login_biometric),
+        icon = {
             Icon(
                 imageVector = Icons.Default.Fingerprint,
-                contentDescription = null,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(modifier = Modifier.width(Spacing.Small))
-            Text(
-                text = "Login with Biometrics",
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Medium
+                contentDescription = stringResource(R.string.auth_biometric_icon_content_desc),
+                modifier = Modifier.size(24.dp),
+                tint = AccentGreen
             )
         }
-    }
+    )
 }
 
 @Composable
@@ -487,13 +501,13 @@ private fun BiometricEnableDialog(
 ) {
     androidx.compose.material3.AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = CardBackground,
+        containerColor = SurfaceElevated,
         titleContentColor = Color.White,
         textContentColor = TextSecondary,
         icon = {
             Icon(
                 imageVector = Icons.Default.Fingerprint,
-                contentDescription = null,
+                contentDescription = stringResource(R.string.auth_biometric_auth_content_desc),
                 tint = AccentGreen,
                 modifier = Modifier
                     .size(48.dp)
@@ -502,7 +516,7 @@ private fun BiometricEnableDialog(
         },
         title = {
             Text(
-                text = "Enable Biometric Login?",
+                text = stringResource(R.string.auth_login_biometric_enable_title),
                 style = MaterialTheme.typography.headlineSmall,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
@@ -510,23 +524,18 @@ private fun BiometricEnableDialog(
         },
         text = {
             Text(
-                text = "Use your fingerprint or face recognition for faster and more secure login next time.",
+                text = stringResource(R.string.auth_login_biometric_enable_message),
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
             )
         },
         confirmButton = {
-            PyeraButton(
+            PyeraAuthButton(
+                text = stringResource(R.string.auth_login_biometric_enable_button),
                 onClick = onEnable,
                 modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    text = "Enable",
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
+            )
         },
         dismissButton = {
             TextButton(
@@ -534,7 +543,7 @@ private fun BiometricEnableDialog(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = "Not Now",
+                    text = stringResource(R.string.auth_login_biometric_not_now),
                     color = TextSecondary,
                     style = MaterialTheme.typography.labelLarge
                 )
@@ -561,7 +570,7 @@ private fun SocialLoginSection(
                 color = CardBorder
             )
             Text(
-                text = "  Or continue with  ",
+                text = stringResource(R.string.auth_login_or_continue_with),
                 style = MaterialTheme.typography.bodySmall,
                 color = TextTertiary
             )
@@ -571,7 +580,7 @@ private fun SocialLoginSection(
             )
         }
 
-        Spacer(modifier = Modifier.height(Spacing.Large))
+        Spacer(modifier = Modifier.height(16.dp))
 
         // Google Sign In Button
         GoogleSignInButton(onClick = onGoogleSignIn)
@@ -582,15 +591,10 @@ private fun SocialLoginSection(
 private fun GoogleSignInButton(
     onClick: () -> Unit
 ) {
-    PyeraButton(
+    PyeraSocialButton(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-        size = ButtonSize.Large
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
+        text = stringResource(R.string.auth_login_google),
+        icon = {
             // Google "G" logo
             Box(
                 modifier = Modifier
@@ -606,14 +610,8 @@ private fun GoogleSignInButton(
                     color = DeepBackground
                 )
             }
-            Spacer(modifier = Modifier.width(Spacing.Small))
-            Text(
-                text = "Continue with Google",
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Medium
-            )
         }
-    }
+    )
 }
 
 // Extension function for email validation

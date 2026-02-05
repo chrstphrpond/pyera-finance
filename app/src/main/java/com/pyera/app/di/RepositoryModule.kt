@@ -23,9 +23,13 @@ import com.pyera.app.data.repository.OcrRepositoryImpl
 import com.pyera.app.data.repository.RecurringTransactionRepository
 import com.pyera.app.data.repository.RecurringTransactionRepositoryImpl
 import com.pyera.app.data.repository.SavingsRepository
+import com.pyera.app.data.repository.TransactionRuleRepository
+import com.pyera.app.data.repository.TransactionRuleRepositoryImpl
 import com.pyera.app.data.repository.SavingsRepositoryImpl
 import com.pyera.app.data.repository.TransactionRepository
 import com.pyera.app.data.repository.TransactionRepositoryImpl
+import com.pyera.app.data.repository.TransactionTemplateRepository
+import com.pyera.app.data.repository.TransactionTemplateRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -117,4 +121,16 @@ abstract class RepositoryModule {
     abstract fun bindRecurringTransactionRepository(
         impl: RecurringTransactionRepositoryImpl
     ): RecurringTransactionRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindTransactionRuleRepository(
+        impl: TransactionRuleRepositoryImpl
+    ): TransactionRuleRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindTransactionTemplateRepository(
+        impl: TransactionTemplateRepositoryImpl
+    ): TransactionTemplateRepository
 }

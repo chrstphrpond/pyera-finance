@@ -90,6 +90,20 @@ fun ProfileScreen(
 
             SettingsSection(title = "Data") {
                 SettingsItem(
+                    icon = Icons.Default.Rule,
+                    title = "Transaction Rules",
+                    subtitle = "Auto-categorization",
+                    onClick = { navController.navigate(Screen.TransactionRules.route) }
+                )
+                SettingsDivider()
+                SettingsItem(
+                    icon = Icons.Default.ContentCopy,
+                    title = "Transaction Templates",
+                    subtitle = "Quick transaction entry",
+                    onClick = { navController.navigate(Screen.Templates.List.route) }
+                )
+                SettingsDivider()
+                SettingsItem(
                     icon = Icons.Default.Download,
                     title = "Export to CSV",
                     onClick = { viewModel.exportData() }

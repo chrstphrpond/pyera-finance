@@ -11,7 +11,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -53,7 +53,7 @@ fun AnalysisScreen(
             Column(modifier = Modifier.padding(16.dp)) {
                 Text("Total Expenses", color = TextSecondary, fontSize = 14.sp)
                 Text(
-                    text = "$${String.format("%.2f", state.totalExpense)}",
+                    text = "₱${String.format("%.2f", state.totalExpense)}",
                     color = AccentGreen,
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold
@@ -63,8 +63,8 @@ fun AnalysisScreen(
                 Spacer(modifier = Modifier.height(8.dp))
                 Text("Predicted Next Month", color = TextTertiary, fontSize = 12.sp)
                 Text(
-                    text = "$${String.format("%.2f", state.predictedExpense)}",
-                    color = Color.White,
+                    text = "₱${String.format("%.2f", state.predictedExpense)}",
+                    color = TextPrimary,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -75,7 +75,7 @@ fun AnalysisScreen(
         
         Button(
             onClick = { viewModel.exportData() },
-            colors = ButtonDefaults.buttonColors(containerColor = AccentGreen, contentColor = Color.Black),
+            colors = ButtonDefaults.buttonColors(containerColor = AccentGreen, contentColor = DeepBackground),
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Export Data to CSV")
@@ -115,13 +115,13 @@ fun AnalysisScreen(
                         Box(
                             modifier = Modifier
                                 .size(12.dp)
-                                .background(Color(item.color), RoundedCornerShape(2.dp))
+                                .background(androidx.compose.ui.graphics.Color(item.color), RoundedCornerShape(2.dp))
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(item.categoryName, color = TextPrimary)
                     }
                     Text(
-                        text = "$${String.format("%.2f", item.amount)}",
+                        text = "₱${String.format("%.2f", item.amount)}",
                         color = TextPrimary,
                         fontWeight = FontWeight.Bold
                     )

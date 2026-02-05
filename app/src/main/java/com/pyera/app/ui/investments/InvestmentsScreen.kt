@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,8 +43,9 @@ fun InvestmentsScreen(
 ) {
     val investments by viewModel.investments.collectAsStateWithLifecycle()
     val totalValue by viewModel.totalPortfolioValue.collectAsStateWithLifecycle()
-    var showAddDialog by remember { mutableStateOf(false) }
-    var investmentToUpdate by remember { mutableStateOf<InvestmentEntity?>(null) }
+    var showAddDialog by rememberSaveable { mutableStateOf(false) }
+    var investmentToUpdateId by rememberSaveable { mutableStateOf<Long?>(null) }
+    val investmentToUpdate = investmentToUpdateId?.let { id -> investments.find { it.id == id } }
 
     if (showAddDialog) {
         AddInvestmentDialog(
@@ -189,9 +191,9 @@ fun AddInvestmentDialog(
     onDismiss: () -> Unit,
     onConfirm: (String, String, Double, Double) -> Unit
 ) {
-    var name by remember { mutableStateOf("") }
-    var type by remember { mutableStateOf("STOCK") }
-    var investedText by remember { mutableStateOf("") }
+    var name by rememberSaveable { mutableStateOf("") }
+    var type by rememberSaveable { mutableStateOf("STOCK") }
+    var investedText by rememberSaveable { mutableStateOf("") }
     // Initial value same as invested
     
     Dialog(onDismissRequest = onDismiss) {
@@ -275,7 +277,7 @@ fun UpdateInvestmentDialog(
     onConfirm: (Double) -> Unit,
     onDelete: () -> Unit
 ) {
-    var valueText by remember { mutableStateOf("") }
+    var valueText by rememberSaveable { mutableStateOf("") }
 
     Dialog(onDismissRequest = onDismiss) {
         Card(

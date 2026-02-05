@@ -82,8 +82,8 @@ fun BudgetDetailScreen(
     val budget by viewModel.selectedBudget.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
-    var showDeleteDialog by remember { mutableStateOf(false) }
-    var showMenu by remember { mutableStateOf(false) }
+    var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
+    var showMenu by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(budgetId) {
         viewModel.loadBudgetDetail(budgetId)

@@ -26,6 +26,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,10 +55,10 @@ fun SetPinScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     
-    var step by remember { mutableStateOf(PinSetupStep.ENTER_PIN) }
-    var firstPin by remember { mutableStateOf("") }
-    var secondPin by remember { mutableStateOf("") }
-    var enableBiometric by remember { mutableStateOf(false) }
+    var step by rememberSaveable { mutableStateOf(PinSetupStep.ENTER_PIN) }
+    var firstPin by rememberSaveable { mutableStateOf("") }
+    var secondPin by rememberSaveable { mutableStateOf("") }
+    var enableBiometric by rememberSaveable { mutableStateOf(false) }
     
     // Handle events
     LaunchedEffect(Unit) {

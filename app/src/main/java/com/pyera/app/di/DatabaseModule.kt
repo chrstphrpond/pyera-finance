@@ -13,9 +13,12 @@ import com.pyera.app.data.local.dao.BudgetDao
 import com.pyera.app.data.local.dao.CategoryDao
 import com.pyera.app.data.local.dao.DebtDao
 import com.pyera.app.data.local.dao.InvestmentDao
+import com.pyera.app.data.local.dao.NetWorthDao
 import com.pyera.app.data.local.dao.RecurringTransactionDao
 import com.pyera.app.data.local.dao.SavingsGoalDao
 import com.pyera.app.data.local.dao.TransactionDao
+import com.pyera.app.data.local.dao.TransactionTemplateDao
+import com.pyera.app.data.local.dao.TransactionRuleDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -48,7 +51,7 @@ object DatabaseModule {
         )
         .openHelperFactory(factory)
         .setJournalMode(RoomDatabase.JournalMode.WRITE_AHEAD_LOGGING)
-        .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
+        .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9)
         .build()
     }
 
@@ -211,6 +214,94 @@ object DatabaseModule {
         }
     }
 
+    /**
+     * Migration from v6 to v7 - Added NetWorthSnapshot entity
+     * Creates net_worth_snapshots table with indexes for tracking net worth history
+     */
+    private val MIGRATION_6_7 = object : Migration(6, 7) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            // Create net_worth_snapshots table
+            database.execSQL("""
+                CREATE TABLE IF NOT EXISTS net_worth_snapshots (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    userId TEXT NOT NULL,
+                    date INTEGER NOT NULL,
+                    totalAssets REAL NOT NULL,
+                    totalLiabilities REAL NOT NULL,
+                    netWorth REAL NOT NULL,
+                    accountsBreakdown TEXT NOT NULL,
+                    createdAt INTEGER NOT NULL DEFAULT ${System.currentTimeMillis()}
+                )
+            """.trimIndent())
+            
+            // Create indexes for efficient queries
+            database.execSQL("CREATE INDEX IF NOT EXISTS idx_networth_user ON net_worth_snapshots(userId)")
+            database.execSQL("CREATE INDEX IF NOT EXISTS idx_networth_date ON net_worth_snapshots(date)")
+            database.execSQL("CREATE INDEX IF NOT EXISTS idx_networth_user_date ON net_worth_snapshots(userId, date)")
+        }
+    }
+
+    /**
+     * Migration from v7 to v8 - Added TransactionRuleEntity
+     * Creates transaction_rules table with indexes for auto-categorization
+     */
+    private val MIGRATION_7_8 = object : Migration(7, 8) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL("""
+                CREATE TABLE IF NOT EXISTS transaction_rules (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    userId TEXT NOT NULL,
+                    pattern TEXT NOT NULL,
+                    matchType TEXT NOT NULL,
+                    categoryId INTEGER NOT NULL,
+                    priority INTEGER NOT NULL DEFAULT 0,
+                    isActive INTEGER NOT NULL DEFAULT 1,
+                    createdAt INTEGER NOT NULL,
+                    updatedAt INTEGER NOT NULL,
+                    FOREIGN KEY(categoryId) REFERENCES categories(id) ON DELETE CASCADE
+                )
+            """.trimIndent())
+            database.execSQL("CREATE INDEX IF NOT EXISTS idx_rules_user ON transaction_rules(userId)")
+            database.execSQL("CREATE INDEX IF NOT EXISTS idx_rules_active ON transaction_rules(isActive)")
+            database.execSQL("CREATE INDEX IF NOT EXISTS idx_rules_category ON transaction_rules(categoryId)")
+        }
+    }
+
+    /**
+     * Migration from v8 to v9 - Added TransactionTemplateEntity
+     * Creates transaction_templates table for quick transaction templates
+     */
+    private val MIGRATION_8_9 = object : Migration(8, 9) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL("""
+                CREATE TABLE IF NOT EXISTS transaction_templates (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    userId TEXT NOT NULL,
+                    name TEXT NOT NULL,
+                    description TEXT NOT NULL,
+                    amount REAL,
+                    type TEXT NOT NULL,
+                    categoryId INTEGER,
+                    accountId INTEGER,
+                    icon TEXT,
+                    color INTEGER,
+                    displayOrder INTEGER NOT NULL DEFAULT 0,
+                    isActive INTEGER NOT NULL DEFAULT 1,
+                    useCount INTEGER NOT NULL DEFAULT 0,
+                    lastUsedAt INTEGER,
+                    createdAt INTEGER NOT NULL,
+                    FOREIGN KEY(categoryId) REFERENCES categories(id) ON DELETE SET NULL,
+                    FOREIGN KEY(accountId) REFERENCES accounts(id) ON DELETE SET NULL
+                )
+            """.trimIndent())
+            database.execSQL("CREATE INDEX IF NOT EXISTS idx_templates_user ON transaction_templates(userId)")
+            database.execSQL("CREATE INDEX IF NOT EXISTS idx_templates_active ON transaction_templates(isActive)")
+            database.execSQL("CREATE INDEX IF NOT EXISTS idx_templates_order ON transaction_templates(displayOrder)")
+            database.execSQL("CREATE INDEX IF NOT EXISTS idx_templates_category ON transaction_templates(categoryId)")
+            database.execSQL("CREATE INDEX IF NOT EXISTS idx_templates_account ON transaction_templates(accountId)")
+        }
+    }
+
     @Provides
     fun provideCategoryDao(database: PyeraDatabase): CategoryDao {
         return database.categoryDao()
@@ -254,6 +345,21 @@ object DatabaseModule {
     @Provides
     fun provideRecurringTransactionDao(database: PyeraDatabase): RecurringTransactionDao {
         return database.recurringTransactionDao()
+    }
+
+    @Provides
+    fun provideNetWorthDao(database: PyeraDatabase): NetWorthDao {
+        return database.netWorthDao()
+    }
+
+    @Provides
+    fun provideTransactionRuleDao(database: PyeraDatabase): TransactionRuleDao {
+        return database.transactionRuleDao()
+    }
+
+    @Provides
+    fun provideTransactionTemplateDao(database: PyeraDatabase): TransactionTemplateDao {
+        return database.transactionTemplateDao()
     }
     
     private const val DATABASE_NAME = "pyera_database"

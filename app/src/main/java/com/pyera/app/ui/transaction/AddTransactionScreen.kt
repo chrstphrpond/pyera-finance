@@ -21,8 +21,10 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
@@ -43,8 +45,11 @@ import com.pyera.app.data.local.entity.AccountEntity
 import com.pyera.app.data.local.entity.CategoryEntity
 import com.pyera.app.data.local.entity.TransactionEntity
 import com.pyera.app.data.local.entity.formattedBalance
+import com.pyera.app.ui.dashboard.TemplateSelectorRow
+import com.pyera.app.ui.navigation.Screen
 import com.pyera.app.ui.theme.AccentGreen
 import com.pyera.app.ui.theme.DeepBackground
+import com.pyera.app.ui.theme.SurfaceDark
 import com.pyera.app.ui.theme.SurfaceElevated
 import com.pyera.app.ui.theme.TextPrimary
 import com.pyera.app.ui.theme.TextSecondary
@@ -63,20 +68,27 @@ fun AddTransactionScreen(
     val scope = rememberCoroutineScope()
     val context = androidx.compose.ui.platform.LocalContext.current
     
-    // Form state
-    var amount by remember { mutableStateOf("") }
-    var note by remember { mutableStateOf("") }
-    var selectedType by remember { mutableStateOf("EXPENSE") } // "INCOME" or "EXPENSE"
-    var selectedCategory by remember { mutableStateOf<CategoryEntity?>(null) }
-    var selectedAccount by remember { mutableStateOf(state.defaultAccount) }
-    var selectedDate by remember { mutableStateOf(System.currentTimeMillis()) }
-    var isScanning by remember { mutableStateOf(false) }
-    var scannedReceiptUri by remember { mutableStateOf<android.net.Uri?>(null) }
-    var showDatePicker by remember { mutableStateOf(false) }
-    var showAccountPicker by remember { mutableStateOf(false) }
-    var isAmountError by remember { mutableStateOf(false) }
-    var isAccountError by remember { mutableStateOf(false) }
-    var saveSuccess by remember { mutableStateOf(false) }
+    // Form state - using rememberSaveable to survive configuration changes
+    var amount by rememberSaveable { mutableStateOf("") }
+    var note by rememberSaveable { mutableStateOf("") }
+    var selectedType by rememberSaveable { mutableStateOf("EXPENSE") } // "INCOME" or "EXPENSE"
+    var selectedCategoryId by rememberSaveable { mutableStateOf<Int?>(null) }
+    val selectedCategory = selectedCategoryId?.let { id -> state.categories.find { it.id == id } }
+    var selectedAccountId by rememberSaveable { mutableStateOf<Long?>(null) }
+    val selectedAccount = selectedAccountId?.let { id -> state.accounts.find { it.id == id } } ?: state.defaultAccount
+    var selectedDate by rememberSaveable { mutableStateOf(System.currentTimeMillis()) }
+    var isScanning by rememberSaveable { mutableStateOf(false) }
+    var scannedReceiptUriString by rememberSaveable { mutableStateOf<String?>(null) }
+    val scannedReceiptUri = scannedReceiptUriString?.let { android.net.Uri.parse(it) }
+    var showDatePicker by rememberSaveable { mutableStateOf(false) }
+    var showAccountPicker by rememberSaveable { mutableStateOf(false) }
+    var isAmountError by rememberSaveable { mutableStateOf(false) }
+    var isAccountError by rememberSaveable { mutableStateOf(false) }
+    var saveSuccess by rememberSaveable { mutableStateOf(false) }
+    var showSaveAsRule by rememberSaveable { mutableStateOf(false) }
+    var ruleCreated by rememberSaveable { mutableStateOf(false) }
+    var showSaveAsTemplateDialog by rememberSaveable { mutableStateOf(false) }
+    var lastSavedTransaction by remember { mutableStateOf<TransactionEntity?>(null) }
     
     // Update selected account when default account changes
     LaunchedEffect(state.defaultAccount) {
@@ -85,11 +97,33 @@ fun AddTransactionScreen(
         }
     }
 
-    // Navigate back when transaction is successfully saved
-    if (saveSuccess) {
+    // Show save as template dialog after successful save
+    if (saveSuccess && lastSavedTransaction != null) {
         LaunchedEffect(Unit) {
-            navController.popBackStack()
+            showSaveAsTemplateDialog = true
+            saveSuccess = false // Reset to prevent re-triggering
         }
+    }
+
+    // Save as Template Dialog
+    if (showSaveAsTemplateDialog && lastSavedTransaction != null) {
+        SaveAsTemplateDialog(
+            transaction = lastSavedTransaction!!,
+            onDismiss = {
+                showSaveAsTemplateDialog = false
+                lastSavedTransaction = null
+                navController.popBackStack()
+            },
+            onSave = { templateName ->
+                templatesViewModel.createTemplateFromTransaction(
+                    lastSavedTransaction!!,
+                    templateName
+                )
+                showSaveAsTemplateDialog = false
+                lastSavedTransaction = null
+                navController.popBackStack()
+            }
+        )
     }
 
     val scanLauncher = rememberReceiptPicker { uri ->
@@ -172,7 +206,7 @@ fun AddTransactionScreen(
                     scannedReceiptUri?.let { uri ->
                         ReceiptPreviewCard(
                             uri = uri,
-                            onClear = { scannedReceiptUri = null }
+                            onClear = { scannedReceiptUriString = null }
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                     }
@@ -196,6 +230,31 @@ fun AddTransactionScreen(
                         onClick = { selectedType = "INCOME"; selectedCategory = null }
                     )
                 }
+
+                // Template Selector - shows matching templates for quick entry
+                val templatesViewModel: com.pyera.app.ui.templates.TemplatesViewModel = hiltViewModel()
+                val templatesState by templatesViewModel.uiState.collectAsStateWithLifecycle()
+                
+                TemplateSelectorRow(
+                    templates = templatesState.templates,
+                    selectedType = selectedType,
+                    onTemplateSelected = { template ->
+                        // Pre-fill fields from template
+                        template.amount?.let { amount = it.toString() }
+                        note = template.description
+                        selectedType = template.type
+                        template.categoryId?.let { catId ->
+                            selectedCategoryId = catId
+                        }
+                        template.accountId?.let { accId ->
+                            selectedAccountId = accId
+                        }
+                        // Mark template as used
+                        templatesViewModel.useTemplate(template)
+                    }
+                )
+                
+                Spacer(modifier = Modifier.height(16.dp))
 
                 // Amount Input with Currency Symbol
                 AmountInputField(
@@ -267,8 +326,86 @@ fun AddTransactionScreen(
                         CategoryItem(
                             category = category,
                             isSelected = selectedCategory?.id == category.id,
-                            onClick = { selectedCategory = category }
+                            onClick = { 
+                                selectedCategoryId = category.id
+                                showSaveAsRule = note.isNotBlank()
+                            }
                         )
+                    }
+                }
+
+                // Save as Rule option (shown when category is manually selected and note exists)
+                AnimatedVisibility(
+                    visible = showSaveAsRule && selectedCategory != null && note.isNotBlank() && !ruleCreated,
+                    enter = expandVertically() + fadeIn(),
+                    exit = shrinkVertically() + fadeOut()
+                ) {
+                    Column {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    scope.launch {
+                                        selectedCategory?.let { category ->
+                                            val result = viewModel.createRuleFromTransaction(
+                                                description = note,
+                                                categoryId = category.id
+                                            )
+                                            result.fold(
+                                                onSuccess = {
+                                                    ruleCreated = true
+                                                    android.widget.Toast.makeText(
+                                                        context,
+                                                        "Rule saved! Future transactions matching \"$note\" will be categorized as ${category.name}",
+                                                        android.widget.Toast.LENGTH_LONG
+                                                    ).show()
+                                                },
+                                                onFailure = { e ->
+                                                    android.widget.Toast.makeText(
+                                                        context,
+                                                        "Failed to save rule: ${e.message}",
+                                                        android.widget.Toast.LENGTH_SHORT
+                                                    ).show()
+                                                }
+                                            )
+                                        }
+                                    }
+                                },
+                            colors = CardDefaults.cardColors(
+                                containerColor = SurfaceDark
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Save,
+                                    contentDescription = null,
+                                    tint = AccentGreen,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = "Save as Rule",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = AccentGreen,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                    Text(
+                                        text = "Auto-categorize future transactions like this",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = TextSecondary
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -304,17 +441,17 @@ fun AddTransactionScreen(
                                     android.widget.Toast.makeText(context, "Please select a category", android.widget.Toast.LENGTH_SHORT).show()
                                 }
                                 else -> {
-                                    viewModel.addTransaction(
-                                        TransactionEntity(
-                                            amount = amountVal,
-                                            note = note,
-                                            date = selectedDate,
-                                            type = selectedType,
-                                            categoryId = selectedCategory?.id,
-                                            accountId = accountId,
-                                            userId = state.accounts.find { it.id == accountId }?.userId ?: ""
-                                        )
+                                    val transaction = TransactionEntity(
+                                        amount = amountVal,
+                                        note = note,
+                                        date = selectedDate,
+                                        type = selectedType,
+                                        categoryId = selectedCategory?.id,
+                                        accountId = accountId,
+                                        userId = state.accounts.find { it.id == accountId }?.userId ?: ""
                                     )
+                                    viewModel.addTransaction(transaction)
+                                    lastSavedTransaction = transaction
                                     saveSuccess = true
                                 }
                             }
@@ -362,9 +499,9 @@ fun AddTransactionScreen(
                                     // Reset form
                                     amount = ""
                                     note = ""
-                                    selectedCategory = null
+                                    selectedCategoryId = null
                                     selectedDate = System.currentTimeMillis()
-                                    scannedReceiptUri = null
+                                    scannedReceiptUriString = null
                                     android.widget.Toast.makeText(
                                         context, 
                                         "Transaction saved! Add another.", 
@@ -397,7 +534,7 @@ fun AddTransactionScreen(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.5f)),
+                    .background(TextPrimary.copy(alpha = 0.7f)),
                 contentAlignment = Alignment.Center
             ) {
                 CircularProgressIndicator(color = AccentGreen)
@@ -614,9 +751,9 @@ fun DatePickerDialog(
     val calendar = Calendar.getInstance()
     calendar.timeInMillis = selectedDate
     
-    var year by remember { mutableStateOf(calendar.get(Calendar.YEAR)) }
-    var month by remember { mutableStateOf(calendar.get(Calendar.MONTH)) }
-    var day by remember { mutableStateOf(calendar.get(Calendar.DAY_OF_MONTH)) }
+    var year by rememberSaveable { mutableStateOf(calendar.get(Calendar.YEAR)) }
+    var month by rememberSaveable { mutableStateOf(calendar.get(Calendar.MONTH)) }
+    var day by rememberSaveable { mutableStateOf(calendar.get(Calendar.DAY_OF_MONTH)) }
 
     Dialog(onDismissRequest = onDismiss) {
         Surface(
@@ -638,7 +775,7 @@ fun DatePickerDialog(
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     // Month picker
-                    var monthExpanded by remember { mutableStateOf(false) }
+                    var monthExpanded by rememberSaveable { mutableStateOf(false) }
                     Box {
                         OutlinedButton(onClick = { monthExpanded = true }) {
                             Text(Calendar.getInstance().apply { set(Calendar.MONTH, month) }
@@ -664,7 +801,7 @@ fun DatePickerDialog(
                     }
                     
                     // Day picker
-                    var dayExpanded by remember { mutableStateOf(false) }
+                    var dayExpanded by rememberSaveable { mutableStateOf(false) }
                     Box {
                         OutlinedButton(onClick = { dayExpanded = true }) {
                             Text(day.toString())
@@ -690,7 +827,7 @@ fun DatePickerDialog(
                     }
                     
                     // Year picker
-                    var yearExpanded by remember { mutableStateOf(false) }
+                    var yearExpanded by rememberSaveable { mutableStateOf(false) }
                     Box {
                         OutlinedButton(onClick = { yearExpanded = true }) {
                             Text(year.toString())
@@ -809,7 +946,7 @@ fun CategoryItem(category: CategoryEntity, isSelected: Boolean, onClick: () -> U
         ) {
             Text(
                 category.name.take(1).uppercase(), 
-                color = Color.White,
+                color = TextPrimary,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
@@ -958,4 +1095,59 @@ fun AccountSelector(
             }
         }
     }
+}
+
+@Composable
+fun SaveAsTemplateDialog(
+    transaction: TransactionEntity,
+    onDismiss: () -> Unit,
+    onSave: (String) -> Unit
+) {
+    var templateName by rememberSaveable { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Save as Template", color = TextPrimary) },
+        text = {
+            Column {
+                Text(
+                    text = "Create a template from this transaction for quick future entries.",
+                    color = TextSecondary,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+                OutlinedTextField(
+                    value = templateName,
+                    onValueChange = { templateName = it },
+                    label = { Text("Template Name") },
+                    placeholder = { Text("e.g., Morning Coffee") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = AccentGreen,
+                        unfocusedBorderColor = TextSecondary,
+                        focusedTextColor = TextPrimary,
+                        unfocusedTextColor = TextPrimary,
+                        focusedLabelColor = AccentGreen,
+                        unfocusedLabelColor = TextSecondary
+                    ),
+                    singleLine = true
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { onSave(templateName) },
+                colors = ButtonDefaults.buttonColors(containerColor = AccentGreen),
+                enabled = templateName.isNotBlank()
+            ) {
+                Text("Save", color = DeepBackground)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Skip", color = TextSecondary)
+            }
+        },
+        containerColor = SurfaceElevated
+    )
 }

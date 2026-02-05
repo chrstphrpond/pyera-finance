@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,6 +25,10 @@ import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.pyera.app.data.local.entity.SavingsGoalEntity
 import androidx.compose.foundation.lazy.items
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.SwipeRefreshIndicator
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import com.pyera.app.ui.components.EmptySavings
 import com.pyera.app.ui.components.PyeraCard
 import com.pyera.app.ui.theme.AccentGreen
 import com.pyera.app.ui.theme.CardBackground
@@ -39,8 +44,11 @@ fun SavingsScreen(
     viewModel: SavingsViewModel = hiltViewModel()
 ) {
     val savingsGoals by viewModel.savingsGoals.collectAsStateWithLifecycle()
-    var showAddDialog by remember { mutableStateOf(false) }
-    var goalToUpdate by remember { mutableStateOf<SavingsGoalEntity?>(null) }
+    var showAddDialog by rememberSaveable { mutableStateOf(false) }
+    var goalToUpdateId by rememberSaveable { mutableStateOf<Long?>(null) }
+    val goalToUpdate = goalToUpdateId?.let { id -> savingsGoals.find { it.id == id } }
+    var isRefreshing by rememberSaveable { mutableStateOf(false) }
+    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshing)
 
     if (showAddDialog) {
         AddSavingsGoalDialog(
@@ -55,14 +63,14 @@ fun SavingsScreen(
     goalToUpdate?.let { goal ->
         UpdateSavingsDialog(
             goal = goal,
-            onDismiss = { goalToUpdate = null },
+            onDismiss = { goalToUpdateId = null },
             onConfirm = { newAmount ->
                 viewModel.updateProgress(goal, newAmount)
-                goalToUpdate = null
+                goalToUpdateId = null
             },
             onDelete = {
                 viewModel.deleteGoal(goal)
-                goalToUpdate = null
+                goalToUpdateId = null
             }
         )
     }
@@ -92,26 +100,40 @@ fun SavingsScreen(
             )
             Spacer(modifier = Modifier.height(16.dp))
 
-            if (savingsGoals.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(
-                        text = "No savings goals yet.",
-                        color = TextSecondary,
-                        style = MaterialTheme.typography.bodyLarge
+            // Savings Goals List with Pull-to-Refresh
+            SwipeRefresh(
+                state = swipeRefreshState,
+                onRefresh = {
+                    // Data comes from StateFlow which auto-refreshes
+                    // Just showing the visual feedback
+                    isRefreshing = true
+                    isRefreshing = false
+                },
+                indicator = { state, trigger ->
+                    SwipeRefreshIndicator(
+                        state = state,
+                        refreshTriggerDistance = trigger,
+                        backgroundColor = CardBackground,
+                        contentColor = AccentGreen
                     )
-                }
-            } else {
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(
-                        items = savingsGoals,
-                        key = { goal: SavingsGoalEntity -> goal.id }
-                    ) { goal: SavingsGoalEntity ->
-                        SavingsGoalItem(
-                            goal = goal,
-                            onClick = { goalToUpdate = goal }
-                        )
+                },
+                modifier = Modifier.fillMaxSize()
+            ) {
+                if (savingsGoals.isEmpty()) {
+                    EmptySavings(onAddClick = { showAddDialog = true })
+                } else {
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(
+                            items = savingsGoals,
+                            key = { goal: SavingsGoalEntity -> goal.id }
+                        ) { goal: SavingsGoalEntity ->
+                            SavingsGoalItem(
+                                goal = goal,
+                                onClick = { goalToUpdateId = goal.id }
+                            )
+                        }
                     }
                 }
             }
@@ -193,8 +215,8 @@ fun AddSavingsGoalDialog(
     onDismiss: () -> Unit,
     onConfirm: (String, Double, Long) -> Unit
 ) {
-    var name by remember { mutableStateOf("") }
-    var targetText by remember { mutableStateOf("") }
+    var name by rememberSaveable { mutableStateOf("") }
+    var targetText by rememberSaveable { mutableStateOf("") }
     // Default to 1 month from now
     val defaultDate = System.currentTimeMillis() + 30L * 24 * 60 * 60 * 1000 
 
@@ -279,7 +301,7 @@ fun UpdateSavingsDialog(
     onConfirm: (Double) -> Unit,
     onDelete: () -> Unit
 ) {
-    var amountText by remember { mutableStateOf("") }
+    var amountText by rememberSaveable { mutableStateOf("") }
 
     Dialog(onDismissRequest = onDismiss) {
         Card(

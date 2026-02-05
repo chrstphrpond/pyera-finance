@@ -9,14 +9,20 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
+import com.pyera.app.ui.theme.ColorSuccess
+import com.pyera.app.ui.theme.ColorError
+import com.pyera.app.ui.theme.NeonYellow
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -28,6 +34,11 @@ import com.pyera.app.ui.dashboard.DashboardScreen
 import com.pyera.app.ui.recurring.AddRecurringTransactionScreen
 import com.pyera.app.ui.recurring.EditRecurringTransactionScreen
 import com.pyera.app.ui.recurring.RecurringTransactionsScreen
+import com.pyera.app.ui.rules.AddTransactionRuleScreen
+import com.pyera.app.ui.rules.TransactionRulesScreen
+import com.pyera.app.ui.templates.AddTemplateScreen
+import com.pyera.app.ui.templates.TemplatesScreen
+import com.pyera.app.ui.templates.TemplatesViewModel
 import com.pyera.app.ui.transaction.AddTransactionScreen
 import com.pyera.app.ui.transaction.TransactionListScreen
 import com.pyera.app.ui.debt.DebtScreen
@@ -93,6 +104,9 @@ fun MainScreen() {
                         },
                         onInsightsClick = {
                             bottomNavController.navigate(Screen.Main.Insights.route)
+                        },
+                        onTemplatesClick = {
+                            bottomNavController.navigate(Screen.Templates.List.route)
                         }
                     )
                 }
@@ -375,7 +389,175 @@ fun MainScreen() {
                         recurringId = recurringId
                     )
                 }
+
+                // Transaction Rules - List
+                composable(
+                    route = Screen.TransactionRules.route,
+                    enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }) + fadeIn() },
+                    exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }) + fadeOut() }
+                ) {
+                    TransactionRulesScreen(navController = bottomNavController)
+                }
+
+                // Transaction Rules - Add
+                composable(
+                    route = Screen.AddTransactionRule.route,
+                    enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }) + fadeIn() },
+                    exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }) + fadeOut() }
+                ) {
+                    AddTransactionRuleScreen(navController = bottomNavController)
+                }
+
+                // Transaction Rules - Edit
+                composable(
+                    route = Screen.EditTransactionRule.route,
+                    arguments = listOf(
+                        navArgument("ruleId") { type = NavType.LongType }
+                    ),
+                    enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }) + fadeIn() },
+                    exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }) + fadeOut() }
+                ) { backStackEntry ->
+                    val ruleId = backStackEntry.arguments?.getLong("ruleId")
+                    AddTransactionRuleScreen(
+                        navController = bottomNavController,
+                        ruleId = ruleId
+                    )
+                }
+
+                // Templates - List
+                composable(
+                    route = Screen.Templates.List.route,
+                    enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }) + fadeIn() },
+                    exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }) + fadeOut() }
+                ) {
+                    TemplatesScreen(
+                        onNavigateBack = { bottomNavController.popBackStack() },
+                        onAddTemplate = { bottomNavController.navigate(Screen.Templates.Add.route) },
+                        onEditTemplate = { template ->
+                            bottomNavController.navigate(Screen.Templates.Edit.createRoute(template.id))
+                        },
+                        onUseTemplate = { templateId ->
+                            // Navigate to add transaction with template ID
+                            bottomNavController.navigate("${Screen.AddTransaction.route}?templateId=$templateId")
+                        }
+                    )
+                }
+
+                // Templates - Add
+                composable(
+                    route = Screen.Templates.Add.route,
+                    enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }) + fadeIn() },
+                    exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }) + fadeOut() }
+                ) {
+                    AddTemplateScreen(
+                        onNavigateBack = { bottomNavController.popBackStack() },
+                        onTemplateSaved = { bottomNavController.popBackStack() }
+                    )
+                }
+
+                // Templates - Edit
+                composable(
+                    route = Screen.Templates.Edit.route,
+                    arguments = listOf(
+                        navArgument("templateId") { type = NavType.LongType }
+                    ),
+                    enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }) + fadeIn() },
+                    exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }) + fadeOut() }
+                ) { backStackEntry ->
+                    val templateId = backStackEntry.arguments?.getLong("templateId") ?: 0L
+                    val viewModel: TemplatesViewModel = hiltViewModel()
+                    
+                    LaunchedEffect(templateId) {
+                        val template = viewModel.getTemplateById(templateId)
+                        template?.let { viewModel.initFormForEdit(it) }
+                    }
+                    
+                    AddTemplateScreen(
+                        onNavigateBack = { bottomNavController.popBackStack() },
+                        onTemplateSaved = { bottomNavController.popBackStack() }
+                    )
+                }
             }
         }
     }
+}
+
+
+// ============================================================================
+// Snackbar Helper Extension Functions
+// ============================================================================
+
+/**
+ * Shows a success snackbar with the given message.
+ * 
+ * @param message The success message to display
+ * @param actionLabel Optional action label (e.g., "Undo")
+ * @param onAction Optional callback when action is clicked
+ * @return SnackbarResult indicating user interaction
+ */
+suspend fun SnackbarHostState.showSuccess(
+    message: String,
+    actionLabel: String? = null,
+    onAction: (() -> Unit)? = null
+): SnackbarResult {
+    val result = showSnackbar(
+        message = message,
+        actionLabel = actionLabel,
+        duration = SnackbarDuration.Short,
+        withDismissAction = true
+    )
+    if (result == SnackbarResult.ActionPerformed && onAction != null) {
+        onAction()
+    }
+    return result
+}
+
+/**
+ * Shows an error snackbar with the given message.
+ * 
+ * @param message The error message to display
+ * @param actionLabel Optional action label (e.g., "Retry")
+ * @param onAction Optional callback when action is clicked
+ * @return SnackbarResult indicating user interaction
+ */
+suspend fun SnackbarHostState.showError(
+    message: String,
+    actionLabel: String? = null,
+    onAction: (() -> Unit)? = null
+): SnackbarResult {
+    val result = showSnackbar(
+        message = message,
+        actionLabel = actionLabel,
+        duration = SnackbarDuration.Long,
+        withDismissAction = true
+    )
+    if (result == SnackbarResult.ActionPerformed && onAction != null) {
+        onAction()
+    }
+    return result
+}
+
+/**
+ * Shows an informational snackbar with the given message.
+ * 
+ * @param message The info message to display
+ * @param actionLabel Optional action label
+ * @param onAction Optional callback when action is clicked
+ * @return SnackbarResult indicating user interaction
+ */
+suspend fun SnackbarHostState.showInfo(
+    message: String,
+    actionLabel: String? = null,
+    onAction: (() -> Unit)? = null
+): SnackbarResult {
+    val result = showSnackbar(
+        message = message,
+        actionLabel = actionLabel,
+        duration = SnackbarDuration.Short,
+        withDismissAction = true
+    )
+    if (result == SnackbarResult.ActionPerformed && onAction != null) {
+        onAction()
+    }
+    return result
 }

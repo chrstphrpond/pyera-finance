@@ -52,10 +52,10 @@ fun ChangePinScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     
-    var step by remember { mutableStateOf(ChangePinStep.CURRENT_PIN) }
-    var currentPin by remember { mutableStateOf("") }
-    var newPin by remember { mutableStateOf("") }
-    var confirmPin by remember { mutableStateOf("") }
+    var step by rememberSaveable { mutableStateOf(ChangePinStep.CURRENT_PIN) }
+    var currentPin by rememberSaveable { mutableStateOf("") }
+    var newPin by rememberSaveable { mutableStateOf("") }
+    var confirmPin by rememberSaveable { mutableStateOf("") }
     
     // Handle events
     LaunchedEffect(Unit) {

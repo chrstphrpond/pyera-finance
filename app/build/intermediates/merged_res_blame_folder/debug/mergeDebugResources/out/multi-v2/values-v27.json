@@ -4,7 +4,7 @@
             "outputFile": "com.pyera.app-mergeDebugResources-90:/values-v27/values-v27.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\crit\\.gradle\\caches\\8.13\\transforms\\681109769e79a8fd89fc19a99ae57c78\\transformed\\jetified-core-splashscreen-1.0.1\\res\\values-v27\\values-v27.xml",
+                    "source": "C:\\Users\\crit\\.gradle\\caches\\8.13\\transforms\\40bf541d7a1ea9641a479ab5376cbca7\\transformed\\jetified-core-splashscreen-1.0.1\\res\\values-v27\\values-v27.xml",
                     "from": {
                         "startLines": "2,3,4,7",
                         "startColumns": "4,4,4,4",
