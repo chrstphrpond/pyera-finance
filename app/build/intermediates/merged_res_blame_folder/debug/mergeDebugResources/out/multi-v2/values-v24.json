@@ -1,10 +1,10 @@
 {
     "logs": [
         {
-            "outputFile": "com.pyera.app-mergeDebugResources-78:/values-v24/values-v24.xml",
+            "outputFile": "com.pyera.app-mergeDebugResources-84:/values-v24/values-v24.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\crit\\.gradle\\caches\\9.0-milestone-1\\transforms\\d487cb3c25f8b8417b83e823fb7fd8ad\\transformed\\appcompat-1.6.1\\res\\values-v24\\values-v24.xml",
+                    "source": "C:\\Users\\crit\\.gradle\\caches\\8.13\\transforms\\631bcc04df7e2c002a366d9973de0edf\\transformed\\appcompat-1.6.1\\res\\values-v24\\values-v24.xml",
                     "from": {
                         "startLines": "2,3",
                         "startColumns": "4,4",

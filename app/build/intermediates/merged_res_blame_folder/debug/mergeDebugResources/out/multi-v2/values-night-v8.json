@@ -1,10 +1,20 @@
 {
     "logs": [
         {
-            "outputFile": "com.pyera.app-mergeDebugResources-78:/values-night-v8/values-night-v8.xml",
+            "outputFile": "com.pyera.app-mergeDebugResources-84:/values-night-v8/values-night-v8.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\crit\\.gradle\\caches\\9.0-milestone-1\\transforms\\d487cb3c25f8b8417b83e823fb7fd8ad\\transformed\\appcompat-1.6.1\\res\\values-night-v8\\values-night-v8.xml",
+                    "source": "C:\\Users\\crit\\.gradle\\caches\\8.13\\transforms\\681109769e79a8fd89fc19a99ae57c78\\transformed\\jetified-core-splashscreen-1.0.1\\res\\values-night-v8\\values-night-v8.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "85",
+                        "endOffsets": "136"
+                    }
+                },
+                {
+                    "source": "C:\\Users\\crit\\.gradle\\caches\\8.13\\transforms\\631bcc04df7e2c002a366d9973de0edf\\transformed\\appcompat-1.6.1\\res\\values-night-v8\\values-night-v8.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9",
                         "startColumns": "4,4,4,4,4,4,4,4",
@@ -18,16 +28,6 @@
                         "startOffsets": "141,211,295,379,475,577,679,773",
                         "endColumns": "69,83,83,95,101,101,93,88",
                         "endOffsets": "206,290,374,470,572,674,768,857"
-                    }
-                },
-                {
-                    "source": "C:\\Users\\crit\\.gradle\\caches\\9.0-milestone-1\\transforms\\88229d557656c8236f90f301d617395a\\transformed\\core-splashscreen-1.0.1\\res\\values-night-v8\\values-night-v8.xml",
-                    "from": {
-                        "startLines": "2",
-                        "startColumns": "4",
-                        "startOffsets": "55",
-                        "endColumns": "85",
-                        "endOffsets": "136"
                     }
                 }
             ]

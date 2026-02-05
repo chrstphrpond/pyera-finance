@@ -1,10 +1,10 @@
 {
     "logs": [
         {
-            "outputFile": "com.pyera.app-mergeDebugResources-78:/values-v30/values-v30.xml",
+            "outputFile": "com.pyera.app-mergeDebugResources-84:/values-v30/values-v30.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\crit\\.gradle\\caches\\9.0-milestone-1\\transforms\\73d7f0735920ec72f417092f8770233d\\transformed\\material3-release\\res\\values-v30\\values-v30.xml",
+                    "source": "C:\\Users\\crit\\.gradle\\caches\\8.13\\transforms\\52220d533c39f5ea7fed9845a0e6de47\\transformed\\jetified-material3-release\\res\\values-v30\\values-v30.xml",
                     "from": {
                         "startLines": "2",
                         "startColumns": "4",

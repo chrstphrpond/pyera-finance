@@ -6,7 +6,7 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.pyera.app.data.local.PyeraDatabase
-import com.pyera.app.security.SecurePassphraseManager
+import com.pyera.app.data.security.SecurePassphraseManager
 import net.sqlcipher.database.SupportFactory
 import com.pyera.app.data.local.dao.BillDao
 import com.pyera.app.data.local.dao.BudgetDao

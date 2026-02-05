@@ -3,7 +3,7 @@ package com.pyera.app.di
 import android.content.Context
 import com.pyera.app.data.biometric.BiometricAuthManager
 import com.pyera.app.domain.ocr.ReceiptParser
-import com.pyera.app.security.SecurityChecker
+import com.pyera.app.data.security.SecurityChecker
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.Module
