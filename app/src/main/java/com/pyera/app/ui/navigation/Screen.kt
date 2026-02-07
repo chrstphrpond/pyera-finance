@@ -14,6 +14,8 @@ sealed class Screen(val route: String) {
     object Login : Screen("login")
     object Register : Screen("register")
     object ForgotPassword : Screen("forgot_password")
+    object Terms : Screen("legal/terms")
+    object Privacy : Screen("legal/privacy")
     
     sealed class Main(route: String) : Screen(route) {
         object Dashboard : Main("main/dashboard")
@@ -49,9 +51,9 @@ sealed class Screen(val route: String) {
     object AccountDetail : Screen("accounts/detail/{accountId}") {
         fun createRoute(accountId: Long) = "accounts/detail/$accountId"
     }
-    object Transfer : Screen("accounts/transfer") {
-        fun createRoute(fromAccountId: Long? = null) = 
-            if (fromAccountId != null) "accounts/transfer?from=$fromAccountId" 
+    object Transfer : Screen("accounts/transfer?from={from}") {
+        fun createRoute(fromAccountId: Long? = null) =
+            if (fromAccountId != null) "accounts/transfer?from=$fromAccountId"
             else "accounts/transfer"
     }
     

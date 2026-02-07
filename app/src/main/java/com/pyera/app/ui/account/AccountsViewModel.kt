@@ -6,18 +6,21 @@ import com.pyera.app.data.local.entity.AccountEntity
 import com.pyera.app.data.local.entity.AccountType
 import com.pyera.app.data.local.entity.displayName
 import com.pyera.app.data.repository.AccountRepository
+import com.pyera.app.data.repository.TransactionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class AccountsViewModel @Inject constructor(
-    private val accountRepository: AccountRepository
+    private val accountRepository: AccountRepository,
+    private val transactionRepository: TransactionRepository
 ) : ViewModel() {
 
     // ==================== UI States ====================
@@ -64,6 +67,10 @@ class AccountsViewModel @Inject constructor(
 
     fun selectAccount(account: AccountEntity?) {
         _selectedAccount.value = account
+    }
+
+    fun transactionsForAccount(accountId: Long): Flow<List<com.pyera.app.data.local.entity.TransactionEntity>> {
+        return transactionRepository.getTransactionsByAccount(accountId)
     }
 
     fun loadAccountDetail(accountId: Long) {

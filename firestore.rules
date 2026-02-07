@@ -13,21 +13,29 @@ service cloud.firestore {
     
     // Helper function to validate transaction data
     function isValidTransaction(data) {
-      return data.keys().hasAll(['amount', 'type', 'date', 'categoryId']) &&
+      return data.keys().hasAll(['amount', 'type', 'date', 'accountId', 'userId']) &&
              data.amount is number && data.amount >= 0 &&
-             data.type is string && (data.type == 'income' || data.type == 'expense') &&
-             data.date is timestamp &&
-             data.categoryId is string &&
-             (data.title == null || data.title is string) &&
-             (data.description == null || data.description is string);
+             data.type is string && (data.type == 'INCOME' || data.type == 'EXPENSE') &&
+             data.date is number &&
+             (data.categoryId == null || data.categoryId is number) &&
+             (data.note == null || data.note is string) &&
+             data.accountId is number &&
+             data.userId is string &&
+             (data.isTransfer == null || data.isTransfer is bool) &&
+             (data.transferAccountId == null || data.transferAccountId is number) &&
+             (data.createdAt == null || data.createdAt is number) &&
+             (data.updatedAt == null || data.updatedAt is number) &&
+             (data.receiptImagePath == null || data.receiptImagePath is string) &&
+             (data.receiptCloudUrl == null || data.receiptCloudUrl is string) &&
+             (data.hasReceipt == null || data.hasReceipt is bool);
     }
     
     // Helper function to validate category data
     function isValidCategory(data) {
       return data.keys().hasAll(['name', 'type', 'color']) &&
              data.name is string && data.name.size() > 0 &&
-             data.type is string && (data.type == 'income' || data.type == 'expense') &&
-             data.color is string && data.color.size() > 0 &&
+             data.type is string && (data.type == 'INCOME' || data.type == 'EXPENSE') &&
+             data.color is number &&
              (data.icon == null || data.icon is string);
     }
     
@@ -61,8 +69,14 @@ service cloud.firestore {
       // Transactions subcollection
       match /transactions/{transactionId} {
         allow read: if request.auth != null && request.auth.uid == userId;
-        allow create: if request.auth != null && request.auth.uid == userId && isValidTransaction(request.resource.data);
-        allow update: if request.auth != null && request.auth.uid == userId && isValidTransaction(request.resource.data);
+        allow create: if request.auth != null &&
+                      request.auth.uid == userId &&
+                      request.resource.data.userId == userId &&
+                      isValidTransaction(request.resource.data);
+        allow update: if request.auth != null &&
+                      request.auth.uid == userId &&
+                      request.resource.data.userId == userId &&
+                      isValidTransaction(request.resource.data);
         allow delete: if request.auth != null && request.auth.uid == userId;
       }
       
@@ -93,7 +107,7 @@ service cloud.firestore {
     
     // Audit logs - read-only for users, write by Cloud Functions only
     match /audit_logs/{logId} {
-      allow read: if request.auth != null;
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
       allow write: if false; // Only Cloud Functions can write
     }
   }

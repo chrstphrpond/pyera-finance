@@ -12,7 +12,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import com.pyera.app.ui.theme.*
 
 @Composable
 fun PyeraTextField(
@@ -31,19 +30,22 @@ fun PyeraTextField(
     visualTransformation: VisualTransformation = VisualTransformation.None,
     onDone: (() -> Unit)? = null
 ) {
+    val colorScheme = MaterialTheme.colorScheme
+    val placeholderColor = colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         modifier = modifier.fillMaxWidth(),
         label = label?.let { { Text(it) } },
-        placeholder = placeholder?.let { { Text(it, color = TextTertiary) } },
+        placeholder = placeholder?.let { { Text(it, color = placeholderColor) } },
         leadingIcon = leadingIcon?.let {
-            { Icon(it, contentDescription = null, tint = TextSecondary) }
+            { Icon(it, contentDescription = null, tint = colorScheme.onSurfaceVariant) }
         },
         trailingIcon = trailingIcon,
         isError = isError,
         supportingText = if (isError && errorMessage != null) {
-            { Text(errorMessage, color = ColorError) }
+            { Text(errorMessage, color = colorScheme.error) }
         } else null,
         singleLine = singleLine,
         visualTransformation = visualTransformation,
@@ -55,14 +57,17 @@ fun PyeraTextField(
             onDone = { onDone?.invoke() }
         ),
         colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = NeonYellow,
-            unfocusedBorderColor = ColorBorder,
-            focusedTextColor = TextPrimary,
-            unfocusedTextColor = TextPrimary,
-            focusedLabelColor = NeonYellow,
-            unfocusedLabelColor = TextSecondary,
-            errorBorderColor = ColorError,
-            errorLabelColor = ColorError
+            focusedBorderColor = colorScheme.primary,
+            unfocusedBorderColor = colorScheme.outline,
+            focusedTextColor = colorScheme.onSurface,
+            unfocusedTextColor = colorScheme.onSurface,
+            focusedLabelColor = colorScheme.primary,
+            unfocusedLabelColor = colorScheme.onSurfaceVariant,
+            errorBorderColor = colorScheme.error,
+            errorLabelColor = colorScheme.error,
+            errorSupportingTextColor = colorScheme.error,
+            cursorColor = colorScheme.primary,
+            errorCursorColor = colorScheme.error
         ),
         shape = RoundedCornerShape(12.dp)
     )

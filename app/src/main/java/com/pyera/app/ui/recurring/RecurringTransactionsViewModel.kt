@@ -2,14 +2,19 @@ package com.pyera.app.ui.recurring
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pyera.app.data.local.entity.CategoryEntity
 import com.pyera.app.data.local.entity.RecurringFrequency
 import com.pyera.app.data.local.entity.RecurringTransactionEntity
 import com.pyera.app.data.local.entity.TransactionType
+import com.pyera.app.data.repository.CategoryRepository
 import com.pyera.app.data.repository.RecurringTransactionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.Calendar
@@ -80,7 +85,8 @@ data class RecurringFormState(
 
 @HiltViewModel
 class RecurringTransactionsViewModel @Inject constructor(
-    private val repository: RecurringTransactionRepository
+    private val repository: RecurringTransactionRepository,
+    private val categoryRepository: CategoryRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(RecurringTransactionsUiState())
@@ -88,6 +94,14 @@ class RecurringTransactionsViewModel @Inject constructor(
 
     private val _formState = MutableStateFlow(RecurringFormState())
     val formState: StateFlow<RecurringFormState> = _formState.asStateFlow()
+
+    val categories: StateFlow<List<CategoryEntity>> = categoryRepository.getAllCategories()
+        .distinctUntilChanged()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
 
     init {
         loadRecurringTransactions()

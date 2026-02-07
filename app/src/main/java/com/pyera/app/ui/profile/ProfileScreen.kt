@@ -16,11 +16,16 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import androidx.core.content.FileProvider
+import android.content.Intent
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
 import com.pyera.app.ui.components.PyeraButton
 import com.pyera.app.ui.components.PyeraCard
 import com.pyera.app.ui.components.ButtonVariant
 import com.pyera.app.ui.navigation.Screen
 import com.pyera.app.ui.theme.*
+import java.io.File
 
 @Composable
 fun ProfileScreen(
@@ -28,6 +33,50 @@ fun ProfileScreen(
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+
+    LaunchedEffect(viewModel) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is ProfileEvent.ExportReady -> {
+                    try {
+                        val exportDir = File(context.cacheDir, "exports").apply { mkdirs() }
+                        val exportFile = File(exportDir, event.fileName)
+                        exportFile.writeText(event.csvContent)
+
+                        val uri = FileProvider.getUriForFile(
+                            context,
+                            "${context.packageName}.fileprovider",
+                            exportFile
+                        )
+
+                        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                            type = "text/csv"
+                            putExtra(Intent.EXTRA_STREAM, uri)
+                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        }
+
+                        context.startActivity(
+                            Intent.createChooser(shareIntent, "Export CSV")
+                        )
+                    } catch (e: Exception) {
+                        Toast.makeText(
+                            context,
+                            "Export failed: ${e.message}",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                }
+                is ProfileEvent.ExportFailed -> {
+                    Toast.makeText(
+                        context,
+                        event.message,
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+        }
+    }
 
     Scaffold(
         containerColor = DarkGreen
@@ -58,6 +107,13 @@ fun ProfileScreen(
 
             // Settings Sections
             SettingsSection(title = "Account") {
+                SettingsItem(
+                    icon = Icons.Default.AccountBalanceWallet,
+                    title = "Accounts",
+                    subtitle = "Manage your wallets & banks",
+                    onClick = { navController.navigate(Screen.Accounts.route) }
+                )
+                SettingsDivider()
                 SettingsItem(
                     icon = Icons.Default.Person,
                     title = "Personal Information",

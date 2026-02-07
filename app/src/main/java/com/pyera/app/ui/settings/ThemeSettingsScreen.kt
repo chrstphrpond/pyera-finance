@@ -46,12 +46,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pyera.app.data.preferences.ThemeMode
 import com.pyera.app.ui.components.PyeraButton
-import com.pyera.app.ui.theme.DarkGreen
 import com.pyera.app.ui.theme.NeonYellow
+import com.pyera.app.ui.theme.PyeraTheme
 import com.pyera.app.ui.theme.Spacing
 import com.pyera.app.ui.theme.SurfaceElevated
-import com.pyera.app.ui.theme.TextPrimary
-import com.pyera.app.ui.theme.TextSecondary
 import com.pyera.app.ui.theme.ThemeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -61,26 +59,27 @@ fun ThemeSettingsScreen(
     viewModel: ThemeViewModel = hiltViewModel()
 ) {
     val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
+    val colorScheme = MaterialTheme.colorScheme
     
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Appearance", color = TextPrimary) },
+                title = { Text("Appearance", color = colorScheme.onSurface) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint = TextPrimary
+                            tint = colorScheme.onSurface
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = DarkGreen
+                    containerColor = colorScheme.surface
                 )
             )
         },
-        containerColor = DarkGreen
+        containerColor = colorScheme.background
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -120,7 +119,7 @@ fun ThemeSettingsScreen(
                     )
                     
                     HorizontalDivider(
-                        color = DarkGreen,
+                        color = colorScheme.outlineVariant,
                         modifier = Modifier.padding(horizontal = Spacing.CardPadding)
                     )
                     
@@ -133,7 +132,7 @@ fun ThemeSettingsScreen(
                     )
                     
                     HorizontalDivider(
-                        color = DarkGreen,
+                        color = colorScheme.outlineVariant,
                         modifier = Modifier.padding(horizontal = Spacing.CardPadding)
                     )
                     
@@ -171,12 +170,6 @@ fun ThemeSettingsScreen(
 
 @Composable
 private fun ThemePreviewCard(themeMode: ThemeMode) {
-    val isDarkPreview = when (themeMode) {
-        ThemeMode.LIGHT -> false
-        ThemeMode.DARK -> true
-        ThemeMode.SYSTEM -> true // Default to dark for preview
-    }
-    
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -187,88 +180,87 @@ private fun ThemePreviewCard(themeMode: ThemeMode) {
         ),
         shape = RoundedCornerShape(16.dp)
     ) {
-        Box(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            // Preview Content
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
+        PyeraTheme(themeMode = themeMode) {
+            val colorScheme = MaterialTheme.colorScheme
+            Box(
+                modifier = Modifier.fillMaxSize()
             ) {
-                Text(
-                    text = "Preview",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = TextSecondary
-                )
-                
-                Spacer(modifier = Modifier.height(12.dp))
-                
-                // Sample Card Preview
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = if (isDarkPreview) 
-                            com.pyera.app.ui.theme.SurfaceDark 
-                        else 
-                            androidx.compose.ui.graphics.Color.White
-                    ),
-                    shape = RoundedCornerShape(12.dp)
+                // Preview Content
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                    Text(
+                        text = "Preview",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = colorScheme.onSurfaceVariant
+                    )
+                    
+                    Spacer(modifier = Modifier.height(12.dp))
+                    
+                    // Sample Card Preview
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = colorScheme.surface
+                        ),
+                        shape = RoundedCornerShape(12.dp)
                     ) {
-                        Column {
-                            Text(
-                                text = "Total Balance",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = if (isDarkPreview) TextSecondary else androidx.compose.ui.graphics.Color.Gray
-                            )
-                            Text(
-                                text = "$12,450.00",
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold,
-                                color = if (isDarkPreview) NeonYellow else androidx.compose.ui.graphics.Color(0xFF2E7D32)
-                            )
-                        }
-                        
-                        // Mini chart indicator
-                        Box(
+                        Row(
                             modifier = Modifier
-                                .size(48.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(
-                                    if (isDarkPreview) NeonYellow.copy(alpha = 0.2f)
-                                    else androidx.compose.ui.graphics.Color(0xFF2E7D32).copy(alpha = 0.1f)
-                                ),
-                            contentAlignment = Alignment.Center
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.Check,
-                                contentDescription = null,
-                                tint = if (isDarkPreview) NeonYellow else androidx.compose.ui.graphics.Color(0xFF2E7D32),
-                                modifier = Modifier.size(24.dp)
-                            )
+                            Column {
+                                Text(
+                                    text = "Total Balance",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = colorScheme.onSurfaceVariant
+                                )
+                                Text(
+                                    text = "$12,450.00",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = colorScheme.primary
+                                )
+                            }
+                            
+                            // Mini chart indicator
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(
+                                        colorScheme.primary.copy(alpha = 0.12f)
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = null,
+                                    tint = colorScheme.primary,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
                         }
                     }
+                    
+                    Spacer(modifier = Modifier.height(12.dp))
+                    
+                    // Theme indicator
+                    Text(
+                        text = when (themeMode) {
+                            ThemeMode.SYSTEM -> "Following system settings"
+                            ThemeMode.LIGHT -> "Light theme active"
+                            ThemeMode.DARK -> "Dark theme active"
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colorScheme.onSurfaceVariant
+                    )
                 }
-                
-                Spacer(modifier = Modifier.height(12.dp))
-                
-                // Theme indicator
-                Text(
-                    text = when (themeMode) {
-                        ThemeMode.SYSTEM -> "Following system settings"
-                        ThemeMode.LIGHT -> "Light theme active"
-                        ThemeMode.DARK -> "Dark theme active"
-                    },
-                    style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary
-                )
             }
         }
     }
@@ -282,6 +274,8 @@ private fun ThemeModeOption(
     selected: Boolean,
     onClick: () -> Unit
 ) {
+    val colorScheme = MaterialTheme.colorScheme
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -297,19 +291,19 @@ private fun ThemeModeOption(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = if (selected) NeonYellow else TextSecondary
+                tint = if (selected) NeonYellow else colorScheme.onSurfaceVariant
             )
             
             Column {
                 Text(
                     text = title,
                     style = MaterialTheme.typography.bodyLarge,
-                    color = TextPrimary
+                    color = colorScheme.onSurface
                 )
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary
+                    color = colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -319,7 +313,7 @@ private fun ThemeModeOption(
             onClick = onClick,
             colors = RadioButtonDefaults.colors(
                 selectedColor = NeonYellow,
-                unselectedColor = TextSecondary
+                unselectedColor = colorScheme.onSurfaceVariant
             )
         )
     }

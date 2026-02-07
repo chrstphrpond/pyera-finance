@@ -43,10 +43,10 @@ fun TransferScreen(
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
     
-    var fromAccountId by rememberSaveable { mutableStateOf<Long?>(null) }
-    val fromAccount = fromAccountId?.let { id -> accounts.find { it.id == id } }
-    var toAccountId by rememberSaveable { mutableStateOf<Long?>(null) }
-    val toAccount = toAccountId?.let { id -> accounts.find { it.id == id } }
+    var selectedFromAccountId by rememberSaveable { mutableStateOf<Long?>(fromAccountId) }
+    val fromAccount = selectedFromAccountId?.let { id -> accounts.find { it.id == id } }
+    var selectedToAccountId by rememberSaveable { mutableStateOf<Long?>(null) }
+    val toAccount = selectedToAccountId?.let { id -> accounts.find { it.id == id } }
     var amount by rememberSaveable { mutableStateOf("") }
     var description by rememberSaveable { mutableStateOf("") }
     var selectedDate by rememberSaveable { mutableStateOf(System.currentTimeMillis()) }
@@ -58,7 +58,7 @@ fun TransferScreen(
     // Set initial from account if provided
     LaunchedEffect(fromAccountId, accounts) {
         if (fromAccount == null && fromAccountId != null) {
-            fromAccountId = fromAccountId
+            selectedFromAccountId = fromAccountId
         }
     }
     
@@ -348,7 +348,7 @@ fun TransferScreen(
             accounts = accounts.filter { it.id != toAccount?.id },
             selectedAccount = fromAccount,
             onAccountSelected = { 
-                fromAccount = it
+                selectedFromAccountId = it.id
                 showFromAccountPicker = false
             },
             onDismiss = { showFromAccountPicker = false }
@@ -361,7 +361,7 @@ fun TransferScreen(
             accounts = accounts.filter { it.id != fromAccount?.id },
             selectedAccount = toAccount,
             onAccountSelected = { 
-                toAccount = it
+                selectedToAccountId = it.id
                 showToAccountPicker = false
             },
             onDismiss = { showToAccountPicker = false }

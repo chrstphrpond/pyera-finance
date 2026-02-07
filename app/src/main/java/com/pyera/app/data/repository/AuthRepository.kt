@@ -8,6 +8,7 @@ import androidx.security.crypto.MasterKey
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.auth.UserProfileChangeRequest
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -24,8 +25,7 @@ interface AuthRepository {
     fun isBiometricEnabled(): Boolean
     fun setBiometricEnabled(enabled: Boolean)
     fun getStoredEmail(): String?
-    fun getStoredPassword(): String?
-    fun storeCredentials(email: String, password: String): Result<Unit>
+    fun storeCredentials(email: String): Result<Unit>
     fun clearStoredCredentials()
     fun hasStoredCredentials(): Boolean
 }
@@ -41,7 +41,6 @@ class AuthRepositoryImpl @Inject constructor(
         private const val KEY_BIOMETRIC_ENABLED = "biometric_enabled"
         private const val ENCRYPTED_PREFS_NAME = "encrypted_auth_prefs"
         private const val KEY_STORED_EMAIL = "stored_email"
-        private const val KEY_STORED_PASSWORD = "stored_password"
     }
     
     private val prefs: SharedPreferences by lazy {
@@ -84,7 +83,14 @@ class AuthRepositoryImpl @Inject constructor(
         return try {
             val result = auth.createUserWithEmailAndPassword(email, pass).await()
             result.user?.let { user ->
-                // TODO: Save display name in user profile update or firestore
+                try {
+                    val profileUpdates = UserProfileChangeRequest.Builder()
+                        .setDisplayName(name)
+                        .build()
+                    user.updateProfile(profileUpdates).await()
+                } catch (_: Exception) {
+                    // Best-effort profile update; registration should still succeed.
+                }
                 Result.success(user)
             } ?: Result.failure(Exception("Registration failed"))
         } catch (e: Exception) {
@@ -132,21 +138,10 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
     
-    override fun getStoredPassword(): String? {
-        return try {
-            encryptedPrefs.getString(KEY_STORED_PASSWORD, null)
-        } catch (e: Exception) {
-            // If decryption fails, clear and return null
-            clearStoredCredentials()
-            null
-        }
-    }
-    
-    override fun storeCredentials(email: String, password: String): Result<Unit> {
+    override fun storeCredentials(email: String): Result<Unit> {
         return try {
             encryptedPrefs.edit {
                 putString(KEY_STORED_EMAIL, email)
-                putString(KEY_STORED_PASSWORD, password)
             }
             Result.success(Unit)
         } catch (e: Exception) {
@@ -159,17 +154,10 @@ class AuthRepositoryImpl @Inject constructor(
     override fun clearStoredCredentials() {
         encryptedPrefs.edit {
             remove(KEY_STORED_EMAIL)
-            remove(KEY_STORED_PASSWORD)
         }
     }
     
     override fun hasStoredCredentials(): Boolean {
-        return try {
-            val email = encryptedPrefs.getString(KEY_STORED_EMAIL, null)
-            val password = encryptedPrefs.getString(KEY_STORED_PASSWORD, null)
-            !email.isNullOrBlank() && !password.isNullOrBlank()
-        } catch (e: Exception) {
-            false
-        }
+        return auth.currentUser != null
     }
 }

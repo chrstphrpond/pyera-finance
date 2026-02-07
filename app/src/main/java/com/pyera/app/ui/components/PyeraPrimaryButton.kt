@@ -7,9 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -20,9 +18,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.pyera.app.ui.theme.AccentGreen
-import com.pyera.app.ui.theme.AccentGreenDim
-import com.pyera.app.ui.theme.DeepBackground
 
 @Composable
 fun PyeraPrimaryButton(
@@ -38,14 +33,9 @@ fun PyeraPrimaryButton(
         enabled = enabled,
         modifier = modifier
             .fillMaxWidth()
-            .height(56.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = AccentGreen,
-            contentColor = DeepBackground,
-            disabledContainerColor = AccentGreenDim.copy(alpha = 0.5f),
-            disabledContentColor = DeepBackground.copy(alpha = 0.5f)
-        ),
+            .height(PyeraButtonTokens.height(ButtonSize.Large)),
+        shape = PyeraButtonTokens.shape,
+        colors = PyeraButtonTokens.colors(ButtonVariant.Primary),
         contentPadding = PaddingValues(horizontal = 24.dp, vertical = 16.dp)
     ) {
         Row(
@@ -93,14 +83,9 @@ fun PyeraSecondaryButton(
         enabled = enabled,
         modifier = modifier
             .fillMaxWidth()
-            .height(56.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.surface,
-            contentColor = MaterialTheme.colorScheme.onSurface,
-            disabledContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
-            disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-        ),
+            .height(PyeraButtonTokens.height(ButtonSize.Large)),
+        shape = PyeraButtonTokens.shape,
+        colors = PyeraButtonTokens.colors(ButtonVariant.Secondary),
         contentPadding = PaddingValues(horizontal = 24.dp, vertical = 16.dp)
     ) {
         Row(

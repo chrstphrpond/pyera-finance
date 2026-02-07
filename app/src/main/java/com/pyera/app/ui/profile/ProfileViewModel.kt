@@ -9,12 +9,17 @@ import com.pyera.app.data.repository.SavingsRepository
 import com.pyera.app.data.repository.TransactionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
@@ -26,6 +31,9 @@ class ProfileViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _notificationsEnabled = MutableStateFlow(true)
+
+    private val _events = MutableSharedFlow<ProfileEvent>()
+    val events: SharedFlow<ProfileEvent> = _events.asSharedFlow()
 
     val state: StateFlow<ProfileState> = combine(
         transactionRepository.getAllTransactions()
@@ -63,8 +71,72 @@ class ProfileViewModel @Inject constructor(
     }
 
     fun exportData() {
-        // TODO: Implement data export
+        viewModelScope.launch {
+            try {
+                val transactions = transactionRepository.getTransactionsForExport()
+                val csv = buildTransactionsCsv(transactions)
+                val timestamp = SimpleDateFormat("yyyyMMdd-HHmmss", Locale.getDefault())
+                    .format(System.currentTimeMillis())
+                val fileName = "pyera-transactions-$timestamp.csv"
+                _events.emit(ProfileEvent.ExportReady(fileName, csv))
+            } catch (e: Exception) {
+                _events.emit(ProfileEvent.ExportFailed(e.message ?: "Failed to export data"))
+            }
+        }
     }
+
+    private fun buildTransactionsCsv(transactions: List<com.pyera.app.data.local.entity.TransactionEntity>): String {
+        val header = listOf(
+            "id",
+            "date",
+            "type",
+            "amount",
+            "note",
+            "categoryId",
+            "accountId",
+            "userId",
+            "isTransfer",
+            "transferAccountId",
+            "createdAt",
+            "updatedAt"
+        ).joinToString(",")
+
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+        val rows = transactions.joinToString("\n") { tx ->
+            listOf(
+                tx.id.toString(),
+                dateFormat.format(tx.date),
+                tx.type,
+                tx.amount.toString(),
+                escapeCsv(tx.note),
+                tx.categoryId?.toString().orEmpty(),
+                tx.accountId.toString(),
+                escapeCsv(tx.userId),
+                tx.isTransfer.toString(),
+                tx.transferAccountId?.toString().orEmpty(),
+                dateFormat.format(tx.createdAt),
+                dateFormat.format(tx.updatedAt)
+            ).joinToString(",")
+        }
+
+        return if (rows.isBlank()) {
+            header
+        } else {
+            "$header\n$rows"
+        }
+    }
+
+    private fun escapeCsv(value: String): String {
+        val needsQuotes = value.contains(",") || value.contains("\"") || value.contains("\n")
+        if (!needsQuotes) return value
+        val escaped = value.replace("\"", "\"\"")
+        return "\"$escaped\""
+    }
+}
+
+sealed class ProfileEvent {
+    data class ExportReady(val fileName: String, val csvContent: String) : ProfileEvent()
+    data class ExportFailed(val message: String) : ProfileEvent()
 }
 
 @Immutable

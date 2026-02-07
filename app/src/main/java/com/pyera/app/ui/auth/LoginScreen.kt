@@ -438,9 +438,7 @@ fun LoginScreen(
             BiometricEnableDialog(
                 onEnable = {
                     uiState.pendingEmail?.let { pendingEmail ->
-                        uiState.pendingPassword?.let { pendingPassword ->
-                            viewModel.enableBiometric(pendingEmail, pendingPassword)
-                        }
+                        viewModel.enableBiometric(pendingEmail)
                     }
                 },
                 onDismiss = { viewModel.dismissBiometricPrompt() }

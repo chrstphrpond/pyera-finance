@@ -23,7 +23,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -45,10 +44,7 @@ fun AddRecurringTransactionScreen(
     viewModel: RecurringTransactionsViewModel = hiltViewModel()
 ) {
     val formState by viewModel.formState.collectAsState()
-    val categories by produceState(initialValue = emptyList<CategoryEntity>()) {
-        // In a real app, you'd inject a CategoryRepository here
-        // For now, we'll use an empty list and rely on the viewModel to manage this
-    }
+    val categories by viewModel.categories.collectAsState()
     
     var showStartDatePicker by rememberSaveable { mutableStateOf(false) }
     var showEndDatePicker by rememberSaveable { mutableStateOf(false) }
@@ -246,15 +242,35 @@ fun AddRecurringTransactionScreen(
                 )
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Category placeholder - in a real app, you'd fetch categories from repository
-                Text(
-                    text = "Categories will be loaded from your ${if (formState.type == TransactionType.INCOME) "income" else "expense"} categories",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = TextSecondary
-                )
+                val filteredCategories = categories.filter { category ->
+                    category.type == if (formState.type == TransactionType.INCOME) "INCOME" else "EXPENSE"
+                }
 
-                // TODO: Add category selection UI similar to AddTransactionScreen
-                // This would require passing CategoryRepository to the ViewModel
+                if (filteredCategories.isEmpty()) {
+                    Text(
+                        text = "No ${if (formState.type == TransactionType.INCOME) "income" else "expense"} categories yet. Add one to continue.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = TextSecondary
+                    )
+                } else {
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        contentPadding = PaddingValues(horizontal = 4.dp)
+                    ) {
+                        items(
+                            items = filteredCategories,
+                            key = { category: CategoryEntity -> category.id }
+                        ) { category: CategoryEntity ->
+                            RecurringCategoryChip(
+                                category = category,
+                                isSelected = formState.categoryId == category.id.toLong(),
+                                onClick = {
+                                    viewModel.updateFormState { it.copy(categoryId = category.id.toLong()) }
+                                }
+                            )
+                        }
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(24.dp))
             }
@@ -282,12 +298,57 @@ fun AddRecurringTransactionScreen(
                         .padding(16.dp)
                         .height(50.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = AccentGreen),
-                    enabled = formState.amount.isNotBlank() && formState.description.isNotBlank()
+                    enabled = formState.amount.isNotBlank() &&
+                        formState.description.isNotBlank() &&
+                        formState.categoryId != null
                 ) {
                     Text("Save Recurring Transaction", color = Color.Black, fontSize = 16.sp)
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun RecurringCategoryChip(
+    category: CategoryEntity,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    val background = if (isSelected) AccentGreen.copy(alpha = 0.2f) else SurfaceElevated
+    val borderColor = if (isSelected) AccentGreen else ColorBorder
+    val textColor = if (isSelected) AccentGreen else TextPrimary
+
+    Column(
+        modifier = Modifier
+            .widthIn(min = 80.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .border(1.dp, borderColor, RoundedCornerShape(16.dp))
+            .background(background)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Box(
+            modifier = Modifier
+                .size(32.dp)
+                .clip(CircleShape)
+                .background(Color(category.color).copy(alpha = 0.2f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = category.icon,
+                fontSize = 14.sp
+            )
+        }
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(
+            text = category.name,
+            style = MaterialTheme.typography.labelSmall,
+            color = textColor,
+            maxLines = 1
+        )
     }
 }
 

@@ -76,34 +76,18 @@ class AuthViewModel @Inject constructor(
                     biometricAuthState = BiometricAuthState.Authenticating
                 )
             }
-
-            val email = repository.getStoredEmail()
-            val password = repository.getStoredPassword()
-
-            if (email.isNullOrBlank() || password.isNullOrBlank()) {
-                _uiState.update { 
-                    it.copy(
-                        authState = AuthState.Idle,
-                        biometricAuthState = BiometricAuthState.Error("Stored credentials not found")
-                    )
-                }
-                return@launch
-            }
-
-            val result = repository.login(email, password)
-            
-            _uiState.update { 
-                if (result.isSuccess) {
+            if (repository.currentUser != null) {
+                _uiState.update {
                     it.copy(
                         authState = AuthState.Success,
                         biometricAuthState = BiometricAuthState.Success
                     )
-                } else {
+                }
+            } else {
+                _uiState.update {
                     it.copy(
-                        authState = AuthState.Error(
-                            result.exceptionOrNull()?.message ?: "Biometric login failed"
-                        ),
-                        biometricAuthState = BiometricAuthState.Error("Login failed")
+                        authState = AuthState.Idle,
+                        biometricAuthState = BiometricAuthState.Error("No active session. Please sign in.")
                     )
                 }
             }
@@ -145,8 +129,8 @@ class AuthViewModel @Inject constructor(
     /**
      * Enable biometric authentication and store credentials
      */
-    fun enableBiometric(email: String, password: String) {
-        val result = repository.storeCredentials(email, password)
+    fun enableBiometric(email: String) {
+        val result = repository.storeCredentials(email)
         result.fold(
             onSuccess = {
                 repository.setBiometricEnabled(true)
@@ -185,14 +169,13 @@ class AuthViewModel @Inject constructor(
     /**
      * Show the biometric enable prompt after successful login
      */
-    fun showBiometricEnablePrompt(email: String, password: String) {
+    fun showBiometricEnablePrompt(email: String) {
         // Only show if biometric is available and not already enabled
         if (_uiState.value.isBiometricAvailable && !_uiState.value.isBiometricEnabled) {
             _uiState.update { 
                 it.copy(
                     showBiometricPrompt = true,
-                    pendingEmail = email,
-                    pendingPassword = password
+                    pendingEmail = email
                 )
             }
         }
@@ -205,8 +188,7 @@ class AuthViewModel @Inject constructor(
         _uiState.update { 
             it.copy(
                 showBiometricPrompt = false,
-                pendingEmail = null,
-                pendingPassword = null
+                pendingEmail = null
             )
         }
     }
@@ -232,8 +214,7 @@ class AuthViewModel @Inject constructor(
                         state.copy(
                             authState = AuthState.Success,
                             showBiometricPrompt = true,
-                            pendingEmail = email,
-                            pendingPassword = pass
+                            pendingEmail = email
                         )
                     } else {
                         state.copy(authState = AuthState.Success)
@@ -420,8 +401,7 @@ data class AuthUiState(
     val isBiometricEnabled: Boolean = false,
     val hasStoredCredentials: Boolean = false,
     val showBiometricPrompt: Boolean = false,
-    val pendingEmail: String? = null,
-    val pendingPassword: String? = null
+    val pendingEmail: String? = null
 )
 
 sealed class AuthState {

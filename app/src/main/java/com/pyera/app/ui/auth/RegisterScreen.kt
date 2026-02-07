@@ -71,6 +71,7 @@ import com.pyera.app.ui.theme.*
 fun RegisterScreen(
     onRegisterSuccess: () -> Unit,
     onNavigateToLogin: () -> Unit,
+    onOpenTerms: () -> Unit = {},
     viewModel: AuthViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -352,7 +353,7 @@ fun RegisterScreen(
                             color = TextSecondary
                         )
                         TextButton(
-                            onClick = { /* TODO: Navigate to Terms */ },
+                            onClick = onOpenTerms,
                             contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)
                         ) {
                             Text(

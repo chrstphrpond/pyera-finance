@@ -16,6 +16,7 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -53,6 +54,10 @@ import com.pyera.app.ui.security.AppLockScreen
 import com.pyera.app.ui.security.ChangePinScreen
 import com.pyera.app.ui.security.SecuritySettingsScreen
 import com.pyera.app.ui.security.SetPinScreen
+import com.pyera.app.ui.account.AccountsScreen
+import com.pyera.app.ui.account.AddAccountScreen
+import com.pyera.app.ui.account.AccountDetailScreen
+import com.pyera.app.ui.account.TransferScreen
 import com.pyera.app.ui.budget.BudgetDetailScreen
 import com.pyera.app.ui.budget.BudgetListScreen
 import com.pyera.app.ui.budget.BudgetViewModel
@@ -291,6 +296,91 @@ fun MainScreen() {
                     exitTransition = { scaleOut(targetScale = 0.8f) + fadeOut() }
                 ) {
                     ChatScreen(navController = bottomNavController)
+                }
+
+                // Accounts - List
+                composable(
+                    route = Screen.Accounts.route,
+                    enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }) + fadeIn() },
+                    exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }) + fadeOut() }
+                ) {
+                    AccountsScreen(navController = bottomNavController)
+                }
+
+                // Accounts - Add
+                composable(
+                    route = Screen.AddAccount.route,
+                    enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }) + fadeIn() },
+                    exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }) + fadeOut() }
+                ) {
+                    val viewModel: com.pyera.app.ui.account.AccountsViewModel = hiltViewModel()
+                    LaunchedEffect(Unit) {
+                        viewModel.resetFormState()
+                    }
+                    AddAccountScreen(
+                        navController = bottomNavController,
+                        viewModel = viewModel
+                    )
+                }
+
+                // Accounts - Edit
+                composable(
+                    route = Screen.EditAccount.route,
+                    arguments = listOf(
+                        navArgument("accountId") { type = NavType.LongType }
+                    ),
+                    enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }) + fadeIn() },
+                    exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }) + fadeOut() }
+                ) { backStackEntry ->
+                    val accountId = backStackEntry.arguments?.getLong("accountId") ?: 0L
+                    val viewModel: com.pyera.app.ui.account.AccountsViewModel = hiltViewModel()
+                    val selectedAccount by viewModel.selectedAccount.collectAsState()
+                    LaunchedEffect(accountId) {
+                        viewModel.loadAccountDetail(accountId)
+                    }
+                    LaunchedEffect(selectedAccount) {
+                        selectedAccount?.let { viewModel.initEditForm(it) }
+                    }
+                    AddAccountScreen(
+                        navController = bottomNavController,
+                        viewModel = viewModel
+                    )
+                }
+
+                // Accounts - Detail
+                composable(
+                    route = Screen.AccountDetail.route,
+                    arguments = listOf(
+                        navArgument("accountId") { type = NavType.LongType }
+                    ),
+                    enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }) + fadeIn() },
+                    exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }) + fadeOut() }
+                ) { backStackEntry ->
+                    val accountId = backStackEntry.arguments?.getLong("accountId") ?: 0L
+                    AccountDetailScreen(
+                        accountId = accountId,
+                        navController = bottomNavController
+                    )
+                }
+
+                // Accounts - Transfer
+                composable(
+                    route = Screen.Transfer.route,
+                    arguments = listOf(
+                        navArgument("from") {
+                            type = NavType.LongType
+                            nullable = true
+                            defaultValue = null
+                        }
+                    ),
+                    enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }) + fadeIn() },
+                    exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }) + fadeOut() }
+                ) { backStackEntry ->
+                    val fromAccountId = backStackEntry.arguments?.getLong("from")
+                    TransferScreen(
+                        fromAccountId = fromAccountId,
+                        navController = bottomNavController
+                    )
                 }
 
                 // Add Transaction

@@ -39,6 +39,9 @@ fun AccountDetailScreen(
 ) {
     val selectedAccount by viewModel.selectedAccount.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+    val transactions by remember(accountId) {
+        viewModel.transactionsForAccount(accountId)
+    }.collectAsStateWithLifecycle(initialValue = emptyList())
     
     // Load account details when screen is shown
     LaunchedEffect(accountId) {
@@ -136,9 +139,14 @@ fun AccountDetailScreen(
                     }
                 }
                 
-                // Placeholder for transactions - would integrate with TransactionRepository
-                item {
-                    EmptyTransactionsPlaceholder()
+                if (transactions.isEmpty()) {
+                    item {
+                        EmptyTransactionsPlaceholder()
+                    }
+                } else {
+                    items(transactions.take(5)) { transaction ->
+                        AccountTransactionItem(transaction = transaction)
+                    }
                 }
             }
         }
@@ -272,6 +280,50 @@ private fun AccountHeaderCard(account: AccountEntity) {
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun AccountTransactionItem(transaction: TransactionEntity) {
+    val dateFormat = remember { SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()) }
+    val amountText = if (transaction.type == "INCOME") {
+        "+ ₱${String.format("%,.2f", transaction.amount)}"
+    } else {
+        "- ₱${String.format("%,.2f", transaction.amount)}"
+    }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = SurfaceElevated),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column {
+                Text(
+                    text = transaction.note.ifBlank { "Transaction" },
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = TextPrimary,
+                    fontWeight = FontWeight.Medium
+                )
+                Text(
+                    text = dateFormat.format(Date(transaction.date)),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextSecondary
+                )
+            }
+            Text(
+                text = amountText,
+                style = MaterialTheme.typography.bodyLarge,
+                color = if (transaction.type == "INCOME") ColorSuccess else ColorError,
+                fontWeight = FontWeight.SemiBold
+            )
         }
     }
 }

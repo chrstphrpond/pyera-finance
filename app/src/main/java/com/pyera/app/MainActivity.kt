@@ -30,6 +30,9 @@ import com.pyera.app.data.security.AppLockManager
 import com.pyera.app.ui.auth.AuthState
 import com.pyera.app.ui.auth.LoginScreen
 import com.pyera.app.ui.auth.RegisterScreen
+import com.pyera.app.ui.legal.LegalScreen
+import com.pyera.app.ui.legal.PrivacyPolicyText
+import com.pyera.app.ui.legal.TermsOfServiceText
 import com.pyera.app.ui.main.MainScreen
 import com.pyera.app.ui.navigation.Screen
 import com.pyera.app.ui.onboarding.OnboardingScreen
@@ -123,8 +126,6 @@ fun PyeraAppNavigation(
     val navController = rememberNavController()
     
     // Determine start destination based on onboarding and auth state
-    // TEMP: Reset onboarding to test new UI
-    dataSeeder.resetOnboarding()
     val isOnboardingCompleted = dataSeeder.isOnboardingCompleted()
     
     val startDestination = when {
@@ -171,7 +172,8 @@ fun PyeraAppNavigation(
                 // Seed data when login is successful
                 LaunchedEffect(loginState.authState) {
                     if (loginState.authState is AuthState.Success) {
-                        dataSeeder.seedInitialData()
+                        val userId = authRepository.currentUser?.uid ?: return@LaunchedEffect
+                        dataSeeder.seedInitialData(userId)
                     }
                 }
                 
@@ -194,7 +196,8 @@ fun PyeraAppNavigation(
                 // Seed data when registration is successful
                 LaunchedEffect(registerState.authState) {
                     if (registerState.authState is AuthState.Success) {
-                        dataSeeder.seedInitialData()
+                        val userId = authRepository.currentUser?.uid ?: return@LaunchedEffect
+                        dataSeeder.seedInitialData(userId)
                     }
                 }
                 
@@ -204,7 +207,24 @@ fun PyeraAppNavigation(
                             popUpTo(Screen.Register.route) { inclusive = true } 
                         } 
                     },
-                    onNavigateToLogin = { navController.popBackStack() }
+                    onNavigateToLogin = { navController.popBackStack() },
+                    onOpenTerms = { navController.navigate(Screen.Terms.route) }
+                )
+            }
+
+            composable(Screen.Terms.route) {
+                LegalScreen(
+                    title = "Terms of Service",
+                    body = TermsOfServiceText,
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(Screen.Privacy.route) {
+                LegalScreen(
+                    title = "Privacy Policy",
+                    body = PrivacyPolicyText,
+                    onBack = { navController.popBackStack() }
                 )
             }
             

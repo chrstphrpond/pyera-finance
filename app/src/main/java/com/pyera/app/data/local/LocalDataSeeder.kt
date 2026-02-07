@@ -3,6 +3,8 @@ package com.pyera.app.data.local
 import android.content.Context
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import com.pyera.app.data.local.entity.AccountEntity
+import com.pyera.app.data.local.entity.AccountType
 import com.pyera.app.data.local.entity.CategoryEntity
 import com.pyera.app.data.local.entity.TransactionEntity
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -36,11 +38,12 @@ class LocalDataSeeder @Inject constructor(
         prefs.edit().putBoolean(KEY_ONBOARDING_COMPLETED, true).apply()
     }
 
-    suspend fun seedInitialData() {
-        if (isDataSeeded()) return
+    suspend fun seedInitialData(userId: String) {
+        if (userId.isBlank() || isDataSeeded()) return
 
         seedCategories()
-        seedSampleTransactions()
+        val defaultAccount = ensureDefaultAccount(userId)
+        seedSampleTransactionsForUser(userId, defaultAccount.id)
 
         prefs.edit().putBoolean(KEY_DATA_SEEDED, true).apply()
     }
@@ -140,7 +143,7 @@ class LocalDataSeeder @Inject constructor(
         }
     }
 
-    private suspend fun seedSampleTransactions() {
+    private suspend fun seedSampleTransactionsForUser(userId: String, accountId: Long) {
         val transactionDao = database.transactionDao()
         val categoryDao = database.categoryDao()
 
@@ -163,28 +166,36 @@ class LocalDataSeeder @Inject constructor(
                 note = "Grocery shopping",
                 date = now - (2 * 60 * 60 * 1000), // 2 hours ago
                 type = "EXPENSE",
-                categoryId = expenseCategories.find { it.name == "Food & Dining" }?.id
+                categoryId = expenseCategories.find { it.name == "Food & Dining" }?.id,
+                accountId = accountId,
+                userId = userId
             ),
             TransactionEntity(
                 amount = 120.00,
                 note = "Grab ride to work",
                 date = now - (5 * 60 * 60 * 1000), // 5 hours ago
                 type = "EXPENSE",
-                categoryId = expenseCategories.find { it.name == "Transportation" }?.id
+                categoryId = expenseCategories.find { it.name == "Transportation" }?.id,
+                accountId = accountId,
+                userId = userId
             ),
             TransactionEntity(
                 amount = 25000.00,
                 note = "Monthly salary",
                 date = now - oneDay, // Yesterday
                 type = "INCOME",
-                categoryId = incomeCategories.find { it.name == "Salary" }?.id
+                categoryId = incomeCategories.find { it.name == "Salary" }?.id,
+                accountId = accountId,
+                userId = userId
             ),
             TransactionEntity(
                 amount = 899.00,
                 note = "New shoes",
                 date = now - oneDay,
                 type = "EXPENSE",
-                categoryId = expenseCategories.find { it.name == "Shopping" }?.id
+                categoryId = expenseCategories.find { it.name == "Shopping" }?.id,
+                accountId = accountId,
+                userId = userId
             ),
             // Earlier this week
             TransactionEntity(
@@ -192,28 +203,36 @@ class LocalDataSeeder @Inject constructor(
                 note = "Dinner with friends",
                 date = now - (3 * oneDay),
                 type = "EXPENSE",
-                categoryId = expenseCategories.find { it.name == "Food & Dining" }?.id
+                categoryId = expenseCategories.find { it.name == "Food & Dining" }?.id,
+                accountId = accountId,
+                userId = userId
             ),
             TransactionEntity(
                 amount = 1500.00,
                 note = "Electric bill",
                 date = now - (4 * oneDay),
                 type = "EXPENSE",
-                categoryId = expenseCategories.find { it.name == "Bills & Utilities" }?.id
+                categoryId = expenseCategories.find { it.name == "Bills & Utilities" }?.id,
+                accountId = accountId,
+                userId = userId
             ),
             TransactionEntity(
                 amount = 5000.00,
                 note = "Freelance project",
                 date = now - (5 * oneDay),
                 type = "INCOME",
-                categoryId = incomeCategories.find { it.name == "Freelance" }?.id
+                categoryId = incomeCategories.find { it.name == "Freelance" }?.id,
+                accountId = accountId,
+                userId = userId
             ),
             TransactionEntity(
                 amount = 600.00,
                 note = "Movie and popcorn",
                 date = now - (6 * oneDay),
                 type = "EXPENSE",
-                categoryId = expenseCategories.find { it.name == "Entertainment" }?.id
+                categoryId = expenseCategories.find { it.name == "Entertainment" }?.id,
+                accountId = accountId,
+                userId = userId
             ),
             // Last week
             TransactionEntity(
@@ -221,34 +240,69 @@ class LocalDataSeeder @Inject constructor(
                 note = "Medicine",
                 date = now - (8 * oneDay),
                 type = "EXPENSE",
-                categoryId = expenseCategories.find { it.name == "Health" }?.id
+                categoryId = expenseCategories.find { it.name == "Health" }?.id,
+                accountId = accountId,
+                userId = userId
             ),
             TransactionEntity(
                 amount = 1200.00,
                 note = "Online course",
                 date = now - (10 * oneDay),
                 type = "EXPENSE",
-                categoryId = expenseCategories.find { it.name == "Education" }?.id
+                categoryId = expenseCategories.find { it.name == "Education" }?.id,
+                accountId = accountId,
+                userId = userId
             ),
             TransactionEntity(
                 amount = 350.00,
                 note = "Haircut",
                 date = now - (12 * oneDay),
                 type = "EXPENSE",
-                categoryId = expenseCategories.find { it.name == "Personal Care" }?.id
+                categoryId = expenseCategories.find { it.name == "Personal Care" }?.id,
+                accountId = accountId,
+                userId = userId
             ),
             TransactionEntity(
                 amount = 1500.00,
                 note = "Stock dividends",
                 date = now - (14 * oneDay),
                 type = "INCOME",
-                categoryId = incomeCategories.find { it.name == "Investments" }?.id
+                categoryId = incomeCategories.find { it.name == "Investments" }?.id,
+                accountId = accountId,
+                userId = userId
             )
         )
 
         sampleTransactions.forEach { transaction ->
             transactionDao.insertTransaction(transaction)
         }
+    }
+
+    private suspend fun ensureDefaultAccount(userId: String): AccountEntity {
+        val accountDao = database.accountDao()
+
+        val existingDefault = accountDao.getDefaultAccount(userId)
+        if (existingDefault != null) return existingDefault
+
+        val existingAccounts = accountDao.getAccountsByUser(userId).first()
+        val firstAccount = existingAccounts.firstOrNull()
+        if (firstAccount != null) {
+            accountDao.setDefaultAccount(userId, firstAccount.id)
+            return accountDao.getDefaultAccount(userId) ?: firstAccount
+        }
+
+        val defaultAccount = AccountEntity(
+            userId = userId,
+            name = "Cash",
+            type = AccountType.CASH,
+            balance = 0.0,
+            currency = "PHP",
+            color = Color(0xFF4ECDC4).toArgb(),
+            icon = AccountType.CASH.defaultIcon(),
+            isDefault = true
+        )
+        val accountId = accountDao.insertAccount(defaultAccount)
+        return defaultAccount.copy(id = accountId)
     }
 
     suspend fun clearAllData() {

@@ -34,7 +34,9 @@ import com.pyera.app.R
 @Composable
 fun WelcomeScreen(
     onGetStarted: () -> Unit,
-    onHaveAccount: () -> Unit
+    onHaveAccount: () -> Unit,
+    onOpenTerms: () -> Unit = {},
+    onOpenPrivacy: () -> Unit = {}
 ) {
     Box(
         modifier = Modifier
@@ -222,7 +224,7 @@ fun WelcomeScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 TextButton(
-                    onClick = { /* TODO: Open Terms */ },
+                    onClick = onOpenTerms,
                     contentPadding = PaddingValues(horizontal = 4.dp)
                 ) {
                     Text(
@@ -237,7 +239,7 @@ fun WelcomeScreen(
                     color = TextTertiary
                 )
                 TextButton(
-                    onClick = { /* TODO: Open Privacy */ },
+                    onClick = onOpenPrivacy,
                     contentPadding = PaddingValues(horizontal = 4.dp)
                 ) {
                     Text(

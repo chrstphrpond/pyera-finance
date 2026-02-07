@@ -40,7 +40,7 @@ The Kimi API key has been exposed in your codebase. You must rotate it immediate
 2. Replace the old key with the new one:
    ```properties
    # OLD (REVOKED - DO NOT USE)
-   # KIMI_API_KEY=sk-kimi-eo71AzD4aHGSIzVny740hvWJloIT0a36Q384X5uusjWsstb1wqO6PBeFOazSbAPQ
+   # KIMI_API_KEY=REVOKED_KEY_REDACTED
    
    # NEW
    KIMI_API_KEY=sk-kimi-YOUR_NEW_KEY_HERE

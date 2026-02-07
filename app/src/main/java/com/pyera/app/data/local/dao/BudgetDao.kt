@@ -50,6 +50,9 @@ interface BudgetDao {
     @Query("SELECT * FROM budgets WHERE userId = :userId ORDER BY createdAt DESC")
     fun getAllBudgetsForUser(userId: String): Flow<List<BudgetEntity>>
 
+    @Query("SELECT * FROM budgets WHERE userId = :userId ORDER BY createdAt DESC")
+    suspend fun getAllBudgetsForUserOnce(userId: String): List<BudgetEntity>
+
     @Query("SELECT * FROM budgets WHERE userId = :userId AND isActive = 1 ORDER BY amount DESC")
     fun getActiveBudgetsForUser(userId: String): Flow<List<BudgetEntity>>
 

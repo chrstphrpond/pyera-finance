@@ -1,5 +1,7 @@
 package com.pyera.app.data.repository
 
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.pyera.app.data.local.dao.BudgetDao
 import com.pyera.app.data.local.dao.TransactionDao
 import com.pyera.app.data.local.entity.BudgetEntity
@@ -11,6 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import java.util.Calendar
 import javax.inject.Inject
@@ -19,7 +22,9 @@ import javax.inject.Singleton
 @Singleton
 class BudgetRepositoryImpl @Inject constructor(
     private val budgetDao: BudgetDao,
-    private val transactionDao: TransactionDao
+    private val transactionDao: TransactionDao,
+    private val authRepository: AuthRepository,
+    private val firestore: FirebaseFirestore
 ) : BudgetRepository {
 
     // ==================== CRUD Operations ====================
@@ -213,23 +218,30 @@ class BudgetRepositoryImpl @Inject constructor(
     }
     
     /**
-     * Sync budgets to cloud.
-     * This is a placeholder implementation that should be enhanced with
-     * actual cloud sync logic when Firebase or other backend is integrated.
+     * Sync budgets to cloud (upload-only).
      */
     override suspend fun syncBudgets(): Result<Unit> {
         return try {
             withContext(Dispatchers.IO) {
-                // TODO: Implement actual cloud sync
-                // For now, we just verify local data is consistent
-                
-                // In a real implementation, you would:
-                // 1. Get unsynced budgets from local DB (check updatedAt > lastSyncTime)
-                // 2. Upload to Firebase/Firestore
-                // 3. Update sync status in local DB
-                // 4. Download any new budgets from cloud
-                // 5. Resolve conflicts if any
-                
+                val userId = authRepository.currentUser?.uid
+                    ?: return@withContext Result.success(Unit)
+
+                val localBudgets = budgetDao.getAllBudgetsForUserOnce(userId)
+                if (localBudgets.isEmpty()) {
+                    return@withContext Result.success(Unit)
+                }
+
+                val batch = firestore.batch()
+                val collection = firestore.collection("users")
+                    .document(userId)
+                    .collection("budgets")
+
+                localBudgets.forEach { budget ->
+                    val docRef = collection.document(budget.id.toString())
+                    batch.set(docRef, budget.toFirestoreMap(userId), SetOptions.merge())
+                }
+
+                batch.commit().await()
                 Result.success(Unit)
             }
         } catch (e: Exception) {
@@ -248,4 +260,20 @@ class BudgetRepositoryImpl @Inject constructor(
             0
         }
     }
+}
+
+private fun BudgetEntity.toFirestoreMap(userId: String): Map<String, Any?> {
+    return mapOf(
+        "id" to id,
+        "userId" to userId,
+        "categoryId" to categoryId,
+        "amount" to amount,
+        "period" to period.name,
+        "startDate" to startDate,
+        "endDate" to endDate,
+        "isActive" to isActive,
+        "createdAt" to createdAt,
+        "updatedAt" to updatedAt,
+        "alertThreshold" to alertThreshold
+    )
 }

@@ -10,9 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -36,19 +34,16 @@ fun PyeraAuthButton(
     isLoading: Boolean = false,
     enabled: Boolean = true
 ) {
+    val contentColor = PyeraButtonTokens.contentColor(ButtonVariant.Primary)
+
     Button(
         onClick = onClick,
         modifier = modifier
             .fillMaxWidth()
-            .height(56.dp),
+            .height(PyeraButtonTokens.height(ButtonSize.Large)),
         enabled = enabled && !isLoading,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = NeonYellow,
-            contentColor = DarkGreen,
-            disabledContainerColor = NeonYellow.copy(alpha = 0.38f),
-            disabledContentColor = DarkGreen.copy(alpha = 0.38f)
-        ),
-        shape = RoundedCornerShape(Radius.lg)
+        colors = PyeraButtonTokens.colors(ButtonVariant.Primary),
+        shape = PyeraButtonTokens.shape
     ) {
         AnimatedContent(
             targetState = isLoading,
@@ -60,7 +55,7 @@ fun PyeraAuthButton(
             if (loading) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(24.dp),
-                    color = DarkGreen,
+                    color = contentColor,
                     strokeWidth = 2.dp
                 )
             } else {
@@ -68,7 +63,7 @@ fun PyeraAuthButton(
                     text = text,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = DarkGreen
+                    color = contentColor
                 )
             }
         }
@@ -91,13 +86,10 @@ fun PyeraAuthSecondaryButton(
         onClick = onClick,
         modifier = modifier
             .fillMaxWidth()
-            .height(48.dp),
+            .height(PyeraButtonTokens.height(ButtonSize.Medium)),
         enabled = enabled,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = SurfaceElevated,
-            contentColor = TextPrimary
-        ),
-        shape = RoundedCornerShape(Radius.lg)
+        colors = PyeraButtonTokens.colors(ButtonVariant.Secondary),
+        shape = PyeraButtonTokens.shape
     ) {
         Box(
             modifier = Modifier.fillMaxWidth(),
@@ -135,13 +127,10 @@ fun PyeraSocialButton(
         onClick = onClick,
         modifier = modifier
             .fillMaxWidth()
-            .height(48.dp),
+            .height(PyeraButtonTokens.height(ButtonSize.Medium)),
         enabled = enabled,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = SurfaceElevated,
-            contentColor = TextPrimary
-        ),
-        shape = RoundedCornerShape(Radius.lg)
+        colors = PyeraButtonTokens.colors(ButtonVariant.Secondary),
+        shape = PyeraButtonTokens.shape
     ) {
         Box(
             modifier = Modifier.fillMaxWidth(),
