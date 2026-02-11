@@ -122,9 +122,12 @@ class PdfExporter {
         summaryTable.setMarginBottom(20f)
 
         // Period
-        addSummaryRow(summaryTable, "Period:", 
-            "${SHORT_DATE_FORMAT.format(Date(summary.startDate))} - ${SHORT_DATE_FORMAT.format(Date(summary.endDate))}")
-        
+        addSummaryRow(
+            summaryTable,
+            "Period:",
+            "${SHORT_DATE_FORMAT.format(Date(summary.startDate))} - ${SHORT_DATE_FORMAT.format(Date(summary.endDate))}",
+        )
+
         // Total Income
         addSummaryRow(summaryTable, "Total Income:", formatCurrency(summary.totalIncome), SUCCESS_COLOR)
         

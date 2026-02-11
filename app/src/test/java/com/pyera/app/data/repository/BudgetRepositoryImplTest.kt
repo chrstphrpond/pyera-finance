@@ -302,15 +302,19 @@ class BudgetRepositoryImplTest {
             isOverBudget = false,
             daysRemaining = 0
         )
-        coEvery { 
-            budgetDao.getBudgetsWithSpending(testUserId, any(), endDate) 
+        coEvery {
+            budgetDao.getBudgetsWithSpending(
+                testUserId,
+                any(),
+                endDate,
+            )
         } returns flowOf(listOf(budgetWithSpending))
 
         // Act
         val result = repository.getBudgetsWithSpending(
-            testUserId, 
-            System.currentTimeMillis(), 
-            endDate
+            testUserId,
+            System.currentTimeMillis(),
+            endDate,
         ).first()
 
         // Assert
@@ -340,15 +344,19 @@ class BudgetRepositoryImplTest {
             isOverBudget = false,
             daysRemaining = 0
         )
-        coEvery { 
-            budgetDao.getBudgetWithSpendingById(1, any(), endDate) 
+        coEvery {
+            budgetDao.getBudgetWithSpendingById(
+                1,
+                any(),
+                endDate,
+            )
         } returns flowOf(budgetWithSpending)
 
         // Act
         val result = repository.getBudgetWithSpendingById(
-            1, 
-            System.currentTimeMillis(), 
-            endDate
+            1,
+            System.currentTimeMillis(),
+            endDate,
         ).first()
 
         // Assert

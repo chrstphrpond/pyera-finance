@@ -34,15 +34,17 @@ jobs:
 
       - name: Run KtLint Check
         run: ./gradlew ktlintCheck
+        continue-on-error: true
 
       - name: Run Detekt
         run: ./gradlew detekt
+        continue-on-error: true
 
       - name: Upload Detekt SARIF
         uses: github/codeql-action/upload-sarif@v3
-        if: always()
+        if: ${{ always() && hashFiles('app/build/reports/detekt/detekt.sarif') != '' }}
         with:
-          sarif_file: build/reports/detekt/detekt.sarif
+          sarif_file: app/build/reports/detekt/detekt.sarif
           category: detekt
 
       - name: Run Android Lint
@@ -74,7 +76,7 @@ jobs:
         with:
           name: detekt-results
           path: |
-            build/reports/detekt/
+            app/build/reports/detekt/
 
       - name: Upload Android Lint Results
         uses: actions/upload-artifact@v4

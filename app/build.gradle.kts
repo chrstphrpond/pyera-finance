@@ -14,6 +14,7 @@ android {
     val certPin2 = project.findProperty("PYERA_CERT_PIN_2")?.toString()?.trim().orEmpty()
     val geminiApiKey = project.findProperty("GEMINI_API_KEY")?.toString()?.trim().orEmpty()
     val enableCertPinning = certPin1.isNotBlank() || certPin2.isNotBlank()
+
     fun buildConfigString(value: String) = "\"${value.replace("\"", "\\\"")}\""
 
     defaultConfig {
@@ -24,11 +25,11 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        
+
         // APK Size Optimization: Only include English resources
         // This filters out unused language resources from dependencies
         resConfigs("en")
-        
+
         vectorDrawables {
             useSupportLibrary = true
         }
@@ -51,33 +52,34 @@ android {
             buildConfigField("String", "GEMINI_API_KEY", buildConfigString(geminiApiKey))
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
         }
     }
-    
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    
+
     kotlinOptions {
         jvmTarget = "17"
-        freeCompilerArgs += listOf(
-            "-opt-in=kotlin.RequiresOptIn",
-            "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi"
-        )
+        freeCompilerArgs +=
+            listOf(
+                "-opt-in=kotlin.RequiresOptIn",
+                "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
+            )
     }
-    
+
     buildFeatures {
         compose = true
         buildConfig = true
     }
-    
+
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.4"
     }
-    
+
     // ABI splits for smaller APKs
     splits {
         abi {
@@ -87,21 +89,22 @@ android {
             isUniversalApk = false
         }
     }
-    
+
     // Resource optimization
     packaging {
         resources {
-            excludes += listOf(
-                "/META-INF/{AL2.0,LGPL2.1}",
-                "META-INF/DEPENDENCIES",
-                "META-INF/LICENSE",
-                "META-INF/LICENSE.txt",
-                "META-INF/NOTICE",
-                "META-INF/NOTICE.txt"
-            )
+            excludes +=
+                listOf(
+                    "/META-INF/{AL2.0,LGPL2.1}",
+                    "META-INF/DEPENDENCIES",
+                    "META-INF/LICENSE",
+                    "META-INF/LICENSE.txt",
+                    "META-INF/NOTICE",
+                    "META-INF/NOTICE.txt",
+                )
         }
     }
-    
+
     // Lint configuration
     lint {
         abortOnError = false
@@ -144,13 +147,13 @@ dependencies {
 
     // Gemini AI
     implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
-    
+
     // Biometric
     implementation(libs.androidx.biometric)
-    
+
     // Splash Screen
     implementation(libs.androidx.core.splashscreen)
-    
+
     // Security (EncryptedSharedPreferences)
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
 
@@ -183,7 +186,7 @@ dependencies {
     testImplementation(libs.mockito.kotlin)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.turbine)
-    
+
     // WorkManager Testing
     testImplementation("androidx.work:work-testing:2.9.0")
     testImplementation("org.robolectric:robolectric:4.11.1")
@@ -201,13 +204,13 @@ dependencies {
     implementation("com.patrykandpatrick.vico:compose:1.14.0")
     implementation("com.patrykandpatrick.vico:compose-m3:1.14.0")
     implementation("com.patrykandpatrick.vico:core:1.14.0")
-    
+
     // Accompanist (pull-to-refresh, etc.)
     implementation("com.google.accompanist:accompanist-swiperefresh:0.32.0")
-    
+
     // Google Sign-In
     implementation("com.google.android.gms:play-services-auth:20.7.0")
-    
+
     // For Excel export
     implementation("org.apache.poi:poi:5.2.3")
     implementation("org.apache.poi:poi-ooxml:5.2.3")

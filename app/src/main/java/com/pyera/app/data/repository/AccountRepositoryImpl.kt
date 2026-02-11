@@ -274,10 +274,10 @@ class AccountRepositoryImpl @Inject constructor(
 
     override suspend fun validateAccountName(name: String, excludeId: Long?): Boolean {
         if (name.isBlank()) return false
-        
+
         val accounts = accountDao.getAccountsByUser(currentUserId).first()
-        return accounts.none { 
-            it.name.equals(name.trim(), ignoreCase = true) && it.id != excludeId 
+        return accounts.none {
+            it.name.equals(name.trim(), ignoreCase = true) && it.id != excludeId
         }
     }
 

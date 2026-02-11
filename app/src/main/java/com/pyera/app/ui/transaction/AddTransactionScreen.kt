@@ -105,30 +105,6 @@ fun AddTransactionScreen(
             state.defaultAccount?.let { defaultAccount ->
                 selectedAccountId = defaultAccount.id
             }
-        } else {
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(SpacingTokens.Medium)
-            ) {
-                NaturalLanguageTransactionInput(
-                    onParsed = { parsed ->
-                        parsed.amount?.let { amount = String.format(Locale.getDefault(), "%.2f", it) }
-                        note = parsed.description
-                        selectedType = parsed.type
-                        parsed.categoryId?.let { selectedCategoryId = it.toInt() }
-                        parsed.date?.let { selectedDate = it }
-                        selectedTab = 0
-                        scope.launch {
-                            snackbarHostState.showSnackbar("Parsed. Review and save the transaction.")
-                        }
-                    },
-                    onError = { error ->
-                        scope.launch { snackbarHostState.showSnackbar(error) }
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
         }
     }
 
@@ -248,19 +224,19 @@ fun AddTransactionScreen(
                         .verticalScroll(rememberScrollState())
                         .padding(SpacingTokens.Medium)
                 ) {
-                // Scanned Receipt Preview
-                AnimatedVisibility(
-                    visible = scannedReceiptUri != null,
-                    enter = expandVertically() + fadeIn(),
-                    exit = shrinkVertically() + fadeOut()
-                ) {
-                    scannedReceiptUri?.let {
-                        ReceiptPreviewCard(
-                            onClear = { scannedReceiptUriString = null }
-                        )
-                        Spacer(modifier = Modifier.height(SpacingTokens.Medium))
+                    // Scanned Receipt Preview
+                    AnimatedVisibility(
+                        visible = scannedReceiptUri != null,
+                        enter = expandVertically() + fadeIn(),
+                        exit = shrinkVertically() + fadeOut()
+                    ) {
+                        scannedReceiptUri?.let {
+                            ReceiptPreviewCard(
+                                onClear = { scannedReceiptUriString = null }
+                            )
+                            Spacer(modifier = Modifier.height(SpacingTokens.Medium))
+                        }
                     }
-                }
 
                 // Type Selector
                 Row(
@@ -375,24 +351,24 @@ fun AddTransactionScreen(
                 // Category Grid (horizontal scrolling for larger touch targets)
                 val filteredCategories = state.categories.filter { it.type == selectedType }
                 
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    contentPadding = PaddingValues(horizontal = 4.dp)
-                ) {
-                    items(
-                    items = filteredCategories,
-                    key = { category: CategoryEntity -> category.id }
-                ) { category: CategoryEntity ->
-                        CategoryItem(
-                            category = category,
-                            isSelected = selectedCategory?.id == category.id,
-                            onClick = { 
-                                selectedCategoryId = category.id
-                                showSaveAsRule = note.isNotBlank()
-                            }
-                        )
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        contentPadding = PaddingValues(horizontal = 4.dp)
+                    ) {
+                        items(
+                            items = filteredCategories,
+                            key = { category: CategoryEntity -> category.id }
+                        ) { category: CategoryEntity ->
+                            CategoryItem(
+                                category = category,
+                                isSelected = selectedCategory?.id == category.id,
+                                onClick = {
+                                    selectedCategoryId = category.id
+                                    showSaveAsRule = note.isNotBlank()
+                                }
+                            )
+                        }
                     }
-                }
 
                 // Save as Rule option (shown when category is manually selected and note exists)
                 AnimatedVisibility(
@@ -467,7 +443,34 @@ fun AddTransactionScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(SpacingTokens.Large))
+                    Spacer(modifier = Modifier.height(SpacingTokens.Large))
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(SpacingTokens.Medium)
+                ) {
+                    NaturalLanguageTransactionInput(
+                        onParsed = { parsed ->
+                            parsed.amount?.let {
+                                amount = String.format(Locale.getDefault(), "%.2f", it)
+                            }
+                            note = parsed.description
+                            selectedType = parsed.type
+                            parsed.categoryId?.let { selectedCategoryId = it.toInt() }
+                            parsed.date?.let { selectedDate = it }
+                            selectedTab = 0
+                            scope.launch {
+                                snackbarHostState.showSnackbar("Parsed. Review and save the transaction.")
+                            }
+                        },
+                        onError = { error ->
+                            scope.launch { snackbarHostState.showSnackbar(error) }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
             }
 
             // Sticky Bottom Actions
@@ -508,12 +511,14 @@ fun AddTransactionScreen(
                                     android.widget.Toast.makeText(context, descriptionResult.message, android.widget.Toast.LENGTH_SHORT).show()
                                 }
                                 else -> {
+                                    val amountValue = amountVal ?: return@Button
+                                    val categoryId = selectedCategory?.id ?: return@Button
                                     val transaction = TransactionEntity(
-                                        amount = amountVal,
+                                        amount = amountValue,
                                         note = note,
                                         date = selectedDate,
                                         type = selectedType,
-                                        categoryId = selectedCategory.id,
+                                        categoryId = categoryId,
                                         accountId = accountId,
                                         userId = state.accounts.find { it.id == accountId }?.userId ?: ""
                                     )
@@ -563,13 +568,15 @@ fun AddTransactionScreen(
                                     android.widget.Toast.makeText(context, descriptionResult.message, android.widget.Toast.LENGTH_SHORT).show()
                                 }
                                 else -> {
+                                    val amountValue = amountVal ?: return@OutlinedButton
+                                    val categoryId = selectedCategory?.id ?: return@OutlinedButton
                                     viewModel.addTransaction(
                                         TransactionEntity(
-                                            amount = amountVal,
+                                            amount = amountValue,
                                             note = note,
                                             date = selectedDate,
                                             type = selectedType,
-                                            categoryId = selectedCategory.id,
+                                            categoryId = categoryId,
                                             accountId = accountId,
                                             userId = state.accounts.find { it.id == accountId }?.userId ?: ""
                                         )

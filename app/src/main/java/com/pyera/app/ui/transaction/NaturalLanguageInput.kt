@@ -27,10 +27,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardOptions
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.pyera.app.domain.nlp.NaturalLanguageParser
@@ -46,7 +45,6 @@ fun NaturalLanguageTransactionInput(
     var input by rememberSaveable { mutableStateOf("") }
     var isProcessing by remember { mutableStateOf(false) }
     val parserViewModel: NaturalLanguageViewModel = hiltViewModel()
-    val context = LocalContext.current
 
     val speechLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -76,7 +74,7 @@ fun NaturalLanguageTransactionInput(
         }
     }
 
-    val triggerParse: () -> Unit = {
+    val triggerParse: () -> Unit = triggerParse@{
         if (input.isBlank() || isProcessing) return@triggerParse
         isProcessing = true
         parserViewModel.parse(input) { result ->
