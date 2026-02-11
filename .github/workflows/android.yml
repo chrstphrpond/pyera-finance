@@ -37,30 +37,30 @@ jobs:
             printf '%s' "$GOOGLE_SERVICES_JSON" > app/google-services.json
           else
             cat <<'JSON' > app/google-services.json
-{
-  "project_info": {
-    "project_number": "000000000000",
-    "project_id": "pyera-placeholder",
-    "storage_bucket": "pyera-placeholder.appspot.com"
-  },
-  "client": [
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:000000000000:android:0000000000000000",
-        "android_client_info": {
-          "package_name": "com.pyera.app"
-        }
-      },
-      "api_key": [
-        {
-          "current_key": "DUMMY_API_KEY"
-        }
-      ]
-    }
-  ],
-  "configuration_version": "1"
-}
-JSON
+              {
+                "project_info": {
+                  "project_number": "000000000000",
+                  "project_id": "pyera-placeholder",
+                  "storage_bucket": "pyera-placeholder.appspot.com"
+                },
+                "client": [
+                  {
+                    "client_info": {
+                      "mobilesdk_app_id": "1:000000000000:android:0000000000000000",
+                      "android_client_info": {
+                        "package_name": "com.pyera.app"
+                      }
+                    },
+                    "api_key": [
+                      {
+                        "current_key": "DUMMY_API_KEY"
+                      }
+                    ]
+                  }
+                ],
+                "configuration_version": "1"
+              }
+          JSON
           fi
 
       - name: Run KtLint Check
@@ -155,30 +155,30 @@ JSON
             printf '%s' "$GOOGLE_SERVICES_JSON" > app/google-services.json
           else
             cat <<'JSON' > app/google-services.json
-{
-  "project_info": {
-    "project_number": "000000000000",
-    "project_id": "pyera-placeholder",
-    "storage_bucket": "pyera-placeholder.appspot.com"
-  },
-  "client": [
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:000000000000:android:0000000000000000",
-        "android_client_info": {
-          "package_name": "com.pyera.app"
-        }
-      },
-      "api_key": [
-        {
-          "current_key": "DUMMY_API_KEY"
-        }
-      ]
-    }
-  ],
-  "configuration_version": "1"
-}
-JSON
+              {
+                "project_info": {
+                  "project_number": "000000000000",
+                  "project_id": "pyera-placeholder",
+                  "storage_bucket": "pyera-placeholder.appspot.com"
+                },
+                "client": [
+                  {
+                    "client_info": {
+                      "mobilesdk_app_id": "1:000000000000:android:0000000000000000",
+                      "android_client_info": {
+                        "package_name": "com.pyera.app"
+                      }
+                    },
+                    "api_key": [
+                      {
+                        "current_key": "DUMMY_API_KEY"
+                      }
+                    ]
+                  }
+                ],
+                "configuration_version": "1"
+              }
+          JSON
           fi
 
       - name: Build Release APK
