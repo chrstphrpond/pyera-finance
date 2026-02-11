@@ -23,18 +23,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.pyera.app.ui.theme.AccentGreen
 import com.pyera.app.ui.theme.CardBackground
 import com.pyera.app.ui.theme.NegativeChange
 import com.pyera.app.ui.theme.PositiveChange
-import com.pyera.app.ui.theme.TextSecondary
-import com.pyera.app.ui.theme.TextTertiary
+import com.pyera.app.ui.theme.tokens.ColorTokens
+import com.pyera.app.ui.theme.tokens.SpacingTokens
 import com.pyera.app.ui.util.bounceClick
 
 @Composable
 fun AssetListItem(
     icon: ImageVector,
-    iconColor: Color = AccentGreen,
+    iconColor: Color = ColorTokens.Primary500,
     iconBackgroundColor: Color = iconColor.copy(alpha = 0.15f),
     title: String,
     subtitle: String,
@@ -47,12 +46,12 @@ fun AssetListItem(
         modifier = modifier
             .fillMaxWidth()
             .bounceClick(onClick = onClick),
-        cornerRadius = 16.dp
+        cornerRadius = SpacingTokens.Medium
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(SpacingTokens.Medium),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -87,7 +86,7 @@ fun AssetListItem(
                     Text(
                         text = subtitle,
                         style = MaterialTheme.typography.bodySmall,
-                        color = TextSecondary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -132,12 +131,12 @@ fun AssetListItemWithCustomIcon(
         modifier = modifier
             .fillMaxWidth()
             .bounceClick(onClick = onClick),
-        cornerRadius = 16.dp
+        cornerRadius = SpacingTokens.Medium
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(SpacingTokens.Medium),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -164,7 +163,7 @@ fun AssetListItemWithCustomIcon(
                     Text(
                         text = subtitle,
                         style = MaterialTheme.typography.bodySmall,
-                        color = TextSecondary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -194,3 +193,6 @@ fun AssetListItemWithCustomIcon(
         }
     }
 }
+
+
+

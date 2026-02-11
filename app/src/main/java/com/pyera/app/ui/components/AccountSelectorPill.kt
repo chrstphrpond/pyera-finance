@@ -23,17 +23,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.pyera.app.ui.theme.AccentGreen
 import com.pyera.app.ui.theme.CardBackground
 import com.pyera.app.ui.theme.CardBorder
-import com.pyera.app.ui.theme.TextSecondary
+import com.pyera.app.ui.theme.tokens.ColorTokens
+import com.pyera.app.ui.theme.tokens.SpacingTokens
 import com.pyera.app.ui.util.bounceClick
 
 @Composable
 fun AccountSelectorPill(
     accountName: String,
     accountIdentifier: String,
-    avatarColor: Color = AccentGreen,
+    avatarColor: Color = ColorTokens.Primary500,
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {}
 ) {
@@ -49,7 +49,7 @@ fun AccountSelectorPill(
         // Avatar circle
         Box(
             modifier = Modifier
-                .size(32.dp)
+                .size(SpacingTokens.ExtraLarge)
                 .clip(CircleShape)
                 .background(avatarColor.copy(alpha = 0.2f)),
             contentAlignment = Alignment.Center
@@ -69,17 +69,20 @@ fun AccountSelectorPill(
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium
             ),
-            color = TextSecondary
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         // Dropdown arrow
         Icon(
             imageVector = Icons.Default.KeyboardArrowDown,
             contentDescription = "Select account",
-            tint = TextSecondary,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier
                 .size(20.dp)
                 .padding(end = 4.dp)
         )
     }
 }
+
+
+

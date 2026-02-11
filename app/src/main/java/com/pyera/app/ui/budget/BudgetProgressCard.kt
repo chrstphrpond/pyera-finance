@@ -1,4 +1,6 @@
 package com.pyera.app.ui.budget
+import com.pyera.app.ui.theme.tokens.ColorTokens
+import com.pyera.app.ui.theme.tokens.SpacingTokens
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
@@ -16,8 +18,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.TrendingDown
-import androidx.compose.material.icons.filled.TrendingUp
+import androidx.compose.material.icons.automirrored.filled.TrendingDown
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -30,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -38,15 +40,9 @@ import com.pyera.app.data.local.entity.BudgetPeriod
 import com.pyera.app.data.local.entity.BudgetStatus
 import com.pyera.app.data.local.entity.BudgetWithSpending
 import com.pyera.app.ui.components.PyeraCard
-import com.pyera.app.ui.theme.AccentGreen
 import com.pyera.app.ui.theme.CardBackground
-import com.pyera.app.ui.theme.ColorError
-import com.pyera.app.ui.theme.ColorWarning
 import com.pyera.app.ui.theme.ErrorContainer
 import com.pyera.app.ui.theme.SuccessContainer
-import com.pyera.app.ui.theme.TextPrimary
-import com.pyera.app.ui.theme.TextSecondary
-import com.pyera.app.ui.theme.TextTertiary
 import com.pyera.app.ui.theme.WarningContainer
 import java.text.NumberFormat
 
@@ -74,15 +70,12 @@ fun BudgetProgressCard(
             .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(SpacingTokens.Medium)
         ) {
             // Header with category info
-            BudgetCardHeader(
-                budget = budget,
-                statusColor = statusColor
-            )
+            BudgetCardHeader(budget = budget)
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
             // Progress indicator
             if (showCircularProgress) {
@@ -117,8 +110,7 @@ fun BudgetProgressCard(
 
 @Composable
 private fun BudgetCardHeader(
-    budget: BudgetWithSpending,
-    statusColor: Color
+    budget: BudgetWithSpending
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -148,13 +140,13 @@ private fun BudgetCardHeader(
                 Text(
                     text = budget.categoryName,
                     style = MaterialTheme.typography.titleMedium,
-                    color = TextPrimary,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
                     text = budget.period.name.lowercase().replaceFirstChar { it.uppercase() },
                     style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -167,10 +159,10 @@ private fun BudgetCardHeader(
 @Composable
 private fun BudgetStatusBadge(status: BudgetStatus) {
     val (backgroundColor, textColor, label) = when (status) {
-        BudgetStatus.HEALTHY -> Triple(SuccessContainer, AccentGreen, "Healthy")
-        BudgetStatus.ON_TRACK -> Triple(SuccessContainer, AccentGreen, "On Track")
-        BudgetStatus.WARNING -> Triple(WarningContainer, ColorWarning, "Warning")
-        BudgetStatus.OVER_BUDGET -> Triple(ErrorContainer, ColorError, "Over")
+        BudgetStatus.HEALTHY -> Triple(SuccessContainer, ColorTokens.Primary500, "Healthy")
+        BudgetStatus.ON_TRACK -> Triple(SuccessContainer, ColorTokens.Primary500, "On Track")
+        BudgetStatus.WARNING -> Triple(WarningContainer, ColorTokens.Warning500, "Warning")
+        BudgetStatus.OVER_BUDGET -> Triple(ErrorContainer, ColorTokens.Error500, "Over")
     }
 
     Box(
@@ -194,13 +186,13 @@ private fun LinearBudgetProgress(
     statusColor: Color
 ) {
     LinearProgressIndicator(
-        progress = progress,
+        progress = { progress },
         modifier = Modifier
             .fillMaxWidth()
             .height(8.dp)
             .clip(RoundedCornerShape(4.dp)),
         color = statusColor,
-        trackColor = TextTertiary.copy(alpha = 0.2f)
+        trackColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f).copy(alpha = 0.2f)
     )
 }
 
@@ -220,7 +212,7 @@ private fun CircularBudgetProgress(
                 progress = { progress },
                 modifier = Modifier.size(100.dp),
                 color = statusColor,
-                trackColor = TextTertiary.copy(alpha = 0.2f),
+                trackColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f).copy(alpha = 0.2f),
                 strokeWidth = 8.dp
             )
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -233,13 +225,14 @@ private fun CircularBudgetProgress(
                 Text(
                     text = "used",
                     style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
     }
 }
 
+@Suppress("DEPRECATION")
 @Composable
 private fun BudgetAmountInfo(budget: BudgetWithSpending) {
     Row(
@@ -249,14 +242,14 @@ private fun BudgetAmountInfo(budget: BudgetWithSpending) {
         AmountColumn(
             label = "Spent",
             amount = budget.spentAmount,
-            color = if (budget.isOverBudget) ColorError else TextPrimary,
-            icon = Icons.Default.TrendingDown
+            color = if (budget.isOverBudget) ColorTokens.Error500 else MaterialTheme.colorScheme.onBackground,
+            icon = Icons.AutoMirrored.Filled.TrendingDown
         )
 
         AmountColumn(
             label = "Budget",
             amount = budget.amount,
-            color = TextPrimary,
+            color = MaterialTheme.colorScheme.onBackground,
             icon = null
         )
     }
@@ -276,14 +269,14 @@ private fun AmountColumn(
                     imageVector = icon,
                     contentDescription = null,
                     tint = color.copy(alpha = 0.7f),
-                    modifier = Modifier.size(16.dp)
+                    modifier = Modifier.size(SpacingTokens.Medium)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
             }
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelSmall,
-                color = TextSecondary
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
         Spacer(modifier = Modifier.height(2.dp))
@@ -312,13 +305,13 @@ private fun OverBudgetWarning(
         Icon(
             imageVector = Icons.Default.Warning,
             contentDescription = null,
-            tint = ColorError,
+            tint = ColorTokens.Error500,
             modifier = Modifier.size(20.dp)
         )
         Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = "Over budget by ${formatCurrency(overAmount)}",
-            color = ColorError,
+            color = ColorTokens.Error500,
             style = MaterialTheme.typography.bodySmall,
             fontWeight = FontWeight.Medium
         )
@@ -375,18 +368,18 @@ fun BudgetProgressCardCompact(
                 Text(
                     text = budget.categoryName,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = TextPrimary,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Medium
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 LinearProgressIndicator(
-                    progress = progress,
+                    progress = { progress },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(6.dp)
                         .clip(RoundedCornerShape(3.dp)),
                     color = statusColor,
-                    trackColor = TextTertiary.copy(alpha = 0.2f)
+                    trackColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f).copy(alpha = 0.2f)
                 )
             }
 
@@ -410,7 +403,7 @@ fun BudgetProgressCardCompact(
 fun BudgetProgressIndicator(
     progress: Float,
     modifier: Modifier = Modifier,
-    size: Dp = 24.dp,
+    size: Dp = SpacingTokens.Large,
     strokeWidth: Dp = 3.dp
 ) {
     val animatedProgress by animateFloatAsState(
@@ -419,16 +412,16 @@ fun BudgetProgressIndicator(
     )
 
     val color = when {
-        progress >= 1f -> ColorError
-        progress >= 0.8f -> ColorWarning
-        else -> AccentGreen
+        progress >= 1f -> ColorTokens.Error500
+        progress >= 0.8f -> ColorTokens.Warning500
+        else -> ColorTokens.Primary500
     }
 
     CircularProgressIndicator(
         progress = { animatedProgress },
         modifier = modifier.size(size),
         color = color,
-        trackColor = TextTertiary.copy(alpha = 0.2f),
+        trackColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f).copy(alpha = 0.2f),
         strokeWidth = strokeWidth
     )
 }
@@ -437,9 +430,9 @@ fun BudgetProgressIndicator(
  * Helper function to get color based on budget status
  */
 private fun BudgetStatus.getStatusColor(): Color = when (this) {
-    BudgetStatus.HEALTHY, BudgetStatus.ON_TRACK -> AccentGreen
-    BudgetStatus.WARNING -> ColorWarning
-    BudgetStatus.OVER_BUDGET -> ColorError
+    BudgetStatus.HEALTHY, BudgetStatus.ON_TRACK -> ColorTokens.Primary500
+    BudgetStatus.WARNING -> ColorTokens.Warning500
+    BudgetStatus.OVER_BUDGET -> ColorTokens.Error500
 }
 
 private fun formatCurrency(amount: Double): String {
@@ -452,7 +445,7 @@ private val previewBudget = BudgetWithSpending(
     userId = "user1",
     categoryId = 1,
     categoryName = "Food & Dining",
-    categoryColor = android.graphics.Color.parseColor("#FF6B6B"),
+    categoryColor = ColorTokens.Error500.toArgb(),
     categoryIcon = null,
     amount = 1000.0,
     period = BudgetPeriod.MONTHLY,
@@ -472,7 +465,7 @@ private fun BudgetProgressCardPreview() {
     MaterialTheme {
         BudgetProgressCard(
             budget = previewBudget,
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(SpacingTokens.Medium)
         )
     }
 }
@@ -488,7 +481,10 @@ private fun BudgetProgressCardCompactPreview() {
                 progressPercentage = 1.2f,
                 isOverBudget = true
             ),
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(SpacingTokens.Medium)
         )
     }
 }
+
+
+

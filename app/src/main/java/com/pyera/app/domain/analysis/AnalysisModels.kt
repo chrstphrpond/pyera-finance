@@ -1,6 +1,6 @@
 package com.pyera.app.domain.analysis
 
-import com.pyera.app.data.local.entity.TransactionEntity
+import com.pyera.app.domain.model.Transaction
 
 /**
  * Represents different analysis periods for spending insights
@@ -111,7 +111,7 @@ data class CategoryInsight(
  */
 data class SpendingAnomaly(
     val id: Long,
-    val transaction: TransactionEntity,
+    val transaction: Transaction,
     val anomalyType: AnomalyType,
     val severity: AnomalySeverity,
     val description: String,

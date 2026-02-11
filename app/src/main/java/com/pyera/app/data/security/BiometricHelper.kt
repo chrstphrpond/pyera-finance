@@ -1,6 +1,7 @@
 package com.pyera.app.data.security
 
 import androidx.fragment.app.FragmentActivity
+import androidx.biometric.BiometricPrompt
 import com.pyera.app.data.biometric.BiometricAuthManager
 import com.pyera.app.data.biometric.BiometricAuthResult
 import com.pyera.app.data.biometric.BiometricCapability
@@ -59,9 +60,9 @@ class BiometricHelper @Inject constructor(
                     }
                     is BiometricAuthResult.Cancelled,
                     is BiometricAuthResult.Error -> {
-                        if (result is BiometricAuthResult.Error && 
+                        if (result is BiometricAuthResult.Error &&
                             (result.errorCode == BiometricPrompt.ERROR_USER_CANCELED ||
-                             result.errorCode == BiometricPrompt.ERROR_NEGATIVE_BUTTON)) {
+                                result.errorCode == BiometricPrompt.ERROR_NEGATIVE_BUTTON)) {
                             onCancelled()
                         } else {
                             onError("Authentication cancelled")
@@ -90,8 +91,4 @@ class BiometricHelper @Inject constructor(
         return biometricAuthManager.getCapabilityErrorMessage(capability)
     }
 
-    companion object {
-        // Import error codes from BiometricPrompt for convenience
-        private val BiometricPrompt = androidx.biometric.BiometricPrompt
-    }
 }

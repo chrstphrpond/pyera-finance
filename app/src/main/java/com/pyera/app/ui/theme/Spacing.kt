@@ -13,15 +13,16 @@ object Spacing {
     val Small = 8.dp
     val Medium = 12.dp
     val Large = 16.dp
-    val XLarge = 24.dp
-    val XXLarge = 32.dp
-    val XXXLarge = 48.dp
+    val XLarge = 20.dp
+    val XXLarge = 24.dp
+    val XXXLarge = 32.dp
+    val Huge = 48.dp
     
     // Component-specific spacing
-    val CardPadding = 16.dp
-    val ScreenPadding = 16.dp
+    val CardPadding = 20.dp
+    val ScreenPadding = 20.dp
     val DialogPadding = 24.dp
-    val ListItemSpacing = 12.dp
+    val ListItemSpacing = 8.dp
     val SectionSpacing = 24.dp
 }
 
@@ -31,17 +32,19 @@ object Spacing {
  */
 object Radius {
     val none = 0.dp
-    val sm = 4.dp
-    val md = 8.dp
-    val lg = 12.dp
-    val xl = 16.dp
-    val xxl = 24.dp
+    val sm = 6.dp
+    val md = 10.dp
+    val lg = 14.dp
+    val xl = 18.dp
+    val xxl = 22.dp
+    val xxxl = 26.dp
     val full = 9999.dp
     
     // Component-specific radius
-    val Button = 12.dp
-    val Card = 16.dp
+    val Button = 14.dp
+    val Card = 18.dp
     val Input = 12.dp
-    val Dialog = 16.dp
-    val Chip = 8.dp
+    val Dialog = 20.dp
+    val Chip = 10.dp
+    val BottomBar = 28.dp
 }

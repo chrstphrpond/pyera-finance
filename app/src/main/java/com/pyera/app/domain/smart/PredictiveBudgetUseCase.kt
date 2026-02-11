@@ -1,14 +1,14 @@
 package com.pyera.app.domain.smart
 
-import com.pyera.app.data.repository.TransactionRepository
+import com.pyera.app.domain.repository.SpendingDataRepository
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
 class PredictiveBudgetUseCase @Inject constructor(
-    private val transactionRepository: TransactionRepository
+    private val spendingDataRepository: SpendingDataRepository
 ) {
     suspend fun predictNextMonthExpense(): Double {
-        val transactions = transactionRepository.getAllTransactions().first()
+        val transactions = spendingDataRepository.getAllTransactions().first()
         if (transactions.isEmpty()) return 0.0
 
         // Simple algorithm: Average total expense per month

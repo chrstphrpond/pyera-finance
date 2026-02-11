@@ -4,9 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pyera.app.data.local.entity.AccountEntity
 import com.pyera.app.data.local.entity.AccountType
+import com.pyera.app.data.local.entity.defaultIcon
 import com.pyera.app.data.local.entity.displayName
-import com.pyera.app.data.repository.AccountRepository
-import com.pyera.app.data.repository.TransactionRepository
+import com.pyera.app.domain.repository.AccountRepository
+import com.pyera.app.domain.repository.TransactionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted

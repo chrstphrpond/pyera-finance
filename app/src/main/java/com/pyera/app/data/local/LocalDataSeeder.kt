@@ -7,6 +7,7 @@ import com.pyera.app.data.local.entity.AccountEntity
 import com.pyera.app.data.local.entity.AccountType
 import com.pyera.app.data.local.entity.CategoryEntity
 import com.pyera.app.data.local.entity.TransactionEntity
+import com.pyera.app.data.local.entity.defaultIcon
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
 

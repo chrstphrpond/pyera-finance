@@ -1,5 +1,9 @@
 package com.pyera.app.ui.chat
 
+import com.pyera.app.ui.components.PyeraCard
+import com.pyera.app.ui.theme.tokens.ColorTokens
+import com.pyera.app.ui.theme.tokens.SpacingTokens
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -23,12 +27,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.pyera.app.ui.theme.AccentGreen
 import com.pyera.app.ui.theme.CardBackground
-import com.pyera.app.ui.theme.DeepBackground
-import com.pyera.app.ui.theme.TextPrimary
-import com.pyera.app.ui.theme.TextSecondary
+import com.pyera.app.ui.util.pyeraBackground
 
+@Suppress("DEPRECATION")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatScreen(
@@ -56,31 +58,31 @@ fun ChatScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = DeepBackground,
-                    titleContentColor = TextPrimary,
-                    navigationIconContentColor = TextPrimary
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
         },
-        containerColor = DeepBackground
+        containerColor = Color.Transparent
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .pyeraBackground()
                 .padding(paddingValues)
-                .padding(16.dp)
+                .padding(SpacingTokens.Medium)
         ) {
             // Info card indicating chat is disabled
-            Card(
+            PyeraCard(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 16.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                )
+                    .padding(bottom = SpacingTokens.Medium),
+                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                borderWidth = 0.dp
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp)
+                    modifier = Modifier.padding(SpacingTokens.Medium)
                 ) {
                     Text(
                         text = "ℹ️ AI Chat Disabled",
@@ -100,19 +102,19 @@ fun ChatScreen(
                     .weight(1f)
                     .fillMaxSize(),
                 state = listState,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(SpacingTokens.Medium)
             ) {
                 if (state.messages.isEmpty()) {
                     item {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(32.dp),
+                                .padding(SpacingTokens.ExtraLarge),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
                                 text = "Ask me anything about your finances!",
-                                color = TextSecondary,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 fontSize = 16.sp
                             )
                         }
@@ -130,15 +132,15 @@ fun ChatScreen(
                             contentAlignment = Alignment.CenterStart
                         ) {
                             CircularProgressIndicator(
-                                modifier = Modifier.size(24.dp),
-                                color = AccentGreen
+                                modifier = Modifier.size(SpacingTokens.Large),
+                                color = ColorTokens.Primary500
                             )
                         }
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -147,18 +149,18 @@ fun ChatScreen(
                 OutlinedTextField(
                     value = prompt,
                     onValueChange = { prompt = it },
-                    placeholder = { Text("Type a message...", color = TextSecondary) },
+                    placeholder = { Text("Type a message...", color = MaterialTheme.colorScheme.onSurfaceVariant) },
                     modifier = Modifier.weight(1f),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = CardBackground,
                         unfocusedContainerColor = CardBackground,
-                        focusedTextColor = TextPrimary,
-                        unfocusedTextColor = TextPrimary,
-                        cursorColor = AccentGreen,
-                        focusedBorderColor = AccentGreen,
+                        focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        cursorColor = ColorTokens.Primary500,
+                        focusedBorderColor = ColorTokens.Primary500,
                         unfocusedBorderColor = Color.Transparent
                     ),
-                    shape = RoundedCornerShape(24.dp),
+                    shape = RoundedCornerShape(SpacingTokens.Large),
                     maxLines = 3
                 )
 
@@ -169,8 +171,8 @@ fun ChatScreen(
                         viewModel.sendMessage(prompt)
                         prompt = ""
                     },
-                    containerColor = AccentGreen,
-                    contentColor = DeepBackground,
+                    containerColor = ColorTokens.Primary500,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
                     shape = CircleShape
                 ) {
                     Icon(Icons.Default.Send, contentDescription = "Send")
@@ -183,12 +185,12 @@ fun ChatScreen(
 @Composable
 fun MessageBubble(message: ChatMessage) {
     val alignment = if (message.isUser) Alignment.CenterEnd else Alignment.CenterStart
-    val bgColor = if (message.isUser) AccentGreen else CardBackground
-    val textColor = if (message.isUser) DeepBackground else TextPrimary
+    val bgColor = if (message.isUser) ColorTokens.Primary500 else CardBackground
+    val textColor = if (message.isUser) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground
     val shape = if (message.isUser) {
-        RoundedCornerShape(topStart = 16.dp, topEnd = 4.dp, bottomStart = 16.dp, bottomEnd = 16.dp)
+        RoundedCornerShape(topStart = SpacingTokens.Medium, topEnd = 4.dp, bottomStart = SpacingTokens.Medium, bottomEnd = SpacingTokens.Medium)
     } else {
-         RoundedCornerShape(topStart = 4.dp, topEnd = 16.dp, bottomStart = 16.dp, bottomEnd = 16.dp)
+         RoundedCornerShape(topStart = 4.dp, topEnd = SpacingTokens.Medium, bottomStart = SpacingTokens.Medium, bottomEnd = SpacingTokens.Medium)
     }
 
     Box(
@@ -213,3 +215,7 @@ fun MessageBubble(message: ChatMessage) {
         }
     }
 }
+
+
+
+

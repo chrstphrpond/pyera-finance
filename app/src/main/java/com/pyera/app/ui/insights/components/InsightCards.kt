@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.TrendingDown
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -27,6 +29,9 @@ import com.pyera.app.domain.analysis.TipType
 import com.pyera.app.domain.analysis.TrendDirection
 import com.pyera.app.ui.components.PyeraCard
 import com.pyera.app.ui.theme.*
+import com.pyera.app.ui.theme.tokens.ColorTokens
+import com.pyera.app.ui.theme.tokens.SpacingTokens
+import com.pyera.app.ui.util.CurrencyFormatter
 
 /**
  * Card displaying a single spending insight with icon and description
@@ -42,10 +47,10 @@ fun InsightCard(
     onActionClick: (() -> Unit)? = null
 ) {
     PyeraCard(modifier = modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(Spacing.CardPadding)) {
+        Column(modifier = Modifier.padding(SpacingTokens.MediumLarge)) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(Spacing.Medium)
+                horizontalArrangement = Arrangement.spacedBy(SpacingTokens.MediumSmall)
             ) {
                 // Icon with background
                 Box(
@@ -59,7 +64,7 @@ fun InsightCard(
                         imageVector = icon,
                         contentDescription = null,
                         tint = iconBackgroundColor,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(SpacingTokens.Large)
                     )
                 }
 
@@ -68,13 +73,13 @@ fun InsightCard(
                     Text(
                         text = title,
                         style = MaterialTheme.typography.titleSmall,
-                        color = TextPrimary,
+                        color = MaterialTheme.colorScheme.onBackground,
                         fontWeight = FontWeight.SemiBold
                     )
                     Text(
                         text = description,
                         style = MaterialTheme.typography.bodySmall,
-                        color = TextSecondary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -83,10 +88,10 @@ fun InsightCard(
 
             // Optional action button
             if (actionLabel != null && onActionClick != null) {
-                Spacer(modifier = Modifier.height(Spacing.Medium))
+                Spacer(modifier = Modifier.height(SpacingTokens.MediumSmall))
                 TextButton(
                     onClick = onActionClick,
-                    colors = ButtonDefaults.textButtonColors(contentColor = NeonYellow)
+                    colors = ButtonDefaults.textButtonColors(contentColor = ColorTokens.Primary500)
                 ) {
                     Text(actionLabel)
                 }
@@ -98,6 +103,7 @@ fun InsightCard(
 /**
  * Card displaying spending trend with visual indicator
  */
+@Suppress("UNUSED_PARAMETER", "DEPRECATION")
 @Composable
 fun TrendCard(
     title: String,
@@ -108,35 +114,35 @@ fun TrendCard(
     modifier: Modifier = Modifier
 ) {
     val trendColor = when (trend) {
-        TrendDirection.INCREASING -> ColorWarning
-        TrendDirection.DECREASING -> ColorSuccess
-        TrendDirection.STABLE -> TextSecondary
+        TrendDirection.INCREASING -> ColorTokens.Warning500
+        TrendDirection.DECREASING -> ColorTokens.Success500
+        TrendDirection.STABLE -> MaterialTheme.colorScheme.onSurfaceVariant
     }
 
     val trendIcon = when (trend) {
-        TrendDirection.INCREASING -> Icons.Default.TrendingUp
-        TrendDirection.DECREASING -> Icons.Default.TrendingDown
+        TrendDirection.INCREASING -> Icons.AutoMirrored.Filled.TrendingUp
+        TrendDirection.DECREASING -> Icons.AutoMirrored.Filled.TrendingDown
         TrendDirection.STABLE -> Icons.Default.TrendingFlat
     }
 
     PyeraCard(modifier = modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(Spacing.CardPadding)) {
+        Column(modifier = Modifier.padding(SpacingTokens.MediumLarge)) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.labelMedium,
-                color = TextSecondary
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            Spacer(modifier = Modifier.height(Spacing.Small))
+            Spacer(modifier = Modifier.height(SpacingTokens.Small))
 
             Text(
-                text = "₱${String.format("%,.2f", currentAmount)}",
+                text = CurrencyFormatter.format(currentAmount),
                 style = MaterialTheme.typography.headlineSmall,
-                color = TextPrimary,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.Bold
             )
 
-            Spacer(modifier = Modifier.height(Spacing.Small))
+            Spacer(modifier = Modifier.height(SpacingTokens.Small))
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -146,7 +152,7 @@ fun TrendCard(
                     imageVector = trendIcon,
                     contentDescription = null,
                     tint = trendColor,
-                    modifier = Modifier.size(16.dp)
+                    modifier = Modifier.size(SpacingTokens.Medium)
                 )
                 Text(
                     text = "${String.format("%.1f", kotlin.math.abs(percentageChange))}%",
@@ -157,7 +163,7 @@ fun TrendCard(
                 Text(
                     text = "vs last period",
                     style = MaterialTheme.typography.bodySmall,
-                    color = TextTertiary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
                 )
             }
         }
@@ -178,15 +184,15 @@ fun BudgetAdherenceCard(
     modifier: Modifier = Modifier
 ) {
     val progressColor = when {
-        percentageUsed > 1f -> ColorError
-        percentageUsed > 0.8f -> ColorWarning
-        else -> ColorSuccess
+        percentageUsed > 1f -> ColorTokens.Error500
+        percentageUsed > 0.8f -> ColorTokens.Warning500
+        else -> ColorTokens.Success500
     }
 
     val remainingAmount = budgetAmount - spentAmount
 
     PyeraCard(modifier = modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(Spacing.CardPadding)) {
+        Column(modifier = Modifier.padding(SpacingTokens.MediumLarge)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -194,7 +200,7 @@ fun BudgetAdherenceCard(
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(Spacing.Small)
+                    horizontalArrangement = Arrangement.spacedBy(SpacingTokens.Small)
                 ) {
                     // Category color indicator
                     Box(
@@ -206,7 +212,7 @@ fun BudgetAdherenceCard(
                     Text(
                         text = categoryName,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = TextPrimary,
+                        color = MaterialTheme.colorScheme.onBackground,
                         fontWeight = FontWeight.Medium
                     )
                 }
@@ -218,9 +224,9 @@ fun BudgetAdherenceCard(
                     else -> "On Track"
                 }
                 val statusColor = when {
-                    percentageUsed > 1f -> ColorError
-                    percentageUsed > 0.8f -> ColorWarning
-                    else -> ColorSuccess
+                    percentageUsed > 1f -> ColorTokens.Error500
+                    percentageUsed > 0.8f -> ColorTokens.Warning500
+                    else -> ColorTokens.Success500
                 }
 
                 Surface(
@@ -237,7 +243,7 @@ fun BudgetAdherenceCard(
                 }
             }
 
-            Spacer(modifier = Modifier.height(Spacing.Medium))
+            Spacer(modifier = Modifier.height(SpacingTokens.MediumSmall))
 
             // Progress bar
             LinearProgressIndicator(
@@ -250,7 +256,7 @@ fun BudgetAdherenceCard(
                 trackColor = SurfaceOverlay
             )
 
-            Spacer(modifier = Modifier.height(Spacing.Small))
+            Spacer(modifier = Modifier.height(SpacingTokens.Small))
 
             // Amount details
             Row(
@@ -261,12 +267,12 @@ fun BudgetAdherenceCard(
                     Text(
                         text = "Spent",
                         style = MaterialTheme.typography.labelSmall,
-                        color = TextTertiary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
                     )
                     Text(
-                        text = "₱${String.format("%,.2f", spentAmount)}",
+                        text = CurrencyFormatter.format(spentAmount),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = TextPrimary,
+                        color = MaterialTheme.colorScheme.onBackground,
                         fontWeight = FontWeight.SemiBold
                     )
                 }
@@ -275,23 +281,23 @@ fun BudgetAdherenceCard(
                     Text(
                         text = if (remainingAmount >= 0) "Remaining" else "Over",
                         style = MaterialTheme.typography.labelSmall,
-                        color = TextTertiary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
                     )
                     Text(
-                        text = "₱${String.format("%,.2f", kotlin.math.abs(remainingAmount))}",
+                        text = CurrencyFormatter.format(kotlin.math.abs(remainingAmount)),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = if (remainingAmount >= 0) ColorSuccess else ColorError,
+                        color = if (remainingAmount >= 0) ColorTokens.Success500 else ColorTokens.Error500,
                         fontWeight = FontWeight.SemiBold
                     )
                 }
             }
 
             if (daysRemaining > 0) {
-                Spacer(modifier = Modifier.height(Spacing.Small))
+                Spacer(modifier = Modifier.height(SpacingTokens.Small))
                 Text(
                     text = "$daysRemaining days remaining",
                     style = MaterialTheme.typography.labelSmall,
-                    color = TextTertiary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
                 )
             }
         }
@@ -310,23 +316,23 @@ fun AnomalyAlertCard(
     val (icon, iconColor, backgroundColor) = when (anomaly.severity) {
         AnomalySeverity.CRITICAL -> Triple(
             Icons.Default.Warning,
-            ColorError,
+            ColorTokens.Error500,
             ColorErrorContainer
         )
         AnomalySeverity.HIGH -> Triple(
             Icons.Default.Error,
-            ColorWarning,
+            ColorTokens.Warning500,
             ColorWarningContainer
         )
         AnomalySeverity.MEDIUM -> Triple(
             Icons.Default.Info,
-            ColorInfo,
-            Color(0xFF0A1A2A)
+            ColorTokens.Info500,
+            ColorTokens.Info500.copy(alpha = 0.15f)
         )
         AnomalySeverity.LOW -> Triple(
             Icons.Default.Info,
-            TextSecondary,
-            SurfaceElevated
+            MaterialTheme.colorScheme.onSurfaceVariant,
+            ColorTokens.SurfaceLevel2
         )
     }
 
@@ -339,22 +345,23 @@ fun AnomalyAlertCard(
         AnomalyType.FREQUENCY_SPIKE -> "High Activity"
     }
 
-    Card(
+    PyeraCard(
         modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = backgroundColor),
-        shape = RoundedCornerShape(12.dp)
+        containerColor = backgroundColor,
+        cornerRadius = 12.dp,
+        borderWidth = 0.dp
     ) {
-        Column(modifier = Modifier.padding(Spacing.CardPadding)) {
+        Column(modifier = Modifier.padding(SpacingTokens.MediumLarge)) {
             Row(
                 verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.spacedBy(Spacing.Medium)
+                horizontalArrangement = Arrangement.spacedBy(SpacingTokens.MediumSmall)
             ) {
                 // Severity icon
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
                     tint = iconColor,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(SpacingTokens.Large)
                 )
 
                 // Content
@@ -384,30 +391,30 @@ fun AnomalyAlertCard(
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(SpacingTokens.ExtraSmall))
 
                     Text(
                         text = anomaly.description,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = TextPrimary
+                        color = MaterialTheme.colorScheme.onBackground
                     )
 
                     anomaly.suggestedAction?.let { action ->
-                        Spacer(modifier = Modifier.height(4.dp))
+                        Spacer(modifier = Modifier.height(SpacingTokens.ExtraSmall))
                         Text(
                             text = action,
                             style = MaterialTheme.typography.bodySmall,
-                            color = TextSecondary
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
 
                 // Dismiss button
-                IconButton(onClick = onDismiss, modifier = Modifier.size(32.dp)) {
+                IconButton(onClick = onDismiss, modifier = Modifier.size(SpacingTokens.ExtraLarge)) {
                     Icon(
                         imageVector = Icons.Default.Close,
                         contentDescription = "Dismiss",
-                        tint = TextSecondary,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(18.dp)
                     )
                 }
@@ -426,18 +433,18 @@ fun TipCard(
     modifier: Modifier = Modifier
 ) {
     val (icon, iconColor) = when (tip.type) {
-        TipType.SAVINGS_OPPORTUNITY -> Pair(Icons.Default.Savings, ColorSuccess)
-        TipType.BUDGET_ALERT -> Pair(Icons.Default.AccountBalanceWallet, ColorWarning)
+        TipType.SAVINGS_OPPORTUNITY -> Pair(Icons.Default.Savings, ColorTokens.Success500)
+        TipType.BUDGET_ALERT -> Pair(Icons.Default.AccountBalanceWallet, ColorTokens.Warning500)
         TipType.SPENDING_PATTERN -> Pair(Icons.Default.Insights, ColorInfo)
-        TipType.GOAL_PROGRESS -> Pair(Icons.Default.Flag, NeonYellow)
-        TipType.GENERAL -> Pair(Icons.Default.Lightbulb, TextSecondary)
+        TipType.GOAL_PROGRESS -> Pair(Icons.Default.Flag, ColorTokens.Primary500)
+        TipType.GENERAL -> Pair(Icons.Default.Lightbulb, MaterialTheme.colorScheme.onSurfaceVariant)
     }
 
     val borderColor = when (tip.type) {
-        TipType.SAVINGS_OPPORTUNITY -> ColorSuccess.copy(alpha = 0.3f)
-        TipType.BUDGET_ALERT -> ColorWarning.copy(alpha = 0.3f)
+        TipType.SAVINGS_OPPORTUNITY -> ColorTokens.Success500.copy(alpha = 0.3f)
+        TipType.BUDGET_ALERT -> ColorTokens.Warning500.copy(alpha = 0.3f)
         TipType.SPENDING_PATTERN -> ColorInfo.copy(alpha = 0.3f)
-        TipType.GOAL_PROGRESS -> NeonYellow.copy(alpha = 0.3f)
+        TipType.GOAL_PROGRESS -> ColorTokens.Primary500.copy(alpha = 0.3f)
         TipType.GENERAL -> ColorBorder
     }
 
@@ -445,10 +452,10 @@ fun TipCard(
         modifier = modifier.fillMaxWidth(),
         borderColor = borderColor
     ) {
-        Column(modifier = Modifier.padding(Spacing.CardPadding)) {
+        Column(modifier = Modifier.padding(SpacingTokens.MediumLarge)) {
             Row(
                 verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.spacedBy(Spacing.Medium)
+                horizontalArrangement = Arrangement.spacedBy(SpacingTokens.MediumSmall)
             ) {
                 // Tip icon
                 Box(
@@ -471,30 +478,30 @@ fun TipCard(
                     Text(
                         text = tip.title,
                         style = MaterialTheme.typography.titleSmall,
-                        color = TextPrimary,
+                        color = MaterialTheme.colorScheme.onBackground,
                         fontWeight = FontWeight.SemiBold
                     )
 
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(SpacingTokens.ExtraSmall))
 
                     Text(
                         text = tip.description,
                         style = MaterialTheme.typography.bodySmall,
-                        color = TextSecondary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
 
             // Action button
             if (onActionClick != null && tip.actionLabel != null) {
-                Spacer(modifier = Modifier.height(Spacing.Medium))
+                Spacer(modifier = Modifier.height(SpacingTokens.MediumSmall))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End
                 ) {
                     TextButton(
                         onClick = onActionClick,
-                        colors = ButtonDefaults.textButtonColors(contentColor = NeonYellow)
+                        colors = ButtonDefaults.textButtonColors(contentColor = ColorTokens.Primary500)
                     ) {
                         Text(tip.actionLabel)
                     }
@@ -507,6 +514,7 @@ fun TipCard(
 /**
  * Summary card for the top of the insights screen
  */
+@Suppress("DEPRECATION")
 @Composable
 fun InsightsSummaryCard(
     totalSpending: Double,
@@ -517,37 +525,37 @@ fun InsightsSummaryCard(
     modifier: Modifier = Modifier
 ) {
     val trendColor = when (trend) {
-        TrendDirection.INCREASING -> ColorWarning
-        TrendDirection.DECREASING -> ColorSuccess
-        TrendDirection.STABLE -> TextSecondary
+        TrendDirection.INCREASING -> ColorTokens.Warning500
+        TrendDirection.DECREASING -> ColorTokens.Success500
+        TrendDirection.STABLE -> MaterialTheme.colorScheme.onSurfaceVariant
     }
 
     PyeraCard(
         modifier = modifier.fillMaxWidth(),
-        borderColor = NeonYellow.copy(alpha = 0.3f)
+        borderColor = ColorTokens.Primary500.copy(alpha = 0.3f)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(Spacing.XLarge),
+                .padding(SpacingTokens.MediumLarge),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 text = "Total Spending",
                 style = MaterialTheme.typography.labelLarge,
-                color = TextSecondary
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            Spacer(modifier = Modifier.height(Spacing.Small))
+            Spacer(modifier = Modifier.height(SpacingTokens.Small))
 
             Text(
-                text = "₱${String.format("%,.2f", totalSpending)}",
+                text = CurrencyFormatter.format(totalSpending),
                 style = MaterialTheme.typography.displaySmall,
-                color = TextPrimary,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.Bold
             )
 
-            Spacer(modifier = Modifier.height(Spacing.Small))
+            Spacer(modifier = Modifier.height(SpacingTokens.Small))
 
             // Trend indicator
             Row(
@@ -555,8 +563,8 @@ fun InsightsSummaryCard(
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 val trendIcon = when (trend) {
-                    TrendDirection.INCREASING -> Icons.Default.TrendingUp
-                    TrendDirection.DECREASING -> Icons.Default.TrendingDown
+                    TrendDirection.INCREASING -> Icons.AutoMirrored.Filled.TrendingUp
+                    TrendDirection.DECREASING -> Icons.AutoMirrored.Filled.TrendingDown
                     TrendDirection.STABLE -> Icons.Default.Remove
                 }
 
@@ -564,7 +572,7 @@ fun InsightsSummaryCard(
                     imageVector = trendIcon,
                     contentDescription = null,
                     tint = trendColor,
-                    modifier = Modifier.size(16.dp)
+                    modifier = Modifier.size(SpacingTokens.Medium)
                 )
                 Text(
                     text = "${String.format("%.1f", kotlin.math.abs(percentageChange))}%",
@@ -575,15 +583,15 @@ fun InsightsSummaryCard(
                 Text(
                     text = "vs last period",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = TextTertiary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
                 )
             }
 
-            Spacer(modifier = Modifier.height(Spacing.Large))
+            Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
             HorizontalDivider(color = ColorBorder)
 
-            Spacer(modifier = Modifier.height(Spacing.Large))
+            Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
             // Stats row
             Row(
@@ -592,7 +600,7 @@ fun InsightsSummaryCard(
             ) {
                 StatItem(
                     label = "Daily Avg",
-                    value = "₱${String.format("%,.2f", averageDaily)}"
+                    value = CurrencyFormatter.format(averageDaily)
                 )
                 StatItem(
                     label = "Transactions",
@@ -609,14 +617,16 @@ private fun StatItem(label: String, value: String) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall,
-            color = TextTertiary
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
         )
-        Spacer(modifier = Modifier.height(2.dp))
+        Spacer(modifier = Modifier.height(SpacingTokens.ExtraSmall))
         Text(
             text = value,
             style = MaterialTheme.typography.titleMedium,
-            color = TextPrimary,
+            color = MaterialTheme.colorScheme.onBackground,
             fontWeight = FontWeight.SemiBold
         )
     }
 }
+
+

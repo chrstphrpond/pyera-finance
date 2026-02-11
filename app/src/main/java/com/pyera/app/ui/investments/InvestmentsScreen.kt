@@ -1,11 +1,12 @@
 package com.pyera.app.ui.investments
+import com.pyera.app.ui.theme.tokens.ColorTokens
+import com.pyera.app.ui.theme.tokens.SpacingTokens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -16,7 +17,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -24,17 +24,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.pyera.app.data.local.entity.InvestmentEntity
-import androidx.compose.foundation.lazy.items
 import com.pyera.app.ui.components.PyeraCard
-import com.pyera.app.ui.theme.AccentGreen
 import com.pyera.app.ui.theme.CardBackground
-import com.pyera.app.ui.theme.ColorError
-import com.pyera.app.ui.theme.DeepBackground
 import com.pyera.app.ui.theme.NegativeChange
 import com.pyera.app.ui.theme.PositiveChange
-import com.pyera.app.ui.theme.TextPrimary
-import com.pyera.app.ui.theme.TextSecondary
-import com.pyera.app.ui.theme.TextTertiary
+import com.pyera.app.ui.util.CurrencyFormatter
+import com.pyera.app.ui.util.pyeraBackground
 import java.util.*
 
 @Composable
@@ -44,7 +39,7 @@ fun InvestmentsScreen(
     val investments by viewModel.investments.collectAsStateWithLifecycle()
     val totalValue by viewModel.totalPortfolioValue.collectAsStateWithLifecycle()
     var showAddDialog by rememberSaveable { mutableStateOf(false) }
-    var investmentToUpdateId by rememberSaveable { mutableStateOf<Long?>(null) }
+    var investmentToUpdateId by rememberSaveable { mutableStateOf<Int?>(null) }
     val investmentToUpdate = investmentToUpdateId?.let { id -> investments.find { it.id == id } }
 
     if (showAddDialog) {
@@ -60,14 +55,14 @@ fun InvestmentsScreen(
     investmentToUpdate?.let { investment ->
         UpdateInvestmentDialog(
             investment = investment,
-            onDismiss = { investmentToUpdate = null },
+            onDismiss = { investmentToUpdateId = null },
             onConfirm = { newValue ->
                 viewModel.updateValue(investment, newValue)
-                investmentToUpdate = null
+                investmentToUpdateId = null
             },
             onDelete = {
                 viewModel.deleteInvestment(investment)
-                investmentToUpdate = null
+                investmentToUpdateId = null
             }
         )
     }
@@ -76,68 +71,69 @@ fun InvestmentsScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showAddDialog = true },
-                containerColor = AccentGreen,
+                containerColor = ColorTokens.Primary500,
                 contentColor = Color.Black
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add Asset")
             }
         },
-        containerColor = DeepBackground
+        containerColor = Color.Transparent
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .pyeraBackground()
                 .padding(innerPadding)
-                .padding(16.dp)
+                .padding(SpacingTokens.Medium)
         ) {
             // Portfolio Summary
             PyeraCard(modifier = Modifier.fillMaxWidth()) {
                 Column(
-                    modifier = Modifier.padding(24.dp),
+                    modifier = Modifier.padding(SpacingTokens.Large),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
                         text = "Total Portfolio Value",
                         style = MaterialTheme.typography.titleMedium,
-                        color = TextSecondary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(SpacingTokens.Small))
                     Text(
-                        text = "₱${String.format("%.2f", totalValue)}",
+                        text = CurrencyFormatter.format(totalValue),
                         style = MaterialTheme.typography.displayMedium,
-                        color = AccentGreen,
+                        color = ColorTokens.Primary500,
                         fontWeight = FontWeight.Bold
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Large))
             
             Text(
                 text = "My Assets",
                 style = MaterialTheme.typography.titleLarge,
-                color = TextPrimary
+                color = MaterialTheme.colorScheme.onBackground
             )
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
             if (investments.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(
                         text = "No investments yet.",
-                        color = TextSecondary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodyLarge
                     )
                 }
             } else {
                 LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    verticalArrangement = Arrangement.spacedBy(SpacingTokens.MediumSmall)
                 ) {
                     items(
                         items = investments,
                         key = { investment: InvestmentEntity -> investment.id }
                     ) { investment: InvestmentEntity ->
-                        InvestmentItem(investment, onClick = { investmentToUpdate = investment })
+                        InvestmentItem(investment, onClick = { investmentToUpdateId = investment.id })
                     }
                 }
             }
@@ -152,28 +148,28 @@ fun InvestmentItem(investment: InvestmentEntity, onClick: () -> Unit) {
 
     PyeraCard(modifier = Modifier.fillMaxWidth().clickable { onClick() }) {
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(SpacingTokens.Medium),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = investment.name,
                     style = MaterialTheme.typography.titleMedium,
-                    color = TextPrimary,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = investment.type,
                     style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             
             Column(horizontalAlignment = Alignment.End) {
                 Text(
-                    text = "₱${String.format("%.2f", investment.currentValue)}",
+                    text = CurrencyFormatter.format(investment.currentValue),
                     style = MaterialTheme.typography.titleMedium,
-                    color = TextPrimary,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
@@ -197,20 +193,21 @@ fun AddInvestmentDialog(
     // Initial value same as invested
     
     Dialog(onDismissRequest = onDismiss) {
-        Card(
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = CardBackground)
+        PyeraCard(
+            cornerRadius = SpacingTokens.Medium,
+            containerColor = CardBackground,
+            borderWidth = 0.dp
         ) {
             Column(
-                modifier = Modifier.padding(24.dp),
+                modifier = Modifier.padding(SpacingTokens.Large),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
                     text = "Add Asset",
                     style = MaterialTheme.typography.titleLarge,
-                    color = TextPrimary
+                    color = MaterialTheme.colorScheme.onBackground
                 )
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
                 OutlinedTextField(
                     value = name,
@@ -218,15 +215,15 @@ fun AddInvestmentDialog(
                     label = { Text("Asset Name (e.g. AAPL)") },
                     singleLine = true,
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = TextPrimary,
-                        unfocusedTextColor = TextPrimary,
-                        focusedBorderColor = AccentGreen,
-                        unfocusedBorderColor = TextSecondary
+                        focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        focusedBorderColor = ColorTokens.Primary500,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(SpacingTokens.Small))
 
                 OutlinedTextField(
                     value = investedText,
@@ -235,22 +232,22 @@ fun AddInvestmentDialog(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = TextPrimary,
-                        unfocusedTextColor = TextPrimary,
-                        focusedBorderColor = AccentGreen,
-                        unfocusedBorderColor = TextSecondary
+                        focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        focusedBorderColor = ColorTokens.Primary500,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(SpacingTokens.Large))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End
                 ) {
                     TextButton(onClick = onDismiss) {
-                        Text("Cancel", color = TextSecondary)
+                        Text("Cancel", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     Button(
@@ -260,7 +257,7 @@ fun AddInvestmentDialog(
                                 onConfirm(name, type, invested, invested) // Current value starts as invested
                             }
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = AccentGreen)
+                        colors = ButtonDefaults.buttonColors(containerColor = ColorTokens.Primary500)
                     ) {
                         Text("Save", color = Color.Black)
                     }
@@ -280,26 +277,27 @@ fun UpdateInvestmentDialog(
     var valueText by rememberSaveable { mutableStateOf("") }
 
     Dialog(onDismissRequest = onDismiss) {
-        Card(
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = CardBackground)
+        PyeraCard(
+            cornerRadius = SpacingTokens.Medium,
+            containerColor = CardBackground,
+            borderWidth = 0.dp
         ) {
             Column(
-                modifier = Modifier.padding(24.dp),
+                modifier = Modifier.padding(SpacingTokens.Large),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
                     text = "Update ${investment.name}",
                     style = MaterialTheme.typography.titleLarge,
-                    color = TextPrimary
+                    color = MaterialTheme.colorScheme.onBackground
                 )
                  Text(
-                    text = "Initial Investment: ₱${String.format("%.2f", investment.amountInvested)}",
+                    text = "Initial Investment: ${CurrencyFormatter.format(investment.amountInvested)}",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = TextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
                 OutlinedTextField(
                     value = valueText,
@@ -308,27 +306,27 @@ fun UpdateInvestmentDialog(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = TextPrimary,
-                        unfocusedTextColor = TextPrimary,
-                        focusedBorderColor = AccentGreen,
-                        unfocusedBorderColor = TextSecondary
+                        focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        focusedBorderColor = ColorTokens.Primary500,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(SpacingTokens.Large))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     TextButton(onClick = onDelete) {
-                        Text("Delete", color = ColorError.copy(alpha = 0.7f))
+                        Text("Delete", color = ColorTokens.Error500.copy(alpha = 0.7f))
                     }
                     
                     Row {
                         TextButton(onClick = onDismiss) {
-                            Text("Cancel", color = TextSecondary)
+                            Text("Cancel", color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                         Spacer(modifier = Modifier.width(8.dp))
                         Button(
@@ -338,7 +336,7 @@ fun UpdateInvestmentDialog(
                                     onConfirm(newValue)
                                 }
                             },
-                            colors = ButtonDefaults.buttonColors(containerColor = AccentGreen)
+                            colors = ButtonDefaults.buttonColors(containerColor = ColorTokens.Primary500)
                         ) {
                             Text("Update", color = Color.Black)
                         }
@@ -348,3 +346,6 @@ fun UpdateInvestmentDialog(
         }
     }
 }
+
+
+

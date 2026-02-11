@@ -3,10 +3,10 @@ package com.pyera.app.ui.profile
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.pyera.app.data.repository.AuthRepository
-import com.pyera.app.data.repository.BudgetRepository
-import com.pyera.app.data.repository.SavingsRepository
-import com.pyera.app.data.repository.TransactionRepository
+import com.pyera.app.domain.repository.AuthRepository
+import com.pyera.app.domain.repository.BudgetRepository
+import com.pyera.app.domain.repository.SavingsRepository
+import com.pyera.app.domain.repository.TransactionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.MutableSharedFlow

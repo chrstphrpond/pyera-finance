@@ -1,4 +1,5 @@
 package com.pyera.app.ui.components
+import com.pyera.app.ui.theme.tokens.ColorTokens
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -18,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Icon
@@ -66,9 +68,9 @@ fun PyeraAuthTextField(
             onValueChange = onValueChange,
             modifier = Modifier.fillMaxWidth(),
             label = { Text(label) },
-            placeholder = placeholder?.let { { Text(it, color = TextTertiary) } },
+            placeholder = placeholder?.let { { Text(it, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)) } },
             leadingIcon = leadingIcon?.let {
-                { Icon(it, contentDescription = "$label icon", tint = if (isError) ColorError else TextSecondary) }
+                { Icon(it, contentDescription = "$label icon", tint = if (isError) ColorTokens.Error500 else MaterialTheme.colorScheme.onSurfaceVariant) }
             },
             trailingIcon = if (isPassword) {
                 {
@@ -78,7 +80,7 @@ fun PyeraAuthTextField(
                                 Icons.Default.VisibilityOff else Icons.Default.Visibility,
                             contentDescription = if (isPasswordVisible)
                                 "Hide password" else "Show password",
-                            tint = if (isError) ColorError else TextTertiary
+                            tint = if (isError) ColorTokens.Error500 else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
                         )
                     }
                 }
@@ -96,17 +98,17 @@ fun PyeraAuthTextField(
                 onDone = { onImeAction?.invoke() }
             ),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = NeonYellow,
-                unfocusedBorderColor = if (isError) ColorError else ColorBorder,
-                focusedTextColor = TextPrimary,
-                unfocusedTextColor = TextPrimary,
-                focusedLabelColor = if (isError) ColorError else NeonYellow,
-                unfocusedLabelColor = if (isError) ColorError else TextSecondary,
-                errorBorderColor = ColorError,
-                errorLabelColor = ColorError,
-                errorSupportingTextColor = ColorError,
-                focusedContainerColor = SurfaceElevated.copy(alpha = 0.5f),
-                unfocusedContainerColor = SurfaceElevated.copy(alpha = 0.3f)
+                focusedBorderColor = ColorTokens.Primary500,
+                unfocusedBorderColor = if (isError) ColorTokens.Error500 else ColorBorder,
+                focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                focusedLabelColor = if (isError) ColorTokens.Error500 else ColorTokens.Primary500,
+                unfocusedLabelColor = if (isError) ColorTokens.Error500 else MaterialTheme.colorScheme.onSurfaceVariant,
+                errorBorderColor = ColorTokens.Error500,
+                errorLabelColor = ColorTokens.Error500,
+                errorSupportingTextColor = ColorTokens.Error500,
+                focusedContainerColor = ColorTokens.SurfaceLevel2.copy(alpha = 0.5f),
+                unfocusedContainerColor = ColorTokens.SurfaceLevel2.copy(alpha = 0.3f)
             ),
             shape = RoundedCornerShape(Radius.lg),
             supportingText = if (isError && errorMessage != null) {
@@ -181,9 +183,9 @@ private fun PasswordStrengthBar(strength: PasswordStrength) {
 
     val color = when (strength) {
         PasswordStrength.EMPTY -> CardBorder
-        PasswordStrength.WEAK -> ColorError
-        PasswordStrength.MEDIUM -> ColorWarning
-        PasswordStrength.STRONG -> ColorSuccess
+        PasswordStrength.WEAK -> ColorTokens.Error500
+        PasswordStrength.MEDIUM -> ColorTokens.Warning500
+        PasswordStrength.STRONG -> ColorTokens.Success500
     }
 
     val label = when (strength) {
@@ -220,7 +222,7 @@ private fun PasswordStrengthBar(strength: PasswordStrength) {
                 Text(
                     text = "Strength: ",
                     style = MaterialTheme.typography.labelSmall,
-                    color = TextTertiary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
                 )
                 Text(
                     text = label,
@@ -259,3 +261,5 @@ fun calculatePasswordStrength(password: String): PasswordStrength {
         else -> PasswordStrength.STRONG
     }
 }
+
+

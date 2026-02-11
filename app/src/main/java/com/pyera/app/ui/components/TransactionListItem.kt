@@ -2,14 +2,29 @@ package com.pyera.app.ui.components
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.DismissDirection
+import androidx.compose.material.DismissValue
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.SwipeToDismiss
+import androidx.compose.material.rememberDismissState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -19,13 +34,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.pyera.app.data.local.entity.AccountEntity
 import com.pyera.app.data.local.entity.CategoryEntity
 import com.pyera.app.data.local.entity.TransactionEntity
-import com.pyera.app.ui.theme.*
+import com.pyera.app.ui.theme.tokens.ColorTokens
+import com.pyera.app.ui.theme.tokens.RadiusTokens
+import com.pyera.app.ui.theme.tokens.SpacingTokens
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
 /**
  * A swipeable transaction list item with edit/delete actions.
@@ -40,7 +58,7 @@ import java.util.*
  * @param onDelete Callback when delete action is triggered
  * @param modifier Modifier for customizing the layout
  */
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun TransactionListItem(
     transaction: TransactionEntity,
@@ -52,15 +70,15 @@ fun TransactionListItem(
     modifier: Modifier = Modifier
 ) {
     val dismissState = rememberDismissState(
-        confirmValueChange = { dismissValue ->
+        confirmStateChange = { dismissValue ->
             when (dismissValue) {
                 DismissValue.DismissedToStart -> {
                     onDelete()
-                    false // Don't actually dismiss, let the dialog handle it
+                    false
                 }
                 DismissValue.DismissedToEnd -> {
                     onEdit()
-                    false // Don't actually dismiss
+                    false
                 }
                 DismissValue.Default -> false
             }
@@ -74,9 +92,9 @@ fun TransactionListItem(
             val direction = dismissState.dismissDirection
             val color by animateColorAsState(
                 when (dismissState.targetValue) {
-                    DismissValue.DismissedToStart -> ColorError.copy(alpha = 0.9f)
-                    DismissValue.DismissedToEnd -> ColorInfo.copy(alpha = 0.9f)
-                    DismissValue.Default -> SurfaceElevated
+                    DismissValue.DismissedToStart -> ColorTokens.Error500.copy(alpha = 0.9f)
+                    DismissValue.DismissedToEnd -> ColorTokens.Info500.copy(alpha = 0.9f)
+                    DismissValue.Default -> ColorTokens.SurfaceLevel2
                 },
                 label = "swipe_background_color"
             )
@@ -90,26 +108,21 @@ fun TransactionListItem(
                 DismissDirection.EndToStart -> Icons.Default.Delete
                 null -> Icons.Default.Edit
             }
-            val contentColor = when (direction) {
-                DismissDirection.StartToEnd -> TextPrimary
-                DismissDirection.EndToStart -> TextPrimary
-                null -> TextPrimary
-            }
 
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(vertical = 6.dp)
-                    .clip(RoundedCornerShape(12.dp))
+                    .padding(vertical = SpacingTokens.ExtraSmall)
+                    .clip(RoundedCornerShape(RadiusTokens.Large))
                     .background(color)
-                    .padding(horizontal = 24.dp),
+                    .padding(horizontal = SpacingTokens.Large),
                 contentAlignment = alignment
             ) {
                 Icon(
                     imageVector = icon,
                     contentDescription = if (direction == DismissDirection.StartToEnd) "Edit" else "Delete",
-                    tint = contentColor,
-                    modifier = Modifier.size(24.dp)
+                    tint = Color.White,
+                    modifier = Modifier.size(SpacingTokens.Large)
                 )
             }
         },
@@ -118,10 +131,10 @@ fun TransactionListItem(
                 transaction = transaction,
                 category = category,
                 account = account,
-                onClick = onClick
+                onClick = onClick,
+                modifier = modifier
             )
-        },
-        modifier = modifier
+        }
     )
 }
 
@@ -134,111 +147,92 @@ private fun TransactionItemContent(
     transaction: TransactionEntity,
     category: CategoryEntity?,
     account: AccountEntity?,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val isIncome = transaction.type == "INCOME"
-    val amountColor = if (isIncome) ColorIncome else ColorExpense
-    val amountPrefix = if (isIncome) "+" else "-"
+    val signedAmount = if (isIncome) transaction.amount else -transaction.amount
 
-    Card(
-        modifier = Modifier
+    PyeraCard(
+        modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 6.dp)
-            .clickable { onClick() },
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = SurfaceElevated
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 2.dp
-        )
+            .padding(vertical = SpacingTokens.ExtraSmall),
+        variant = CardVariant.Default,
+        onClick = onClick
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
+                .padding(SpacingTokens.Medium),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Category Icon with colored background
             CategoryIcon(
                 category = category,
-                modifier = Modifier.size(48.dp)
+                modifier = Modifier.size(40.dp)
             )
 
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(SpacingTokens.Medium))
 
-            // Transaction Details
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                verticalArrangement = Arrangement.spacedBy(SpacingTokens.ExtraSmall)
             ) {
-                // Description
                 Text(
-                    text = transaction.note.takeIf { it.isNotBlank() } 
-                        ?: category?.name 
+                    text = transaction.note.takeIf { it.isNotBlank() }
+                        ?: category?.name
                         ?: "Transaction",
                     style = MaterialTheme.typography.bodyLarge,
-                    color = TextPrimary,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
 
-                // Category and Account info row
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(SpacingTokens.Small)
                 ) {
-                    // Category name
                     Text(
                         text = category?.name ?: "Uncategorized",
                         style = MaterialTheme.typography.bodySmall,
-                        color = TextSecondary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
-                    // Dot separator
                     if (account != null) {
                         Box(
                             modifier = Modifier
                                 .size(4.dp)
                                 .clip(CircleShape)
-                                .background(TextTertiary)
+                                .background(
+                                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
+                                )
                         )
 
-                        // Account name
                         Text(
                             text = account.name,
                             style = MaterialTheme.typography.bodySmall,
-                            color = TextTertiary,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
 
-                // Date
                 Text(
                     text = formatTransactionDate(transaction.date),
                     style = MaterialTheme.typography.bodySmall,
-                    color = TextTertiary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
                 )
             }
 
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(SpacingTokens.Small))
 
-            // Amount
-            Column(
-                horizontalAlignment = Alignment.End
-            ) {
-                Text(
-                    text = "$amountPrefix ₱${String.format("%,.2f", transaction.amount)}",
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontSize = 16.sp
-                    ),
-                    color = amountColor,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+            MoneyDisplay(
+                amount = signedAmount,
+                isPositive = isIncome,
+                size = MoneySize.Small,
+                showSign = true
+            )
         }
     }
 }
@@ -254,7 +248,8 @@ private fun CategoryIcon(
     category: CategoryEntity?,
     modifier: Modifier = Modifier
 ) {
-    val backgroundColor = category?.color?.let { Color(it) } ?: TextTertiary
+    val fallbackColor = ColorTokens.Primary500
+    val backgroundColor = category?.color?.let { Color(it) } ?: fallbackColor
     val iconText = category?.name?.take(1)?.uppercase() ?: "?"
 
     Box(
@@ -266,8 +261,7 @@ private fun CategoryIcon(
         Text(
             text = iconText,
             color = backgroundColor,
-            fontWeight = FontWeight.Bold,
-            fontSize = 18.sp
+            fontWeight = FontWeight.Bold
         )
     }
 }
@@ -298,7 +292,7 @@ private fun formatTransactionDate(timestamp: Long): String {
  */
 private fun isSameDay(cal1: Calendar, cal2: Calendar): Boolean {
     return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
-            cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR)
+        cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR)
 }
 
 /**

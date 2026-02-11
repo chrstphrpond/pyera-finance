@@ -34,12 +34,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.pyera.app.ui.theme.ColorBorder
-import com.pyera.app.ui.theme.ColorError
-import com.pyera.app.ui.theme.NeonYellow
-import com.pyera.app.ui.theme.SurfaceElevated
-import com.pyera.app.ui.theme.TextPrimary
-import com.pyera.app.ui.theme.TextSecondary
-import com.pyera.app.ui.theme.TextTertiary
+import com.pyera.app.ui.theme.tokens.ColorTokens
+import com.pyera.app.ui.theme.tokens.SpacingTokens
 
 /**
  * A standardized text field component with consistent styling.
@@ -80,16 +76,16 @@ fun PyeraTextField(
         value = value,
         onValueChange = onValueChange,
         label = label?.let { { Text(it) } },
-        placeholder = placeholder?.let { { Text(it, color = TextTertiary) } },
+        placeholder = placeholder?.let { { Text(it, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)) } },
         leadingIcon = leadingIcon?.let {
-            { Icon(it, contentDescription = null, tint = TextSecondary) }
+            { Icon(it, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) }
         },
         trailingIcon = trailingIcon?.let {
-            { Icon(it, contentDescription = null, tint = TextSecondary) }
+            { Icon(it, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) }
         },
         isError = isError,
         supportingText = if (isError && errorMessage != null) {
-            { Text(errorMessage, color = ColorError) }
+            { Text(errorMessage, color = ColorTokens.Error500) }
         } else null,
         singleLine = singleLine,
         maxLines = maxLines,
@@ -106,15 +102,15 @@ fun PyeraTextField(
             onPrevious = { onImeAction?.invoke() }
         ),
         colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = NeonYellow,
+            focusedBorderColor = ColorTokens.Primary500,
             unfocusedBorderColor = ColorBorder,
-            focusedTextColor = TextPrimary,
-            unfocusedTextColor = TextPrimary,
-            focusedLabelColor = NeonYellow,
-            unfocusedLabelColor = TextSecondary,
-            errorBorderColor = ColorError,
-            errorLabelColor = ColorError,
-            cursorColor = NeonYellow
+            focusedTextColor = MaterialTheme.colorScheme.onBackground,
+            unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+            focusedLabelColor = ColorTokens.Primary500,
+            unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            errorBorderColor = ColorTokens.Error500,
+            errorLabelColor = ColorTokens.Error500,
+            cursorColor = ColorTokens.Primary500
         ),
         shape = RoundedCornerShape(12.dp),
         modifier = modifier.fillMaxWidth()
@@ -152,16 +148,16 @@ fun <T> PyeraDropdown(
                 Icon(
                     imageVector = Icons.Default.ArrowDropDown,
                     contentDescription = "Open dropdown",
-                    tint = TextSecondary
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             },
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = NeonYellow,
+                focusedBorderColor = ColorTokens.Primary500,
                 unfocusedBorderColor = ColorBorder,
-                focusedTextColor = TextPrimary,
-                unfocusedTextColor = TextPrimary,
-                focusedLabelColor = NeonYellow,
-                unfocusedLabelColor = TextSecondary
+                focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                focusedLabelColor = ColorTokens.Primary500,
+                unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
             ),
             shape = RoundedCornerShape(12.dp),
             modifier = Modifier
@@ -180,7 +176,7 @@ fun <T> PyeraDropdown(
             expanded = expanded,
             onDismissRequest = { expanded = false },
             modifier = Modifier
-                .background(SurfaceElevated)
+                .background(ColorTokens.SurfaceLevel2)
                 .width(280.dp)
         ) {
             items.forEachIndexed { index, item ->
@@ -188,7 +184,7 @@ fun <T> PyeraDropdown(
                     text = { 
                         Text(
                             text = itemLabel(item),
-                            color = TextPrimary,
+                            color = MaterialTheme.colorScheme.onBackground,
                             style = MaterialTheme.typography.bodyMedium
                         )
                     },
@@ -197,7 +193,7 @@ fun <T> PyeraDropdown(
                             Icon(
                                 imageVector = Icons.Default.Check,
                                 contentDescription = "Selected",
-                                tint = NeonYellow
+                                tint = ColorTokens.Primary500
                             )
                         }
                     } else null,
@@ -209,8 +205,8 @@ fun <T> PyeraDropdown(
                 
                 if (index < items.size - 1) {
                     HorizontalDivider(
-                        color = TextSecondary.copy(alpha = 0.2f),
-                        modifier = Modifier.padding(horizontal = 16.dp)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f),
+                        modifier = Modifier.padding(horizontal = SpacingTokens.Medium)
                     )
                 }
             }
@@ -259,17 +255,17 @@ fun <T> PyeraSearchableDropdown(
                     Icon(
                         imageVector = Icons.Default.ArrowDropDown,
                         contentDescription = "Open dropdown",
-                        tint = TextSecondary,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.clickable { expanded = !expanded }
                     )
                 },
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = NeonYellow,
+                    focusedBorderColor = ColorTokens.Primary500,
                     unfocusedBorderColor = ColorBorder,
-                    focusedTextColor = TextPrimary,
-                    unfocusedTextColor = TextPrimary,
-                    focusedLabelColor = NeonYellow,
-                    unfocusedLabelColor = TextSecondary
+                    focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    focusedLabelColor = ColorTokens.Primary500,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
                 ),
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier.fillMaxWidth()
@@ -279,7 +275,7 @@ fun <T> PyeraSearchableDropdown(
                 expanded = expanded && items.isNotEmpty(),
                 onDismissRequest = { expanded = false },
                 modifier = Modifier
-                    .background(SurfaceElevated)
+                    .background(ColorTokens.SurfaceLevel2)
                     .width(280.dp)
             ) {
                 items.forEachIndexed { index, item ->
@@ -287,7 +283,7 @@ fun <T> PyeraSearchableDropdown(
                         text = { 
                             Text(
                                 text = itemLabel(item),
-                                color = TextPrimary,
+                                color = MaterialTheme.colorScheme.onBackground,
                                 style = MaterialTheme.typography.bodyMedium
                             )
                         },
@@ -296,7 +292,7 @@ fun <T> PyeraSearchableDropdown(
                                 Icon(
                                     imageVector = Icons.Default.Check,
                                     contentDescription = "Selected",
-                                    tint = NeonYellow
+                                    tint = ColorTokens.Primary500
                                 )
                             }
                         } else null,
@@ -308,8 +304,8 @@ fun <T> PyeraSearchableDropdown(
                     
                     if (index < items.size - 1) {
                         HorizontalDivider(
-                            color = TextSecondary.copy(alpha = 0.2f),
-                            modifier = Modifier.padding(horizontal = 16.dp)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f),
+                            modifier = Modifier.padding(horizontal = SpacingTokens.Medium)
                         )
                     }
                 }
@@ -317,3 +313,6 @@ fun <T> PyeraSearchableDropdown(
         }
     }
 }
+
+
+

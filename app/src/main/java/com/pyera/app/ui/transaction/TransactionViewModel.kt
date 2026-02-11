@@ -5,11 +5,11 @@ import androidx.lifecycle.viewModelScope
 import com.pyera.app.data.local.entity.AccountEntity
 import com.pyera.app.data.local.entity.CategoryEntity
 import com.pyera.app.data.local.entity.TransactionEntity
-import com.pyera.app.data.repository.AccountRepository
-import com.pyera.app.data.repository.AuthRepository
-import com.pyera.app.data.repository.CategoryRepository
-import com.pyera.app.data.repository.TransactionRepository
-import com.pyera.app.data.repository.TransactionRuleRepository
+import com.pyera.app.domain.repository.AccountRepository
+import com.pyera.app.domain.repository.AuthRepository
+import com.pyera.app.domain.repository.CategoryRepository
+import com.pyera.app.domain.repository.TransactionRepository
+import com.pyera.app.domain.repository.TransactionRuleRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,11 +22,20 @@ import kotlinx.coroutines.launch
 import java.io.IOException
 import android.database.sqlite.SQLiteException
 import android.net.Uri
-import com.pyera.app.data.repository.OcrRepository
+import com.pyera.app.domain.repository.OcrRepository
 import com.pyera.app.domain.smart.SmartCategorizer
 import com.pyera.app.util.ValidationUtils
 import java.util.Calendar
 import javax.inject.Inject
+
+/**
+ * Legacy transaction type filter used by older UI code paths.
+ */
+enum class TransactionTypeFilter {
+    ALL,
+    INCOME,
+    EXPENSE
+}
 
 @HiltViewModel
 class TransactionViewModel @Inject constructor(
@@ -436,13 +445,13 @@ class TransactionViewModel @Inject constructor(
 
     fun addTransaction(transaction: TransactionEntity) {
         // Validate input
-        val noteValidation = ValidationUtils.validateTransactionNote(transaction.note)
+        val noteValidation = ValidationUtils.validateTransactionDescription(transaction.note)
         if (noteValidation is ValidationUtils.ValidationResult.Error) {
             _state.update { it.copy(error = noteValidation.message) }
             return
         }
-        
-        val amountValidation = ValidationUtils.validateAmount(transaction.amount)
+
+        val amountValidation = ValidationUtils.validateTransactionAmount(transaction.amount.toString())
         if (amountValidation is ValidationUtils.ValidationResult.Error) {
             _state.update { it.copy(error = amountValidation.message) }
             return
@@ -455,10 +464,8 @@ class TransactionViewModel @Inject constructor(
                 
                 // Auto-categorization: Priority = User Rules > SmartCategorizer > Manual
                 if (transaction.categoryId == null || transaction.categoryId <= 0) {
-                    var categoryId: Int? = null
-                    
                     // 1. Try user-defined rules first (highest priority)
-                    categoryId = transactionRuleRepository.applyRulesToTransaction(
+                    var categoryId = transactionRuleRepository.applyRulesToTransaction(
                         userId = currentUserId,
                         description = transaction.note
                     )
@@ -478,6 +485,14 @@ class TransactionViewModel @Inject constructor(
                     }
                 }
                 
+                val categoryValidation = ValidationUtils.validateTransactionCategory(
+                    finalTransaction.categoryId?.toLong()
+                )
+                if (categoryValidation is ValidationUtils.ValidationResult.Error) {
+                    _state.update { it.copy(error = categoryValidation.message) }
+                    return@launch
+                }
+
                 transactionRepository.insertTransaction(finalTransaction)
             } catch (e: IOException) {
                 _state.update { it.copy(error = "Network error: ${e.message}") }

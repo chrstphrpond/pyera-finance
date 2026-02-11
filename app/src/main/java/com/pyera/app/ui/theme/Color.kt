@@ -1,115 +1,132 @@
 package com.pyera.app.ui.theme
 
 import androidx.compose.ui.graphics.Color
+import com.pyera.app.ui.theme.tokens.ColorTokens
 
 // ============================================
-// DARK THEME COLORS (Original Pyera Brand)
+// MIDNIGHT SLATE THEME (2026 Refresh)
 // ============================================
 
-// Primary Brand Colors
-val NeonYellow = Color(0xFFD4FF00)
-val NeonYellowDark = Color(0xFFB8E600)
-val NeonYellowLight = Color(0xFFE0FF33)
+// Primary Brand Colors - Trust Blue
+val PrimaryAccent = ColorTokens.Primary500
+val PrimaryAccentDark = ColorTokens.Primary600
+val PrimaryAccentLight = ColorTokens.Primary300
 
-// Background Colors
-val DarkGreen = Color(0xFF0A0E0D)
-val SurfaceDark = Color(0xFF1A1F1D)
-val SurfaceElevated = Color(0xFF242927)
-val SurfaceOverlay = Color(0xFF2F3633)
+// Background Colors - Slate
+val BackgroundPrimary = ColorTokens.SurfaceLevel0
+val BackgroundSecondary = ColorTokens.SurfaceLevel1
+val BackgroundTertiary = ColorTokens.SurfaceLevel2
+val BackgroundElevated = ColorTokens.SurfaceLevel3
 
-// Semantic Colors (Enhanced for Accessibility)
-val ColorSuccess = Color(0xFF4CAF50)
-val ColorSuccessDark = Color(0xFF388E3C)
-val ColorSuccessContainer = Color(0xFF1B2A12)
-val ColorError = Color(0xFFFF5252)
-val ColorErrorContainer = Color(0xFF2A0A0A)
-val ColorWarning = Color(0xFFFFB300)
-val ColorWarningContainer = Color(0xFF2A1F00)
-val ColorInfo = Color(0xFF448AFF)
+// Surface Colors - Layered depth
+val SurfacePrimary = ColorTokens.SurfaceLevel1
+val SurfaceSecondary = ColorTokens.SurfaceLevel2
+val SurfaceElevated = ColorTokens.SurfaceLevel2
+val SurfaceOverlay = ColorTokens.SurfaceLevel3
 
-// Text Colors (WCAG AA Compliant)
-val TextPrimary = Color(0xFFFFFFFF)
-val TextSecondary = Color(0xFFB0B8B4)
-val TextTertiary = Color(0xFF8B918F)
-val TextDisabled = Color(0xFF5F6663)
+// Card Accent Colors - Cool system accents
+val CardAccentMint = ColorTokens.Success500
+val CardAccentPink = ColorTokens.Error500
+val CardAccentBlue = ColorTokens.Info500
+val CardAccentOrange = ColorTokens.Warning500
+val CardAccentPurple = ColorTokens.Primary400
+val CardAccentTeal = ColorTokens.Primary300
+
+// Semantic Colors
+val ColorSuccess = ColorTokens.Success500
+val ColorSuccessDark = ColorTokens.Success600
+val ColorSuccessContainer = ColorTokens.Success500.copy(alpha = 0.2f)
+val ColorError = ColorTokens.Error500
+val ColorErrorContainer = ColorTokens.Error500.copy(alpha = 0.2f)
+val ColorWarning = ColorTokens.Warning500
+val ColorWarningContainer = ColorTokens.Warning500.copy(alpha = 0.2f)
+val ColorInfo = ColorTokens.Info500
+
+// Text Colors - Cool neutral
+val TextPrimary = ColorTokens.Slate100
+val TextSecondary = ColorTokens.Slate300
+val TextTertiary = ColorTokens.Slate400
+val TextMuted = ColorTokens.Slate500
+val TextDisabled = ColorTokens.Slate600
 
 // Interactive States
-val ColorOverlayPressed = Color(0x1FFFFFFF)
-val ColorOverlayHover = Color(0x0FFFFFFF)
+val OverlayPressed = Color(0x22FFFFFF)
+val OverlayHover = Color(0x14FFFFFF)
+val OverlayDrag = Color(0x33FFFFFF)
 
-// Borders
-val ColorBorder = Color(0xFF3A433F)
-val ColorBorderFocused = NeonYellow.copy(alpha = 0.5f)
+// Borders - Subtle
+val ColorBorder = ColorTokens.Slate700
+val ColorBorderFocused = PrimaryAccent.copy(alpha = 0.6f)
+val ColorBorderSubtle = ColorTokens.Slate800
 
 // Currency Colors
-val ColorIncome = ColorSuccess
-val ColorExpense = ColorError
-val ColorDebt = ColorWarning
+val ColorIncome = ColorTokens.Success500
+val ColorExpense = ColorTokens.Error500
+val ColorDebt = ColorTokens.Warning500
+
+// Glassmorphism Colors
+val GlassBackground = ColorTokens.SurfaceLevel2.copy(alpha = 0.86f)
+val GlassBorder = ColorTokens.Slate700.copy(alpha = 0.08f)
+
+// Gradient Colors
+val GradientStart = ColorTokens.Slate950
+val GradientEnd = ColorTokens.Slate900
 
 
 // ============================================
-// LIGHT THEME COLORS
+// LIGHT THEME SUPPORT (Midnight Slate - Light)
 // ============================================
 
-// Primary Colors (Green-based for finance app)
-val ColorPrimaryLight = Color(0xFF2E7D32)
-val ColorPrimaryDark = Color(0xFF1B5E20)
-val ColorPrimaryContainerLight = Color(0xFFB9F6CA)
+val LightBackgroundPrimary = ColorTokens.Slate50
+val LightBackgroundSecondary = ColorTokens.Slate100
+val LightSurfacePrimary = Color.White
+val LightSurfaceSecondary = ColorTokens.Slate100
+val LightSurfaceElevated = ColorTokens.Slate200
+val LightSurfaceOverlay = ColorTokens.Slate200
 
-// Secondary Colors
-val ColorSecondaryLight = Color(0xFF4CAF50)
-val ColorSecondaryDark = Color(0xFF388E3C)
-val ColorSecondaryContainerLight = Color(0xFFC8E6C9)
+val LightTextPrimary = ColorTokens.Slate900
+val LightTextSecondary = ColorTokens.Slate700
+val LightTextTertiary = ColorTokens.Slate600
+val LightTextMuted = ColorTokens.Slate500
 
-// Tertiary Colors (Accent)
-val ColorTertiaryLight = Color(0xFF00897B)
-val ColorTertiaryDark = Color(0xFF00695C)
-val ColorTertiaryContainerLight = Color(0xFFB2DFDB)
+val LightBorder = ColorTokens.Slate200
+val LightBorderSubtle = ColorTokens.Slate100
 
-// Background & Surface Colors
-val ColorBackgroundLight = Color(0xFFF5F5F5)
-val ColorSurfaceLight = Color(0xFFFFFFFF)
-val ColorSurfaceVariantLight = Color(0xFFEEEEEE)
-
-// Text Colors for Light Theme
-val ColorOnBackgroundLight = Color(0xFF1A1C1E)
-val ColorOnSurfaceLight = Color(0xFF1A1C1E)
-val ColorOnSurfaceVariantLight = Color(0xFF5F6368)
-
-// Semantic Colors for Light Theme
-val ColorErrorLight = Color(0xFFD32F2F)
-val ColorErrorDark = Color(0xFFB71C1C)
-val ColorErrorContainerLight = Color(0xFFFFEBEE)
-
-// Outline Colors
-val ColorOutlineLight = Color(0xFFBDBDBD)
-val ColorOutlineVariantLight = Color(0xFFE0E0E0)
+val LightSuccessContainer = ColorTokens.Success50
+val LightWarningContainer = ColorTokens.Warning50
+val LightErrorContainer = ColorTokens.Error50
+val LightInfoContainer = ColorTokens.Info50
 
 
 // ============================================
 // LEGACY ALIASES (Backward Compatibility)
 // ============================================
 
-val Inchworm = NeonYellow
-val Gunmetal = SurfaceDark
-val Orange = ColorWarning
-val PaleViolet = ColorInfo
+val NeonYellow = ColorTokens.Primary500
+val NeonYellowDark = PrimaryAccentDark
+val NeonYellowLight = PrimaryAccentLight
+val DarkGreen = ColorTokens.SurfaceLevel0
+val SurfaceDark = ColorTokens.SurfaceLevel1
+val CardBackground = SurfaceSecondary
+val DeepBackground = BackgroundPrimary
+val AccentGreen = ColorTokens.Primary500
+val AccentGreenDim = PrimaryAccentDark
 val BrightSnow = TextPrimary
 val AmericanSilver = TextSecondary
-val DeepBackground = DarkGreen
-val CardBackground = SurfaceDark
-val DarkBackground = DarkGreen
-val AccentGreen = NeonYellow
-val AccentGreenDim = NeonYellowDark
-val PositiveChange = ColorSuccess
-val NegativeChange = ColorError
+val Gunmetal = SurfaceSecondary
+val Orange = CardAccentOrange
+val PaleViolet = CardAccentPurple
+val CardBorder = ColorBorder
+val GlassOverlay = OverlayHover
+val GreenGlow = PrimaryAccent.copy(alpha = 0.2f)
+val GreenGlowSubtle = PrimaryAccent.copy(alpha = 0.1f)
+val CardGradientTop = ColorTokens.SurfaceLevel2
+val CardGradientBottom = SurfacePrimary
+
+// Legacy semantic colors
+val PositiveChange = ColorTokens.Success500
+val NegativeChange = ColorTokens.Error500
 val SuccessContainer = ColorSuccessContainer
 val WarningContainer = ColorWarningContainer
 val ErrorContainer = ColorErrorContainer
-val InfoContainer = Color(0xFF1A1A2A)
-val CardBorder = ColorBorder
-val GlassOverlay = ColorOverlayHover
-val GreenGlow = NeonYellow.copy(alpha = 0.2f)
-val GreenGlowSubtle = NeonYellow.copy(alpha = 0.1f)
-val CardGradientTop = SurfaceElevated
-val CardGradientBottom = SurfaceDark
+val InfoContainer = ColorTokens.Info500.copy(alpha = 0.2f)

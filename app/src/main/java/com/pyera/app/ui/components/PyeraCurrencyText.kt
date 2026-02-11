@@ -21,7 +21,7 @@ fun PyeraCurrencyText(
     val color = when (isPositive) {
         true -> ColorIncome
         false -> ColorExpense
-        null -> TextPrimary
+        null -> MaterialTheme.colorScheme.onBackground
     }
     
     val sign = when {

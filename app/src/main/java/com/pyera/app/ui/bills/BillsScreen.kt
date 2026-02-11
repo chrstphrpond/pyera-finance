@@ -1,4 +1,6 @@
 package com.pyera.app.ui.bills
+import com.pyera.app.ui.theme.tokens.ColorTokens
+import com.pyera.app.ui.theme.tokens.SpacingTokens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -23,14 +25,9 @@ import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.pyera.app.data.local.entity.BillEntity
 import com.pyera.app.ui.components.PyeraCard
-import com.pyera.app.ui.theme.AccentGreen
 import com.pyera.app.ui.theme.CardBackground
-import com.pyera.app.ui.theme.ColorError
-import com.pyera.app.ui.theme.ColorSuccess
-import com.pyera.app.ui.theme.DeepBackground
-import com.pyera.app.ui.theme.TextPrimary
-import com.pyera.app.ui.theme.TextSecondary
-import com.pyera.app.ui.theme.TextTertiary
+import com.pyera.app.ui.util.CurrencyFormatter
+import com.pyera.app.ui.util.pyeraBackground
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -58,38 +55,39 @@ fun BillsScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showAddDialog = true },
-                containerColor = AccentGreen,
+                containerColor = ColorTokens.Primary500,
                 contentColor = Color.Black
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add Bill")
             }
         },
-        containerColor = DeepBackground
+        containerColor = Color.Transparent
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .pyeraBackground()
                 .padding(innerPadding)
-                .padding(16.dp)
+                .padding(SpacingTokens.Medium)
         ) {
             Text(
                 text = "Upcoming Bills",
                 style = MaterialTheme.typography.headlineMedium,
-                color = TextPrimary
+                color = MaterialTheme.colorScheme.onBackground
             )
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
             if (sortedBills.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(
                         text = "No upcoming bills.",
-                        color = TextSecondary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodyLarge
                     )
                 }
             } else {
                 LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    verticalArrangement = Arrangement.spacedBy(SpacingTokens.MediumSmall)
                 ) {
                     items(sortedBills) { bill ->
                         BillItem(
@@ -115,7 +113,7 @@ fun BillItem(
     ) {
         Row(
             modifier = Modifier
-                .padding(16.dp)
+                .padding(SpacingTokens.Medium)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
@@ -124,28 +122,28 @@ fun BillItem(
                 Text(
                     text = bill.name,
                     style = MaterialTheme.typography.titleMedium,
-                    color = TextPrimary,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = "Due: ${formatDate(bill.dueDate)} (${bill.frequency})",
                     style = MaterialTheme.typography.bodySmall,
-                    color = if (bill.dueDate < System.currentTimeMillis()) ColorError else TextSecondary
+                    color = if (bill.dueDate < System.currentTimeMillis()) ColorTokens.Error500 else MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    text = "₱${String.format("%.2f", bill.amount)}",
+                    text = CurrencyFormatter.format(bill.amount),
                     style = MaterialTheme.typography.bodyLarge,
-                    color = AccentGreen,
+                    color = ColorTokens.Primary500,
                     fontWeight = FontWeight.Bold
                 )
             }
 
             Row {
                 IconButton(onClick = onMarkPaid) {
-                    Icon(Icons.Default.Check, contentDescription = "Mark as Paid", tint = ColorSuccess)
+                    Icon(Icons.Default.Check, contentDescription = "Mark as Paid", tint = ColorTokens.Success500)
                 }
                 IconButton(onClick = onDelete) {
-                    Icon(Icons.Default.Delete, contentDescription = "Delete", tint = ColorError.copy(alpha = 0.7f))
+                    Icon(Icons.Default.Delete, contentDescription = "Delete", tint = ColorTokens.Error500.copy(alpha = 0.7f))
                 }
             }
         }
@@ -164,20 +162,21 @@ fun AddBillDialog(
     val defaultDate = System.currentTimeMillis() + 7L * 24 * 60 * 60 * 1000
 
     Dialog(onDismissRequest = onDismiss) {
-        Card(
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = CardBackground)
+        PyeraCard(
+            cornerRadius = SpacingTokens.Medium,
+            containerColor = CardBackground,
+            borderWidth = 0.dp
         ) {
             Column(
-                modifier = Modifier.padding(24.dp),
+            modifier = Modifier.padding(SpacingTokens.Large),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
                     text = "Add Bill Reminder",
                     style = MaterialTheme.typography.titleLarge,
-                    color = TextPrimary
+                    color = MaterialTheme.colorScheme.onBackground
                 )
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
                 OutlinedTextField(
                     value = name,
@@ -185,15 +184,15 @@ fun AddBillDialog(
                     label = { Text("Bill Name") },
                     singleLine = true,
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = TextPrimary,
-                        unfocusedTextColor = TextPrimary,
-                        focusedBorderColor = AccentGreen,
-                        unfocusedBorderColor = TextSecondary
+                        focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        focusedBorderColor = ColorTokens.Primary500,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(SpacingTokens.Small))
 
                 OutlinedTextField(
                     value = amountText,
@@ -202,15 +201,15 @@ fun AddBillDialog(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = TextPrimary,
-                        unfocusedTextColor = TextPrimary,
-                        focusedBorderColor = AccentGreen,
-                        unfocusedBorderColor = TextSecondary
+                        focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        focusedBorderColor = ColorTokens.Primary500,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(SpacingTokens.Medium))
                 
                 // Simple Frequency Selection
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -219,7 +218,7 @@ fun AddBillDialog(
                         onClick = { selectedFrequency = "MONTHLY" },
                         label = { Text("Monthly") },
                         colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = AccentGreen,
+                            selectedContainerColor = ColorTokens.Primary500,
                             selectedLabelColor = Color.Black
                         )
                     )
@@ -228,21 +227,21 @@ fun AddBillDialog(
                         onClick = { selectedFrequency = "YEARLY" },
                         label = { Text("Yearly") },
                         colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = AccentGreen,
+                            selectedContainerColor = ColorTokens.Primary500,
                             selectedLabelColor = Color.Black
                         )
                     )
                 }
 
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(SpacingTokens.Large))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End
                 ) {
                     TextButton(onClick = onDismiss) {
-                        Text("Cancel", color = TextSecondary)
+                        Text("Cancel", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     Button(
@@ -252,7 +251,7 @@ fun AddBillDialog(
                                 onConfirm(name, amount, defaultDate, selectedFrequency)
                             }
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = AccentGreen)
+                        colors = ButtonDefaults.buttonColors(containerColor = ColorTokens.Primary500)
                     ) {
                         Text("Save", color = Color.Black)
                     }
@@ -266,3 +265,6 @@ fun formatDate(timestamp: Long): String {
     val sdf = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
     return sdf.format(Date(timestamp))
 }
+
+
+

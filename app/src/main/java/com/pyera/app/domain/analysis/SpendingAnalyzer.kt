@@ -1,10 +1,9 @@
 package com.pyera.app.domain.analysis
 
-import com.pyera.app.data.local.entity.CategoryEntity
-import com.pyera.app.data.local.entity.TransactionEntity
-import com.pyera.app.data.local.entity.BudgetWithSpending
-import com.pyera.app.data.repository.TransactionRepository
-import kotlinx.coroutines.flow.Flow
+import com.pyera.app.domain.model.BudgetWithSpending
+import com.pyera.app.domain.model.Category
+import com.pyera.app.domain.model.Transaction
+import com.pyera.app.domain.repository.SpendingDataRepository
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.util.Calendar
@@ -18,7 +17,7 @@ import kotlin.math.abs
  */
 @Singleton
 class SpendingAnalyzer @Inject constructor(
-    private val transactionRepository: TransactionRepository
+    private val spendingDataRepository: SpendingDataRepository
 ) {
 
     companion object {
@@ -120,7 +119,7 @@ class SpendingAnalyzer @Inject constructor(
     suspend fun comparePeriods(
         currentPeriod: DateRange,
         previousPeriod: DateRange,
-        categories: List<CategoryEntity> = emptyList()
+        categories: List<Category> = emptyList()
     ): PeriodComparison {
         val currentTransactions = getTransactionsForRange(currentPeriod)
             .filter { it.type == "EXPENSE" }
@@ -167,7 +166,7 @@ class SpendingAnalyzer @Inject constructor(
      */
     suspend fun getCategoryInsights(
         userId: String,
-        categories: List<CategoryEntity>,
+        categories: List<Category>,
         budgetsWithSpending: List<BudgetWithSpending> = emptyList()
     ): List<CategoryInsight> {
         val endDate = System.currentTimeMillis()
@@ -397,8 +396,8 @@ class SpendingAnalyzer @Inject constructor(
 
     // ==================== Helper Methods ====================
 
-    private suspend fun getTransactionsForRange(dateRange: DateRange): List<TransactionEntity> {
-        return transactionRepository.getAllTransactions()
+    private suspend fun getTransactionsForRange(dateRange: DateRange): List<Transaction> {
+        return spendingDataRepository.getAllTransactions()
             .map { transactions ->
                 transactions.filter { it.date in dateRange.startDate..dateRange.endDate }
             }
@@ -464,7 +463,7 @@ class SpendingAnalyzer @Inject constructor(
         return insights
     }
 
-    private fun detectUnusualAmounts(transactions: List<TransactionEntity>): List<SpendingAnomaly> {
+    private fun detectUnusualAmounts(transactions: List<Transaction>): List<SpendingAnomaly> {
         if (transactions.size < MIN_TRANSACTIONS_FOR_STATS) return emptyList()
         
         val amounts = transactions.map { it.amount }
@@ -488,7 +487,7 @@ class SpendingAnalyzer @Inject constructor(
         }
     }
 
-    private fun detectDuplicateTransactions(transactions: List<TransactionEntity>): List<SpendingAnomaly> {
+    private fun detectDuplicateTransactions(transactions: List<Transaction>): List<SpendingAnomaly> {
         val duplicates = mutableListOf<SpendingAnomaly>()
         val grouped = transactions.groupBy { it.amount }
         
@@ -511,7 +510,7 @@ class SpendingAnalyzer @Inject constructor(
     }
 
     private fun detectFrequencySpikes(
-        transactions: List<TransactionEntity>,
+        transactions: List<Transaction>,
         lookbackDays: Int
     ): List<SpendingAnomaly> {
         // Group by day
@@ -541,7 +540,7 @@ class SpendingAnalyzer @Inject constructor(
     }
 
     private fun createAnomaly(
-        transaction: TransactionEntity,
+        transaction: Transaction,
         type: AnomalyType,
         severity: AnomalySeverity,
         description: String,
@@ -575,9 +574,9 @@ class SpendingAnalyzer @Inject constructor(
     }
 
     private fun generateCategoryComparisons(
-        currentTransactions: List<TransactionEntity>,
-        previousTransactions: List<TransactionEntity>,
-        categoryMap: Map<Int, CategoryEntity>
+        currentTransactions: List<Transaction>,
+        previousTransactions: List<Transaction>,
+        categoryMap: Map<Int, Category>
     ): List<CategoryComparison> {
         val currentByCategory = currentTransactions.groupBy { it.categoryId }
             .mapValues { it.value.sumOf { t -> t.amount } }

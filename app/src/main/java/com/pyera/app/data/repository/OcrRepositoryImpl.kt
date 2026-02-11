@@ -1,5 +1,7 @@
 package com.pyera.app.data.repository
 
+import com.pyera.app.domain.repository.*
+
 import android.content.Context
 import android.net.Uri
 import com.google.mlkit.vision.common.InputImage

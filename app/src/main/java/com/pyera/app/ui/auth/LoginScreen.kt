@@ -1,11 +1,15 @@
 package com.pyera.app.ui.auth
 
+import com.pyera.app.ui.components.CardVariant
+import com.pyera.app.ui.components.PyeraCard
+import com.pyera.app.ui.theme.tokens.ColorTokens
+import com.pyera.app.ui.theme.tokens.SpacingTokens
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,7 +21,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -33,7 +36,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,6 +51,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -63,8 +67,6 @@ import com.pyera.app.data.repository.GoogleAuthHelper
 import com.pyera.app.ui.components.PyeraAuthButton
 import com.pyera.app.ui.components.PyeraAuthTextField
 import com.pyera.app.ui.components.PyeraSocialButton
-import androidx.compose.ui.res.stringResource
-import com.pyera.app.R
 import com.pyera.app.ui.theme.*
 
 @Composable
@@ -76,10 +78,16 @@ fun LoginScreen(
     googleAuthHelper: GoogleAuthHelper,
     biometricAuthManager: BiometricAuthManager
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val authState = uiState.authState
     val context = LocalContext.current
     val activity = context as? FragmentActivity
+
+    val biometricTitle = stringResource(R.string.auth_login_biometric_title)
+    val biometricSubtitle = stringResource(R.string.auth_login_biometric_subtitle)
+    val biometricDescription = stringResource(R.string.auth_login_biometric_description)
+    val biometricNegativeButton = stringResource(R.string.auth_login_biometric_negative_button)
+    val googleNotInitializedMessage = stringResource(R.string.auth_login_google_sign_in_not_initialized)
 
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
@@ -133,10 +141,10 @@ fun LoginScreen(
         if (viewModel.canUseBiometricLogin() && activity != null) {
             biometricAuthManager.showBiometricPrompt(
                 activity = activity,
-                title = stringResource(R.string.auth_login_biometric_title),
-                subtitle = stringResource(R.string.auth_login_biometric_subtitle),
-                description = stringResource(R.string.auth_login_biometric_description),
-                negativeButtonText = stringResource(R.string.auth_login_biometric_negative_button),
+                title = biometricTitle,
+                subtitle = biometricSubtitle,
+                description = biometricDescription,
+                negativeButtonText = biometricNegativeButton,
                 onResult = { result ->
                     viewModel.onBiometricAuthResult(result)
                 }
@@ -147,43 +155,19 @@ fun LoginScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(DeepBackground)
+            .background(ColorTokens.SurfaceLevel0)
     ) {
-        // Background gradient for visual interest
+        // Subtle radial gradient for depth
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(
-                    brush = Brush.verticalGradient(
+                    brush = Brush.radialGradient(
                         colors = listOf(
-                            DarkGreen,
-                            SurfaceDark.copy(alpha = 0.8f),
-                            DeepBackground
-                        )
-                    )
-                )
-        )
-
-        // Background Image
-        Image(
-            painter = painterResource(id = R.drawable.bg_auth_green_flow),
-            contentDescription = stringResource(R.string.auth_background_content_desc),
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop,
-            alpha = 0.4f
-        )
-
-        // Gradient Scrim for text readability
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            DeepBackground.copy(alpha = 0.3f),
-                            DeepBackground.copy(alpha = 0.7f),
-                            DeepBackground
-                        )
+                            ColorTokens.Primary900.copy(alpha = 0.3f),
+                            Color.Transparent
+                        ),
+                        radius = 800f
                     )
                 )
         )
@@ -193,7 +177,7 @@ fun LoginScreen(
                 .fillMaxSize()
                 .imePadding()
                 .verticalScroll(scrollState)
-                .padding(horizontal = 24.dp),
+                .padding(horizontal = SpacingTokens.Large),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(48.dp))
@@ -201,7 +185,7 @@ fun LoginScreen(
             // Logo Section with enhanced branding
             LoginHeader()
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.ExtraLarge))
 
             // Biometric Login Button (if enabled and available)
             if (uiState.isBiometricAvailable && uiState.hasStoredCredentials) {
@@ -221,161 +205,161 @@ fun LoginScreen(
                         }
                     }
                 )
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(SpacingTokens.Medium))
             }
 
             // Login Form Card with elevated surface
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(SurfaceElevated)
-                    .border(1.dp, ColorBorder.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
-                    .padding(24.dp)
+            PyeraCard(
+                variant = CardVariant.Elevated,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                // Welcome Text
-                Text(
-                    text = stringResource(R.string.auth_login_title),
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Text(
-                    text = stringResource(R.string.auth_login_subtitle),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = TextSecondary,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Email Field with validation
-                PyeraAuthTextField(
-                    value = email,
-                    onValueChange = {
-                        email = it
-                        googleError = null
-                        fieldErrors = fieldErrors.copy(emailError = null)
-                        if (authState is AuthState.Error) viewModel.clearError()
-                    },
-                    label = stringResource(R.string.auth_login_email_label),
-                    placeholder = stringResource(R.string.auth_login_email_placeholder),
-                    leadingIcon = Icons.Default.Email,
-                    keyboardType = KeyboardType.Email,
-                    imeAction = ImeAction.Next,
-                    isError = fieldErrors.emailError != null || authState is AuthState.Error,
-                    errorMessage = fieldErrors.emailError,
-                    onImeAction = { /* Focus moves to next field automatically */ }
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Password Field with visibility toggle
-                PyeraAuthTextField(
-                    value = password,
-                    onValueChange = {
-                        password = it
-                        googleError = null
-                        fieldErrors = fieldErrors.copy(passwordError = null)
-                        if (authState is AuthState.Error) viewModel.clearError()
-                    },
-                    label = stringResource(R.string.auth_login_password_label),
-                    placeholder = stringResource(R.string.auth_login_password_placeholder),
-                    isPassword = true,
-                    isPasswordVisible = uiState.isPasswordVisible,
-                    onPasswordVisibilityChange = { viewModel.togglePasswordVisibility() },
-                    leadingIcon = Icons.Default.Lock,
-                    keyboardType = KeyboardType.Password,
-                    imeAction = ImeAction.Done,
-                    isError = fieldErrors.passwordError != null || authState is AuthState.Error,
-                    errorMessage = fieldErrors.passwordError,
-                    onImeAction = {
-                        if (isFormValid) {
-                            focusManager.clearFocus()
-                            viewModel.login(email, password)
-                        }
-                    }
-                )
-
-                // Forgot Password Link
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
+                Column(
+                    modifier = Modifier.padding(SpacingTokens.Large)
                 ) {
-                    TextButton(
-                        onClick = onNavigateToForgotPassword,
-                        modifier = Modifier.padding(top = 4.dp)
+                    // Welcome Text
+                    Text(
+                        text = stringResource(R.string.auth_login_title),
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Text(
+                        text = stringResource(R.string.auth_login_subtitle),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = TextSecondary,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Spacer(modifier = Modifier.height(SpacingTokens.Large))
+
+                    // Email Field with validation
+                    PyeraAuthTextField(
+                        value = email,
+                        onValueChange = {
+                            email = it
+                            googleError = null
+                            fieldErrors = fieldErrors.copy(emailError = null)
+                            if (authState is AuthState.Error) viewModel.clearError()
+                        },
+                        label = stringResource(R.string.auth_login_email_label),
+                        placeholder = stringResource(R.string.auth_login_email_placeholder),
+                        leadingIcon = Icons.Default.Email,
+                        keyboardType = KeyboardType.Email,
+                        imeAction = ImeAction.Next,
+                        isError = fieldErrors.emailError != null || authState is AuthState.Error,
+                        errorMessage = fieldErrors.emailError,
+                        onImeAction = { /* Focus moves to next field automatically */ }
+                    )
+
+                    Spacer(modifier = Modifier.height(SpacingTokens.Medium))
+
+                    // Password Field with visibility toggle
+                    PyeraAuthTextField(
+                        value = password,
+                        onValueChange = {
+                            password = it
+                            googleError = null
+                            fieldErrors = fieldErrors.copy(passwordError = null)
+                            if (authState is AuthState.Error) viewModel.clearError()
+                        },
+                        label = stringResource(R.string.auth_login_password_label),
+                        placeholder = stringResource(R.string.auth_login_password_placeholder),
+                        isPassword = true,
+                        isPasswordVisible = uiState.isPasswordVisible,
+                        onPasswordVisibilityChange = { viewModel.togglePasswordVisibility() },
+                        leadingIcon = Icons.Default.Lock,
+                        keyboardType = KeyboardType.Password,
+                        imeAction = ImeAction.Done,
+                        isError = fieldErrors.passwordError != null || authState is AuthState.Error,
+                        errorMessage = fieldErrors.passwordError,
+                        onImeAction = {
+                            if (isFormValid) {
+                                focusManager.clearFocus()
+                                viewModel.login(email, password)
+                            }
+                        }
+                    )
+
+                    // Forgot Password Link
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
                     ) {
-                        Text(
-                            text = stringResource(R.string.auth_login_forgot_password),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = AccentGreen,
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // General Error Message (from auth state)
-                AnimatedVisibility(
-                    visible = authState is AuthState.Error,
-                    enter = fadeIn(),
-                    exit = fadeOut()
-                ) {
-                    if (authState is AuthState.Error) {
-                        Text(
-                            text = authState.message,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = ColorError,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
-                }
-
-                // Google Error Message
-                AnimatedVisibility(
-                    visible = googleError != null,
-                    enter = fadeIn(),
-                    exit = fadeOut()
-                ) {
-                    googleError?.let { error ->
-                        Text(
-                            text = error,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = ColorError,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Login Button with loading state
-                PyeraAuthButton(
-                    text = stringResource(R.string.auth_login_button),
-                    onClick = {
-                        // Validate fields before submitting
-                        val errors = viewModel.validateLoginFields(email, password)
-                        fieldErrors = errors
-                        
-                        if (errors.emailError == null && errors.passwordError == null) {
-                            focusManager.clearFocus()
-                            viewModel.login(email, password)
+                        TextButton(
+                            onClick = onNavigateToForgotPassword,
+                            modifier = Modifier.padding(top = 4.dp)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.auth_login_forgot_password),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = ColorTokens.Primary500,
+                                fontWeight = FontWeight.Medium
+                            )
                         }
-                    },
-                    isLoading = authState is AuthState.Loading,
-                    enabled = authState !is AuthState.Loading
-                )
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // General Error Message (from auth state)
+                    AnimatedVisibility(
+                        visible = authState is AuthState.Error,
+                        enter = fadeIn(),
+                        exit = fadeOut()
+                    ) {
+                        if (authState is AuthState.Error) {
+                            Text(
+                                text = authState.message,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = ColorTokens.Error500,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                    }
+
+                    // Google Error Message
+                    AnimatedVisibility(
+                        visible = googleError != null,
+                        enter = fadeIn(),
+                        exit = fadeOut()
+                    ) {
+                        googleError?.let { error ->
+                            Text(
+                                text = error,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = ColorTokens.Error500,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(SpacingTokens.Medium))
+
+                    // Login Button with loading state
+                    PyeraAuthButton(
+                        text = stringResource(R.string.auth_login_button),
+                        onClick = {
+                            // Validate fields before submitting
+                            val errors = viewModel.validateLoginFields(email, password)
+                            fieldErrors = errors
+
+                            if (errors.emailError == null && errors.passwordError == null) {
+                                focusManager.clearFocus()
+                                viewModel.login(email, password)
+                            }
+                        },
+                        isLoading = authState is AuthState.Loading,
+                        enabled = authState !is AuthState.Loading
+                    )
+                }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Large))
 
             // Social Login Section
             SocialLoginSection(
@@ -384,13 +368,13 @@ fun LoginScreen(
                     if (signInIntent != null) {
                         googleSignInLauncher.launch(signInIntent)
                     } else {
-                        googleError = stringResource(R.string.auth_login_google_sign_in_not_initialized)
+                        googleError = googleNotInitializedMessage
                         android.util.Log.e("GoogleSignIn", "Sign-in intent is null")
                     }
                 }
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Large))
 
             // Sign Up Link
             Row(
@@ -407,13 +391,13 @@ fun LoginScreen(
                     Text(
                         text = stringResource(R.string.auth_login_sign_up),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = NeonYellow,
+                        color = ColorTokens.Primary500,
                         fontWeight = FontWeight.SemiBold
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.ExtraLarge))
         }
 
         // Loading Overlay
@@ -462,9 +446,9 @@ private fun LoginHeader() {
             contentScale = ContentScale.Fit
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
-        // Tagline with NeonYellow accent
+        // Tagline with ColorTokens.Primary500 accent
         Text(
             text = stringResource(R.string.auth_login_tagline),
             style = MaterialTheme.typography.bodyMedium,
@@ -485,8 +469,8 @@ private fun BiometricLoginButton(
             Icon(
                 imageVector = Icons.Default.Fingerprint,
                 contentDescription = stringResource(R.string.auth_biometric_icon_content_desc),
-                modifier = Modifier.size(24.dp),
-                tint = AccentGreen
+                modifier = Modifier.size(SpacingTokens.Large),
+                tint = ColorTokens.Primary500
             )
         }
     )
@@ -499,14 +483,14 @@ private fun BiometricEnableDialog(
 ) {
     androidx.compose.material3.AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = SurfaceElevated,
+        containerColor = ColorTokens.SurfaceLevel2,
         titleContentColor = Color.White,
         textContentColor = TextSecondary,
         icon = {
             Icon(
                 imageVector = Icons.Default.Fingerprint,
                 contentDescription = stringResource(R.string.auth_biometric_auth_content_desc),
-                tint = AccentGreen,
+                tint = ColorTokens.Primary500,
                 modifier = Modifier
                     .size(48.dp)
                     .padding(bottom = 8.dp)
@@ -578,7 +562,7 @@ private fun SocialLoginSection(
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
         // Google Sign In Button
         GoogleSignInButton(onClick = onGoogleSignIn)
@@ -596,7 +580,7 @@ private fun GoogleSignInButton(
             // Google "G" logo
             Box(
                 modifier = Modifier
-                    .size(24.dp)
+                    .size(SpacingTokens.Large)
                     .clip(RoundedCornerShape(4.dp))
                     .background(Color.White),
                 contentAlignment = Alignment.Center
@@ -616,3 +600,5 @@ private fun GoogleSignInButton(
 private fun String.isValidEmail(): Boolean {
     return android.util.Patterns.EMAIL_ADDRESS.matcher(this).matches()
 }
+
+

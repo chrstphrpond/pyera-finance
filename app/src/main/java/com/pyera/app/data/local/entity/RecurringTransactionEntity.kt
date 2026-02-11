@@ -31,10 +31,17 @@ enum class TransactionType {
             parentColumns = ["id"],
             childColumns = ["categoryId"],
             onDelete = ForeignKey.SET_NULL
+        ),
+        ForeignKey(
+            entity = AccountEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["accountId"],
+            onDelete = ForeignKey.SET_NULL
         )
     ],
     indices = [
         Index(value = ["categoryId"], name = "idx_recurring_category"),
+        Index(value = ["accountId"], name = "idx_recurring_account"),
         Index(value = ["nextDueDate"], name = "idx_recurring_next_due"),
         Index(value = ["isActive"], name = "idx_recurring_active")
     ]
@@ -45,6 +52,7 @@ data class RecurringTransactionEntity(
     val amount: Double,
     val type: TransactionType, // INCOME or EXPENSE
     val categoryId: Long?,
+    val accountId: Long?,
     val description: String,
     val frequency: RecurringFrequency, // DAILY, WEEKLY, BIWEEKLY, MONTHLY, QUARTERLY, YEARLY
     val startDate: Long, // Epoch timestamp

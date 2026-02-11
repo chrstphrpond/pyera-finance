@@ -1,14 +1,15 @@
 package com.pyera.app.ui.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,6 +19,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.pyera.app.data.local.entity.CategoryEntity
 import com.pyera.app.ui.theme.*
+import com.pyera.app.ui.theme.tokens.ColorTokens
+import com.pyera.app.ui.theme.tokens.SpacingTokens
 import com.pyera.app.ui.transaction.TransactionFilter
 import com.pyera.app.ui.transaction.TransactionSort
 import com.pyera.app.ui.transaction.DateRangeFilter
@@ -50,10 +53,10 @@ fun TransactionFilterChips(
             onClick = { onFilterSelected(TransactionFilter.ALL) },
             label = { Text("All") },
             colors = FilterChipDefaults.filterChipColors(
-                selectedContainerColor = NeonYellow,
-                selectedLabelColor = DarkGreen,
-                containerColor = SurfaceElevated,
-                labelColor = TextSecondary
+                selectedContainerColor = ColorTokens.Primary500,
+                selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                containerColor = ColorTokens.SurfaceLevel2,
+                labelColor = MaterialTheme.colorScheme.onSurfaceVariant
             )
         )
 
@@ -63,10 +66,10 @@ fun TransactionFilterChips(
             onClick = { onFilterSelected(TransactionFilter.INCOME) },
             label = { Text("Income") },
             colors = FilterChipDefaults.filterChipColors(
-                selectedContainerColor = ColorSuccess.copy(alpha = 0.3f),
-                selectedLabelColor = ColorSuccess,
-                containerColor = SurfaceElevated,
-                labelColor = TextSecondary
+                selectedContainerColor = ColorTokens.Success500.copy(alpha = 0.3f),
+                selectedLabelColor = ColorTokens.Success500,
+                containerColor = ColorTokens.SurfaceLevel2,
+                labelColor = MaterialTheme.colorScheme.onSurfaceVariant
             )
         )
 
@@ -76,10 +79,10 @@ fun TransactionFilterChips(
             onClick = { onFilterSelected(TransactionFilter.EXPENSE) },
             label = { Text("Expense") },
             colors = FilterChipDefaults.filterChipColors(
-                selectedContainerColor = ColorError.copy(alpha = 0.3f),
-                selectedLabelColor = ColorError,
-                containerColor = SurfaceElevated,
-                labelColor = TextSecondary
+                selectedContainerColor = ColorTokens.Error500.copy(alpha = 0.3f),
+                selectedLabelColor = ColorTokens.Error500,
+                containerColor = ColorTokens.SurfaceLevel2,
+                labelColor = MaterialTheme.colorScheme.onSurfaceVariant
             )
         )
     }
@@ -114,9 +117,9 @@ fun CategoryFilterChip(
                 {
                     Box(
                         modifier = Modifier
-                            .size(16.dp)
+                            .size(SpacingTokens.Medium)
                             .clip(CircleShape)
-                            .background(Color(selectedCategory?.color ?: TextTertiary.hashCode()))
+                            .background(Color(selectedCategory?.color ?: MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f).hashCode()))
                     )
                 }
             } else null,
@@ -128,20 +131,20 @@ fun CategoryFilterChip(
                 )
             },
             colors = FilterChipDefaults.filterChipColors(
-                selectedContainerColor = NeonYellow.copy(alpha = 0.2f),
-                selectedLabelColor = NeonYellow,
-                containerColor = SurfaceElevated,
-                labelColor = TextSecondary
+                selectedContainerColor = ColorTokens.Primary500.copy(alpha = 0.2f),
+                selectedLabelColor = ColorTokens.Primary500,
+                containerColor = ColorTokens.SurfaceLevel2,
+                labelColor = MaterialTheme.colorScheme.onSurfaceVariant
             )
         )
 
         DropdownMenu(
             expanded = showDropdown,
             onDismissRequest = { showDropdown = false },
-            modifier = Modifier.background(SurfaceElevated)
+            modifier = Modifier.background(ColorTokens.SurfaceLevel2)
         ) {
             DropdownMenuItem(
-                text = { Text("All Categories", color = TextPrimary) },
+                text = { Text("All Categories", color = MaterialTheme.colorScheme.onBackground) },
                 onClick = {
                     onCategorySelected(null)
                     showDropdown = false
@@ -154,11 +157,11 @@ fun CategoryFilterChip(
 
             categories.forEach { category ->
                 DropdownMenuItem(
-                    text = { Text(category.name, color = TextPrimary) },
+                    text = { Text(category.name, color = MaterialTheme.colorScheme.onBackground) },
                     leadingIcon = {
                         Box(
                             modifier = Modifier
-                                .size(16.dp)
+                                .size(SpacingTokens.Medium)
                                 .clip(CircleShape)
                                 .background(Color(category.color))
                         )
@@ -257,15 +260,15 @@ private fun DateFilterChip(
                 Icon(
                     Icons.Default.DateRange, 
                     null, 
-                    modifier = Modifier.size(16.dp)
+                    modifier = Modifier.size(SpacingTokens.Medium)
                 )
             }
         } else null,
         colors = FilterChipDefaults.filterChipColors(
-            selectedContainerColor = NeonYellow.copy(alpha = 0.2f),
-            selectedLabelColor = NeonYellow,
-            containerColor = SurfaceElevated,
-            labelColor = TextSecondary
+            selectedContainerColor = ColorTokens.Primary500.copy(alpha = 0.2f),
+            selectedLabelColor = ColorTokens.Primary500,
+            containerColor = ColorTokens.SurfaceLevel2,
+            labelColor = MaterialTheme.colorScheme.onSurfaceVariant
         )
     )
 }
@@ -305,7 +308,7 @@ fun SortDropdown(
             label = { Text(sortLabel) },
             leadingIcon = {
                 Icon(
-                    imageVector = Icons.Default.Sort,
+                    imageVector = Icons.AutoMirrored.Filled.Sort,
                     contentDescription = "Sort",
                     modifier = Modifier.size(18.dp)
                 )
@@ -318,26 +321,26 @@ fun SortDropdown(
                 )
             },
             colors = InputChipDefaults.inputChipColors(
-                containerColor = SurfaceElevated,
-                labelColor = TextSecondary
+                containerColor = ColorTokens.SurfaceLevel2,
+                labelColor = MaterialTheme.colorScheme.onSurfaceVariant
         ),
-            modifier = Modifier.menuAnchor()
+            modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable)
         )
 
         ExposedDropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            modifier = Modifier.background(SurfaceElevated)
+            modifier = Modifier.background(ColorTokens.SurfaceLevel2)
         ) {
             DropdownMenuItem(
-                text = { Text("Newest First", color = TextPrimary) },
+                text = { Text("Newest First", color = MaterialTheme.colorScheme.onBackground) },
                 onClick = {
                     onSortSelected(TransactionSort.DATE_DESC)
                     expanded = false
                 }
             )
             DropdownMenuItem(
-                text = { Text("Oldest First", color = TextPrimary) },
+                text = { Text("Oldest First", color = MaterialTheme.colorScheme.onBackground) },
                 onClick = {
                     onSortSelected(TransactionSort.DATE_ASC)
                     expanded = false
@@ -345,14 +348,14 @@ fun SortDropdown(
             )
             HorizontalDivider(color = ColorBorder)
             DropdownMenuItem(
-                text = { Text("Highest Amount", color = TextPrimary) },
+                text = { Text("Highest Amount", color = MaterialTheme.colorScheme.onBackground) },
                 onClick = {
                     onSortSelected(TransactionSort.AMOUNT_DESC)
                     expanded = false
                 }
             )
             DropdownMenuItem(
-                text = { Text("Lowest Amount", color = TextPrimary) },
+                text = { Text("Lowest Amount", color = MaterialTheme.colorScheme.onBackground) },
                 onClick = {
                     onSortSelected(TransactionSort.AMOUNT_ASC)
                     expanded = false
@@ -360,7 +363,7 @@ fun SortDropdown(
             )
             HorizontalDivider(color = ColorBorder)
             DropdownMenuItem(
-                text = { Text("Category", color = TextPrimary) },
+                text = { Text("Category", color = MaterialTheme.colorScheme.onBackground) },
                 onClick = {
                     onSortSelected(TransactionSort.CATEGORY_ASC)
                     expanded = false
@@ -392,15 +395,17 @@ fun ClearFiltersChip(
                 Icon(
                     Icons.Default.Clear, 
                     null, 
-                    modifier = Modifier.size(16.dp),
-                    tint = TextSecondary
+                    modifier = Modifier.size(SpacingTokens.Medium),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             },
             colors = AssistChipDefaults.assistChipColors(
-                labelColor = TextSecondary,
-                containerColor = SurfaceElevated.copy(alpha = 0.5f)
+                labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                containerColor = ColorTokens.SurfaceLevel2.copy(alpha = 0.5f)
             ),
             modifier = modifier
         )
     }
 }
+
+

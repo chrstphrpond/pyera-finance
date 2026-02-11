@@ -3,7 +3,7 @@ package com.pyera.app.ui.bills
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pyera.app.data.local.entity.BillEntity
-import com.pyera.app.data.repository.BillRepository
+import com.pyera.app.domain.repository.BillRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow

@@ -12,6 +12,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import com.pyera.app.ui.theme.Radius
 
 @Composable
 fun PyeraTextField(
@@ -66,9 +67,12 @@ fun PyeraTextField(
             errorBorderColor = colorScheme.error,
             errorLabelColor = colorScheme.error,
             errorSupportingTextColor = colorScheme.error,
+            focusedContainerColor = colorScheme.surface,
+            unfocusedContainerColor = colorScheme.surface,
+            disabledContainerColor = colorScheme.surfaceVariant.copy(alpha = 0.6f),
             cursorColor = colorScheme.primary,
             errorCursorColor = colorScheme.error
         ),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(Radius.Input)
     )
 }

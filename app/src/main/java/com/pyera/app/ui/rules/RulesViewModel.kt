@@ -5,9 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.pyera.app.data.local.entity.CategoryEntity
 import com.pyera.app.data.local.entity.MatchType
 import com.pyera.app.data.local.entity.TransactionRuleEntity
-import com.pyera.app.data.repository.AuthRepository
-import com.pyera.app.data.repository.CategoryRepository
-import com.pyera.app.data.repository.TransactionRuleRepository
+import com.pyera.app.domain.repository.AuthRepository
+import com.pyera.app.domain.repository.CategoryRepository
+import com.pyera.app.domain.repository.TransactionRuleRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow

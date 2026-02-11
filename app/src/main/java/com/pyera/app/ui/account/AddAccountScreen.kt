@@ -1,5 +1,9 @@
 package com.pyera.app.ui.account
 
+import com.pyera.app.ui.components.PyeraCard
+import com.pyera.app.ui.theme.tokens.ColorTokens
+import com.pyera.app.ui.theme.tokens.SpacingTokens
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -18,9 +22,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -28,7 +34,10 @@ import com.pyera.app.data.local.entity.AccountType
 import com.pyera.app.data.local.entity.defaultIcon
 import com.pyera.app.data.local.entity.displayName
 import com.pyera.app.ui.theme.*
+import com.pyera.app.ui.util.CurrencyFormatter
+import com.pyera.app.ui.util.pyeraBackground
 
+@Suppress("DEPRECATION")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddAccountScreen(
@@ -51,34 +60,36 @@ fun AddAccountScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = DeepBackground,
-                    titleContentColor = TextPrimary,
-                    navigationIconContentColor = TextPrimary
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
         },
-        containerColor = DeepBackground
+        containerColor = Color.Transparent
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .pyeraBackground()
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp)
+                .padding(SpacingTokens.Medium)
         ) {
             // Error message
             error?.let { errorMessage ->
-                Card(
+                PyeraCard(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = ErrorContainer)
+                    containerColor = ErrorContainer,
+                    borderWidth = 0.dp
                 ) {
                     Text(
                         text = errorMessage,
-                        color = ColorError,
-                        modifier = Modifier.padding(16.dp)
+                        color = ColorTokens.Error500,
+                        modifier = Modifier.padding(SpacingTokens.Medium)
                     )
                 }
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(SpacingTokens.Medium))
             }
             
             // Account Icon Preview
@@ -88,7 +99,7 @@ fun AddAccountScreen(
                 onClick = { showIconPicker = true }
             )
             
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Large))
             
             // Account Name
             OutlinedTextField(
@@ -99,22 +110,22 @@ fun AddAccountScreen(
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = AccentGreen,
-                    unfocusedBorderColor = TextSecondary,
-                    focusedTextColor = TextPrimary,
-                    unfocusedTextColor = TextPrimary,
-                    focusedLabelColor = AccentGreen,
-                    unfocusedLabelColor = TextSecondary
+                    focusedBorderColor = ColorTokens.Primary500,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    focusedLabelColor = ColorTokens.Primary500,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             )
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Medium))
             
             // Account Type Selector
             Text(
                 text = "Account Type",
                 style = MaterialTheme.typography.bodyMedium,
-                color = TextSecondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             
@@ -128,7 +139,7 @@ fun AddAccountScreen(
                 }
             )
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Medium))
             
             // Initial Balance
             OutlinedTextField(
@@ -141,24 +152,24 @@ fun AddAccountScreen(
                 keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
                     keyboardType = KeyboardType.Decimal
                 ),
-                prefix = { Text("₱") },
+                prefix = { Text(CurrencyFormatter.SYMBOL) },
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = AccentGreen,
-                    unfocusedBorderColor = TextSecondary,
-                    focusedTextColor = TextPrimary,
-                    unfocusedTextColor = TextPrimary,
-                    focusedLabelColor = AccentGreen,
-                    unfocusedLabelColor = TextSecondary
+                    focusedBorderColor = ColorTokens.Primary500,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    focusedLabelColor = ColorTokens.Primary500,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             )
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Medium))
             
             // Color Picker
             Text(
                 text = "Account Color",
                 style = MaterialTheme.typography.bodyMedium,
-                color = TextSecondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             
@@ -167,7 +178,7 @@ fun AddAccountScreen(
                 onColorSelected = { viewModel.updateFormState(color = it) }
             )
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Medium))
             
             // Default Account Toggle
             Row(
@@ -178,25 +189,25 @@ fun AddAccountScreen(
                     Text(
                         text = "Set as Default",
                         style = MaterialTheme.typography.bodyLarge,
-                        color = TextPrimary
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                     Text(
                         text = "Use this account for new transactions",
                         style = MaterialTheme.typography.bodySmall,
-                        color = TextSecondary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 Switch(
                     checked = formState.isDefault,
                     onCheckedChange = { viewModel.updateFormState(isDefault = it) },
                     colors = SwitchDefaults.colors(
-                        checkedThumbColor = AccentGreen,
-                        checkedTrackColor = AccentGreen.copy(alpha = 0.5f)
+                        checkedThumbColor = ColorTokens.Primary500,
+                        checkedTrackColor = ColorTokens.Primary500.copy(alpha = 0.5f)
                     )
                 )
             }
             
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.ExtraLarge))
             
             // Save Button
             Button(
@@ -210,18 +221,18 @@ fun AddAccountScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = AccentGreen),
+                colors = ButtonDefaults.buttonColors(containerColor = ColorTokens.Primary500),
                 enabled = !isLoading && formState.name.isNotBlank()
             ) {
                 if (isLoading) {
                     CircularProgressIndicator(
-                        color = DeepBackground,
-                        modifier = Modifier.size(24.dp)
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.size(SpacingTokens.Large)
                     )
                 } else {
                     Text(
                         text = if (formState.isEditing) "Update Account" else "Create Account",
-                        color = DeepBackground,
+                        color = MaterialTheme.colorScheme.onPrimary,
                         fontSize = 16.sp
                     )
                 }
@@ -269,7 +280,7 @@ private fun AccountIconPreview(
         Text(
             text = "Tap to change icon",
             style = MaterialTheme.typography.bodySmall,
-            color = TextSecondary
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -295,8 +306,8 @@ private fun AccountTypeSelector(
                     Text(type.defaultIcon())
                 },
                 colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = AccentGreen.copy(alpha = 0.2f),
-                    selectedLabelColor = AccentGreen
+                    selectedContainerColor = ColorTokens.Primary500.copy(alpha = 0.2f),
+                    selectedLabelColor = ColorTokens.Primary500
                 )
             )
         }
@@ -321,7 +332,7 @@ private fun ColorPicker(
                     .background(Color(color))
                     .border(
                         width = if (isSelected) 3.dp else 0.dp,
-                        color = if (isSelected) TextPrimary else Color.Transparent,
+                        color = if (isSelected) MaterialTheme.colorScheme.onBackground else Color.Transparent,
                         shape = CircleShape
                     )
                     .clickable { onColorSelected(color) },
@@ -358,9 +369,7 @@ private fun IconPickerDialog(
         text = {
             Column {
                 FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     icons.forEach { icon ->
                         val isSelected = icon == selectedIcon
@@ -369,12 +378,12 @@ private fun IconPickerDialog(
                                 .size(48.dp)
                                 .clip(RoundedCornerShape(8.dp))
                                 .background(
-                                    if (isSelected) AccentGreen.copy(alpha = 0.2f)
-                                    else SurfaceElevated
+                                    if (isSelected) ColorTokens.Primary500.copy(alpha = 0.2f)
+                                    else ColorTokens.SurfaceLevel2
                                 )
                                 .border(
                                     width = if (isSelected) 2.dp else 0.dp,
-                                    color = if (isSelected) AccentGreen else Color.Transparent,
+                                    color = if (isSelected) ColorTokens.Primary500 else Color.Transparent,
                                     shape = RoundedCornerShape(8.dp)
                                 )
                                 .clickable { onIconSelected(icon) },
@@ -388,10 +397,10 @@ private fun IconPickerDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel", color = TextSecondary)
+                Text("Cancel", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         },
-        containerColor = SurfaceElevated
+        containerColor = ColorTokens.SurfaceLevel2
     )
 }
 
@@ -399,8 +408,6 @@ private fun IconPickerDialog(
 @Composable
 private fun FlowRow(
     modifier: Modifier = Modifier,
-    horizontalArrangement: Arrangement.Horizontal = Arrangement.Start,
-    verticalArrangement: Arrangement.Vertical = Arrangement.Top,
     content: @Composable () -> Unit
 ) {
     Layout(
@@ -456,3 +463,6 @@ private fun FlowRow(
         }
     }
 }
+
+
+

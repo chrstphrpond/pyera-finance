@@ -3,8 +3,8 @@ package com.pyera.app.ui.transaction
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pyera.app.data.local.entity.TransactionEntity
-
-import com.pyera.app.data.repository.TransactionRepository
+import com.pyera.app.domain.repository.TransactionRepository
+import com.pyera.app.util.ValidationUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,24 +25,12 @@ class AddTransactionViewModel @Inject constructor(
     val saveState: StateFlow<SaveState> = _saveState.asStateFlow()
 
     fun validateAmount(amount: String): Boolean {
-        return when {
-            amount.isBlank() -> {
-                _validationState.update { it.copy(amountError = "Amount is required") }
+        return when (val result = ValidationUtils.validateTransactionAmount(amount)) {
+            is ValidationUtils.ValidationResult.Error -> {
+                _validationState.update { it.copy(amountError = result.message) }
                 false
             }
-            amount.toDoubleOrNull() == null -> {
-                _validationState.update { it.copy(amountError = "Invalid amount") }
-                false
-            }
-            amount.toDouble() <= 0 -> {
-                _validationState.update { it.copy(amountError = "Amount must be greater than 0") }
-                false
-            }
-            amount.toDouble() > 999999999.99 -> {
-                _validationState.update { it.copy(amountError = "Amount is too large") }
-                false
-            }
-            else -> {
+            ValidationUtils.ValidationResult.Success -> {
                 _validationState.update { it.copy(amountError = null) }
                 true
             }
@@ -50,16 +38,12 @@ class AddTransactionViewModel @Inject constructor(
     }
     
     fun validateDescription(description: String): Boolean {
-        return when {
-            description.isBlank() -> {
-                _validationState.update { it.copy(descriptionError = "Description is required") }
+        return when (val result = ValidationUtils.validateTransactionDescription(description)) {
+            is ValidationUtils.ValidationResult.Error -> {
+                _validationState.update { it.copy(descriptionError = result.message) }
                 false
             }
-            description.length > 200 -> {
-                _validationState.update { it.copy(descriptionError = "Description is too long") }
-                false
-            }
-            else -> {
+            ValidationUtils.ValidationResult.Success -> {
                 _validationState.update { it.copy(descriptionError = null) }
                 true
             }
@@ -67,12 +51,12 @@ class AddTransactionViewModel @Inject constructor(
     }
     
     fun validateCategory(categoryId: Long): Boolean {
-        return when {
-            categoryId <= 0 -> {
-                _validationState.update { it.copy(categoryError = "Please select a category") }
+        return when (val result = ValidationUtils.validateTransactionCategory(categoryId)) {
+            is ValidationUtils.ValidationResult.Error -> {
+                _validationState.update { it.copy(categoryError = result.message) }
                 false
             }
-            else -> {
+            ValidationUtils.ValidationResult.Success -> {
                 _validationState.update { it.copy(categoryError = null) }
                 true
             }
@@ -85,6 +69,7 @@ class AddTransactionViewModel @Inject constructor(
         categoryId: Long,
         type: String,
         date: Long,
+        accountId: Long,
         userId: String = "current_user"
     ) {
         val isAmountValid = validateAmount(amount)
@@ -104,7 +89,9 @@ class AddTransactionViewModel @Inject constructor(
                         note = description.trim(),
                         categoryId = categoryId.toInt(),
                         type = type,
-                        date = date
+                        date = date,
+                        accountId = accountId,
+                        userId = userId
                     )
                 )
                 _saveState.value = SaveState.Success

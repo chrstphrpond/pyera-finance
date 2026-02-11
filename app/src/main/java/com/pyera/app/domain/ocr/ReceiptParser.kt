@@ -25,7 +25,6 @@ class ReceiptParser {
     fun parse(text: Text): ReceiptData {
         val blocks = text.textBlocks
         var merchant: String? = null
-        var totalAmount: Double? = null
         
         // Simple heuristic: First non-empty block is often the merchant
         if (blocks.isNotEmpty()) {
@@ -33,7 +32,7 @@ class ReceiptParser {
         }
 
         val fullText = text.text
-        totalAmount = findTotalAmount(fullText)
+        val totalAmount = findTotalAmount(fullText)
 
         return ReceiptData(
             merchant = merchant,

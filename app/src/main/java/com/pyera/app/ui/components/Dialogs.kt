@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Error
@@ -17,8 +16,6 @@ import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -36,6 +33,8 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.res.stringResource
 import com.pyera.app.R
 import com.pyera.app.ui.theme.*
+import com.pyera.app.ui.theme.tokens.ColorTokens
+import com.pyera.app.ui.theme.tokens.SpacingTokens
 
 /**
  * A reusable confirmation dialog with customizable title, message, and button colors.
@@ -47,7 +46,7 @@ fun ConfirmDialog(
     message: String,
     confirmText: String = stringResource(R.string.dialog_confirm_button),
     dismissText: String = stringResource(R.string.dialog_cancel_button),
-    confirmColor: Color = ColorError,
+    confirmColor: Color = ColorTokens.Error500,
     icon: ImageVector? = Icons.Default.Warning,
     iconTint: Color = confirmColor,
     onConfirm: () -> Unit,
@@ -55,9 +54,9 @@ fun ConfirmDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = SurfaceElevated,
-        titleContentColor = TextPrimary,
-        textContentColor = TextSecondary,
+        containerColor = ColorTokens.SurfaceLevel2,
+        titleContentColor = MaterialTheme.colorScheme.onSurface,
+        textContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
         icon = icon?.let {
             {
                 Icon(
@@ -106,7 +105,7 @@ fun ConfirmDialog(
             ) {
                 Text(
                     text = dismissText,
-                    color = TextSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.labelLarge
                 )
             }
@@ -127,14 +126,14 @@ fun ErrorDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = SurfaceElevated,
-        titleContentColor = TextPrimary,
-        textContentColor = TextSecondary,
+        containerColor = ColorTokens.SurfaceLevel2,
+        titleContentColor = MaterialTheme.colorScheme.onSurface,
+        textContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
         icon = {
             Icon(
                 imageVector = Icons.Default.Error,
                 contentDescription = stringResource(R.string.dialog_error_content_desc),
-                tint = ColorError,
+                tint = ColorTokens.Error500,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
         },
@@ -158,7 +157,7 @@ fun ErrorDialog(
             Button(
                 onClick = onDismiss,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = ColorError,
+                    containerColor = ColorTokens.Error500,
                     contentColor = Color.White
                 ),
                 modifier = Modifier.fillMaxWidth()
@@ -186,14 +185,14 @@ fun SuccessDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = SurfaceElevated,
-        titleContentColor = TextPrimary,
-        textContentColor = TextSecondary,
+        containerColor = ColorTokens.SurfaceLevel2,
+        titleContentColor = MaterialTheme.colorScheme.onSurface,
+        textContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
         icon = {
             Icon(
                 imageVector = Icons.Default.CheckCircle,
                 contentDescription = stringResource(R.string.dialog_success_content_desc),
-                tint = ColorSuccess,
+                tint = ColorTokens.Success500,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
         },
@@ -217,8 +216,8 @@ fun SuccessDialog(
             Button(
                 onClick = onDismiss,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = ColorSuccess,
-                    contentColor = DarkGreen
+                    containerColor = ColorTokens.Success500,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
                 ),
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -251,9 +250,9 @@ fun InfoDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = SurfaceElevated,
-        titleContentColor = TextPrimary,
-        textContentColor = TextSecondary,
+        containerColor = ColorTokens.SurfaceLevel2,
+        titleContentColor = MaterialTheme.colorScheme.onSurface,
+        textContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
         title = {
             Text(
                 text = title,
@@ -274,8 +273,8 @@ fun InfoDialog(
             Button(
                 onClick = onDismiss,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = NeonYellow,
-                    contentColor = DarkGreen
+                    containerColor = ColorTokens.Primary500,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
                 ),
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -302,44 +301,40 @@ fun ErrorContainer(
     message: String? = null,
     modifier: Modifier = Modifier
 ) {
-    Card(
+    PyeraCard(
         modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = ColorError.copy(alpha = 0.1f)
-        ),
-        border = BorderStroke(
-            width = 1.dp,
-            color = ColorError.copy(alpha = 0.3f)
-        )
+        containerColor = ColorTokens.Error500.copy(alpha = 0.1f),
+        borderColor = ColorTokens.Error500.copy(alpha = 0.3f),
+        borderWidth = 1.dp
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(SpacingTokens.Medium),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Icon(
                 imageVector = Icons.Default.Error,
                 contentDescription = stringResource(R.string.dialog_error_content_desc),
-                tint = ColorError,
+                tint = ColorTokens.Error500,
                 modifier = Modifier.size(48.dp)
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.MediumSmall))
 
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
-                color = ColorError,
+                color = ColorTokens.Error500,
                 textAlign = TextAlign.Center
             )
 
             message?.let {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(SpacingTokens.Small))
                 Text(
                     text = it,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = ColorError.copy(alpha = 0.8f),
+                    color = ColorTokens.Error500.copy(alpha = 0.8f),
                     textAlign = TextAlign.Center
                 )
             }
@@ -360,24 +355,24 @@ fun ErrorContainer(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .padding(SpacingTokens.Medium),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Icon(
             imageVector = Icons.Default.Error,
             contentDescription = stringResource(R.string.dialog_error_content_desc),
-            tint = ColorError,
+            tint = ColorTokens.Error500,
             modifier = Modifier.size(48.dp)
         )
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(SpacingTokens.Small))
         Text(
             text = message,
             style = MaterialTheme.typography.bodyMedium,
-            color = ColorError,
+            color = ColorTokens.Error500,
             textAlign = TextAlign.Center
         )
         if (onRetry != null) {
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Medium))
             PyeraButton(
                 onClick = onRetry,
                 variant = ButtonVariant.Primary
@@ -402,16 +397,16 @@ fun ConfirmationDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    val confirmColor = if (isDestructive) ColorError else NeonYellow
-    val confirmTextColor = if (isDestructive) Color.White else DarkGreen
+    val confirmColor = if (isDestructive) ColorTokens.Error500 else ColorTokens.Primary500
+    val confirmTextColor = if (isDestructive) Color.White else MaterialTheme.colorScheme.onPrimary
     val icon = if (isDestructive) Icons.Default.Warning else null
-    val iconTint = if (isDestructive) ColorError else NeonYellow
+    val iconTint = if (isDestructive) ColorTokens.Error500 else ColorTokens.Primary500
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = SurfaceElevated,
-        titleContentColor = TextPrimary,
-        textContentColor = TextSecondary,
+        containerColor = ColorTokens.SurfaceLevel2,
+        titleContentColor = MaterialTheme.colorScheme.onSurface,
+        textContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
         icon = icon?.let {
             {
                 Icon(
@@ -460,7 +455,7 @@ fun ConfirmationDialog(
             ) {
                 Text(
                     text = dismissText,
-                    color = TextSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.labelLarge
                 )
             }
@@ -479,32 +474,34 @@ fun LoadingDialog(
     Dialog(
         onDismissRequest = { /* Cannot dismiss by clicking outside */ }
     ) {
-        Card(
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = SurfaceElevated),
-            modifier = Modifier.fillMaxWidth()
+        PyeraCard(
+            modifier = Modifier.fillMaxWidth(),
+            containerColor = ColorTokens.SurfaceLevel2,
+            borderWidth = 0.dp
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(24.dp),
+                    .padding(SpacingTokens.Large),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 CircularProgressIndicator(
-                    color = NeonYellow,
+                    color = ColorTokens.Primary500,
                     strokeWidth = 4.dp,
                     modifier = Modifier.size(48.dp)
                 )
                 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(SpacingTokens.Medium))
                 
                 Text(
                     text = message,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = TextSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center
                 )
             }
         }
     }
 }
+
+

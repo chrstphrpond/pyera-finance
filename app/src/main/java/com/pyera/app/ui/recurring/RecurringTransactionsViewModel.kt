@@ -6,8 +6,10 @@ import com.pyera.app.data.local.entity.CategoryEntity
 import com.pyera.app.data.local.entity.RecurringFrequency
 import com.pyera.app.data.local.entity.RecurringTransactionEntity
 import com.pyera.app.data.local.entity.TransactionType
-import com.pyera.app.data.repository.CategoryRepository
-import com.pyera.app.data.repository.RecurringTransactionRepository
+import com.pyera.app.data.local.entity.AccountEntity
+import com.pyera.app.domain.repository.AccountRepository
+import com.pyera.app.domain.repository.CategoryRepository
+import com.pyera.app.domain.repository.RecurringTransactionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -36,6 +38,7 @@ data class RecurringFormState(
     val amount: String = "",
     val type: TransactionType = TransactionType.EXPENSE,
     val categoryId: Long? = null,
+    val accountId: Long? = null,
     val description: String = "",
     val frequency: RecurringFrequency = RecurringFrequency.MONTHLY,
     val startDate: Long = System.currentTimeMillis(),
@@ -48,7 +51,8 @@ data class RecurringFormState(
         return amountValue != null && 
                amountValue > 0 && 
                description.isNotBlank() &&
-               categoryId != null
+               categoryId != null &&
+               accountId != null
     }
 
     fun toEntity(id: Long = 0): RecurringTransactionEntity {
@@ -57,6 +61,7 @@ data class RecurringFormState(
             amount = amount.toDoubleOrNull() ?: 0.0,
             type = type,
             categoryId = categoryId,
+            accountId = accountId,
             description = description,
             frequency = frequency,
             startDate = startDate,
@@ -72,6 +77,7 @@ data class RecurringFormState(
                 amount = entity.amount.toString(),
                 type = entity.type,
                 categoryId = entity.categoryId,
+                accountId = entity.accountId,
                 description = entity.description,
                 frequency = entity.frequency,
                 startDate = entity.startDate,
@@ -86,7 +92,8 @@ data class RecurringFormState(
 @HiltViewModel
 class RecurringTransactionsViewModel @Inject constructor(
     private val repository: RecurringTransactionRepository,
-    private val categoryRepository: CategoryRepository
+    private val categoryRepository: CategoryRepository,
+    private val accountRepository: AccountRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(RecurringTransactionsUiState())
@@ -96,6 +103,14 @@ class RecurringTransactionsViewModel @Inject constructor(
     val formState: StateFlow<RecurringFormState> = _formState.asStateFlow()
 
     val categories: StateFlow<List<CategoryEntity>> = categoryRepository.getAllCategories()
+        .distinctUntilChanged()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
+    val accounts: StateFlow<List<AccountEntity>> = accountRepository.getActiveAccounts()
         .distinctUntilChanged()
         .stateIn(
             scope = viewModelScope,

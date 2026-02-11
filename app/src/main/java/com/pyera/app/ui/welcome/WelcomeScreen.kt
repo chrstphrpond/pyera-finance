@@ -1,5 +1,9 @@
 package com.pyera.app.ui.welcome
 
+import com.pyera.app.ui.theme.tokens.ColorTokens
+import com.pyera.app.ui.theme.tokens.SpacingTokens
+
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -18,19 +22,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.pyera.app.ui.theme.AccentGreen
 import com.pyera.app.ui.theme.CardBackground
 import com.pyera.app.ui.theme.CardBorder
 import com.pyera.app.ui.theme.DeepBackground
-import com.pyera.app.ui.theme.TextSecondary
-import com.pyera.app.ui.theme.TextTertiary
+import com.pyera.app.ui.theme.PrimaryAccent
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import com.pyera.app.R
+import com.pyera.app.ui.util.pyeraBackground
+import com.pyera.app.ui.theme.TextSecondary
+import com.pyera.app.ui.theme.TextTertiary
+import com.pyera.app.ui.util.CurrencyFormatter
 
+@Suppress("DEPRECATION")
 @Composable
 fun WelcomeScreen(
     onGetStarted: () -> Unit,
@@ -41,7 +48,7 @@ fun WelcomeScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(DeepBackground)
+            .pyeraBackground(forceDark = true)
     ) {
 
         // Background Image with scrim
@@ -65,7 +72,7 @@ fun WelcomeScreen(
                     .background(
                         brush = Brush.verticalGradient(
                             colors = listOf(
-                                Color.Transparent,
+                                PrimaryAccent.copy(alpha = 0.06f),
                                 DeepBackground
                             ),
                             startY = 0f,
@@ -79,7 +86,7 @@ fun WelcomeScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 24.dp),
+                .padding(horizontal = SpacingTokens.Large),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(60.dp))
@@ -89,18 +96,18 @@ fun WelcomeScreen(
                 modifier = Modifier
                     .size(80.dp)
                     .clip(RoundedCornerShape(20.dp))
-                    .background(AccentGreen),
+                    .background(ColorTokens.Primary500),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "₱",
+                    text = CurrencyFormatter.SYMBOL,
                     fontSize = 40.sp,
                     fontWeight = FontWeight.Bold,
                     color = DeepBackground
                 )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
             Text(
                 text = "Pyera",
@@ -146,7 +153,7 @@ fun WelcomeScreen(
                 text = "your finances",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
-                color = AccentGreen,
+                color = ColorTokens.Primary500,
                 textAlign = TextAlign.Center
             )
 
@@ -167,9 +174,9 @@ fun WelcomeScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
-                shape = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(SpacingTokens.Medium),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = AccentGreen,
+                    containerColor = ColorTokens.Primary500,
                     contentColor = DeepBackground
                 )
             ) {
@@ -194,13 +201,11 @@ fun WelcomeScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
-                shape = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(SpacingTokens.Medium),
                 colors = ButtonDefaults.outlinedButtonColors(
                     contentColor = Color.White
                 ),
-                border = ButtonDefaults.outlinedButtonBorder.copy(
-                    brush = androidx.compose.ui.graphics.SolidColor(CardBorder)
-                )
+                border = BorderStroke(1.dp, CardBorder)
             ) {
                 Text(
                     text = "I already have an account",
@@ -209,7 +214,7 @@ fun WelcomeScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Large))
 
             // Terms text
             Text(
@@ -230,7 +235,7 @@ fun WelcomeScreen(
                     Text(
                         text = "Terms of Service",
                         fontSize = 12.sp,
-                        color = AccentGreen
+                        color = ColorTokens.Primary500
                     )
                 }
                 Text(
@@ -245,12 +250,12 @@ fun WelcomeScreen(
                     Text(
                         text = "Privacy Policy",
                         fontSize = 12.sp,
-                        color = AccentGreen
+                        color = ColorTokens.Primary500
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.ExtraLarge))
         }
     }
 }
@@ -264,18 +269,18 @@ private fun FeatureCard(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(SpacingTokens.Medium))
             .background(CardBackground)
-            .border(1.dp, CardBorder, RoundedCornerShape(16.dp))
-            .padding(16.dp),
+            .border(1.dp, CardBorder, RoundedCornerShape(SpacingTokens.Medium))
+            .padding(SpacingTokens.Medium),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
+        horizontalArrangement = Arrangement.spacedBy(SpacingTokens.Medium)
     ) {
         Box(
             modifier = Modifier
                 .size(44.dp)
                 .clip(RoundedCornerShape(12.dp))
-                .background(AccentGreen.copy(alpha = 0.15f)),
+                .background(ColorTokens.Primary500.copy(alpha = 0.15f)),
             contentAlignment = Alignment.Center
         ) {
             Text(
@@ -299,3 +304,6 @@ private fun FeatureCard(
         }
     }
 }
+
+
+

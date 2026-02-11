@@ -1,5 +1,7 @@
 package com.pyera.app.data.repository
 
+import com.pyera.app.domain.repository.*
+
 import com.pyera.app.data.local.dao.DebtDao
 import com.pyera.app.data.local.entity.DebtEntity
 import kotlinx.coroutines.flow.Flow

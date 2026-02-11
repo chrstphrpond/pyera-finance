@@ -3,7 +3,7 @@ package com.pyera.app.ui.debt
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pyera.app.data.local.entity.DebtEntity
-import com.pyera.app.data.repository.DebtRepository
+import com.pyera.app.domain.repository.DebtRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted

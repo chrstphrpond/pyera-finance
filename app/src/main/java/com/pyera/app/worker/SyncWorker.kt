@@ -12,8 +12,8 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkRequest
 import androidx.work.WorkerParameters
-import com.pyera.app.data.repository.BudgetRepository
-import com.pyera.app.data.repository.TransactionRepository
+import com.pyera.app.domain.repository.BudgetRepository
+import com.pyera.app.domain.repository.TransactionRepository
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers

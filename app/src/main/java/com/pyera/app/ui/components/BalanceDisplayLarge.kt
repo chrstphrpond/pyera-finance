@@ -1,4 +1,5 @@
 package com.pyera.app.ui.components
+import com.pyera.app.ui.theme.tokens.ColorTokens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -12,8 +13,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.TrendingDown
-import androidx.compose.material.icons.filled.TrendingUp
+import androidx.compose.material.icons.automirrored.filled.TrendingDown
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -27,11 +28,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.pyera.app.ui.theme.AccentGreen
 import com.pyera.app.ui.theme.NegativeChange
 import com.pyera.app.ui.theme.PositiveChange
-import com.pyera.app.ui.theme.TextSecondary
-import com.pyera.app.ui.theme.TextTertiary
+import com.pyera.app.ui.util.CurrencyFormatter
 import java.text.NumberFormat
 import java.util.Locale
 import kotlin.math.abs
@@ -39,7 +38,7 @@ import kotlin.math.abs
 @Composable
 fun BalanceDisplayLarge(
     balance: Double,
-    currencySymbol: String = "₱",
+    currencySymbol: String = CurrencyFormatter.SYMBOL,
     label: String = "Current balance",
     percentageChange: Float? = null,
     changeTimeframe: String = "1d",
@@ -58,7 +57,7 @@ fun BalanceDisplayLarge(
         Text(
             text = label,
             style = MaterialTheme.typography.bodyMedium,
-            color = TextSecondary,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = FontWeight.Normal
         )
 
@@ -78,7 +77,7 @@ fun BalanceDisplayLarge(
                 }
                 withStyle(
                     SpanStyle(
-                        color = TextSecondary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 32.sp,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -99,6 +98,7 @@ fun BalanceDisplayLarge(
     }
 }
 
+@Suppress("DEPRECATION")
 @Composable
 private fun PercentageChangeBadge(
     percentage: Float,
@@ -107,7 +107,7 @@ private fun PercentageChangeBadge(
 ) {
     val isPositive = percentage >= 0
     val color = if (isPositive) PositiveChange else NegativeChange
-    val icon = if (isPositive) Icons.Default.TrendingUp else Icons.Default.TrendingDown
+    val icon = if (isPositive) Icons.AutoMirrored.Filled.TrendingUp else Icons.AutoMirrored.Filled.TrendingDown
     val sign = if (isPositive) "+" else ""
 
     Row(
@@ -133,7 +133,10 @@ private fun PercentageChangeBadge(
         Text(
             text = "($timeframe)",
             style = MaterialTheme.typography.labelMedium,
-            color = TextTertiary
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
         )
     }
 }
+
+
+

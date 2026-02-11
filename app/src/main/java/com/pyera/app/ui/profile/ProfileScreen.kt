@@ -1,5 +1,8 @@
 package com.pyera.app.ui.profile
 
+import com.pyera.app.ui.theme.tokens.ColorTokens
+import com.pyera.app.ui.theme.tokens.SpacingTokens
+
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -11,6 +14,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -25,6 +29,7 @@ import com.pyera.app.ui.components.PyeraCard
 import com.pyera.app.ui.components.ButtonVariant
 import com.pyera.app.ui.navigation.Screen
 import com.pyera.app.ui.theme.*
+import com.pyera.app.ui.util.pyeraBackground
 import java.io.File
 
 @Composable
@@ -79,11 +84,12 @@ fun ProfileScreen(
     }
 
     Scaffold(
-        containerColor = DarkGreen
+        containerColor = Color.Transparent
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .pyeraBackground()
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
         ) {
@@ -94,7 +100,7 @@ fun ProfileScreen(
                 avatarUrl = state.avatarUrl
             )
 
-            Spacer(modifier = Modifier.height(Spacing.Large))
+            Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
             // Quick Stats
             QuickStatsRow(
@@ -103,7 +109,7 @@ fun ProfileScreen(
                 activeBudgets = state.activeBudgetsCount
             )
 
-            Spacer(modifier = Modifier.height(Spacing.Large))
+            Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
             // Settings Sections
             SettingsSection(title = "Account") {
@@ -134,9 +140,9 @@ fun ProfileScreen(
                             checked = state.notificationsEnabled,
                             onCheckedChange = viewModel::setNotificationsEnabled,
                             colors = SwitchDefaults.colors(
-                                checkedThumbColor = NeonYellow,
-                                checkedTrackColor = NeonYellow.copy(alpha = 0.5f),
-                                uncheckedThumbColor = TextSecondary,
+                                checkedThumbColor = ColorTokens.Primary500,
+                                checkedTrackColor = ColorTokens.Primary500.copy(alpha = 0.5f),
+                                uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant,
                                 uncheckedTrackColor = ColorBorder
                             )
                         )
@@ -194,7 +200,7 @@ fun ProfileScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(Spacing.Large))
+            Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
             // Logout Button
             PyeraButton(
@@ -202,12 +208,12 @@ fun ProfileScreen(
                 variant = ButtonVariant.Destructive,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = Spacing.ScreenPadding)
+                    .padding(horizontal = SpacingTokens.MediumLarge)
             ) {
                 Text("Logout")
             }
 
-            Spacer(modifier = Modifier.height(Spacing.XXXLarge))
+            Spacer(modifier = Modifier.height(SpacingTokens.ExtraLarge))
         }
     }
 }
@@ -221,13 +227,13 @@ private fun UserProfileHeader(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(Spacing.ScreenPadding),
+            .padding(SpacingTokens.MediumLarge),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Avatar
         Surface(
             shape = MaterialTheme.shapes.extraLarge,
-            color = SurfaceElevated,
+            color = ColorTokens.SurfaceLevel2,
             modifier = Modifier.size(100.dp)
         ) {
             Box(contentAlignment = Alignment.Center) {
@@ -235,25 +241,25 @@ private fun UserProfileHeader(
                     imageVector = Icons.Default.Person,
                     contentDescription = null,
                     modifier = Modifier.size(50.dp),
-                    tint = NeonYellow
+                    tint = ColorTokens.Primary500
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(Spacing.Medium))
+        Spacer(modifier = Modifier.height(SpacingTokens.MediumSmall))
 
         // Name
         Text(
             text = userName,
             style = MaterialTheme.typography.headlineSmall,
-            color = TextPrimary
+            color = MaterialTheme.colorScheme.onBackground
         )
 
         // Email
         Text(
             text = email,
             style = MaterialTheme.typography.bodyMedium,
-            color = TextSecondary
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -267,7 +273,7 @@ private fun QuickStatsRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = Spacing.ScreenPadding),
+            .padding(horizontal = SpacingTokens.MediumLarge),
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
         QuickStatItem(
@@ -294,12 +300,12 @@ private fun QuickStatItem(
         Text(
             text = value,
             style = MaterialTheme.typography.headlineSmall,
-            color = NeonYellow
+            color = ColorTokens.Primary500
         )
         Text(
             text = label,
             style = MaterialTheme.typography.bodySmall,
-            color = TextSecondary
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -310,17 +316,17 @@ private fun SettingsSection(
     content: @Composable ColumnScope.() -> Unit
 ) {
     Column(
-        modifier = Modifier.padding(vertical = Spacing.Small)
+        modifier = Modifier.padding(vertical = SpacingTokens.Small)
     ) {
         Text(
             text = title,
             style = MaterialTheme.typography.labelLarge,
-            color = NeonYellow,
-            modifier = Modifier.padding(horizontal = Spacing.ScreenPadding, vertical = Spacing.Small)
+            color = ColorTokens.Primary500,
+            modifier = Modifier.padding(horizontal = SpacingTokens.MediumLarge, vertical = SpacingTokens.Small)
         )
 
         PyeraCard(
-            modifier = Modifier.padding(horizontal = Spacing.ScreenPadding),
+            modifier = Modifier.padding(horizontal = SpacingTokens.MediumLarge),
             borderColor = ColorBorder
         ) {
             Column {
@@ -335,7 +341,7 @@ private fun SettingsDivider() {
     HorizontalDivider(
         color = ColorBorder,
         thickness = 1.dp,
-        modifier = Modifier.padding(horizontal = Spacing.CardPadding)
+        modifier = Modifier.padding(horizontal = SpacingTokens.MediumLarge)
     )
 }
 
@@ -355,31 +361,31 @@ private fun SettingsItem(
         modifier = Modifier
             .fillMaxWidth()
             .then(clickableModifier)
-            .padding(Spacing.CardPadding),
+            .padding(SpacingTokens.MediumLarge),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(Spacing.Medium)
+            horizontalArrangement = Arrangement.spacedBy(SpacingTokens.MediumSmall)
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = TextSecondary
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Column {
                 Text(
                     text = title,
                     style = MaterialTheme.typography.bodyLarge,
-                    color = TextPrimary
+                    color = MaterialTheme.colorScheme.onBackground
                 )
                 if (subtitle != null) {
                     Text(
                         text = subtitle,
                         style = MaterialTheme.typography.bodySmall,
-                        color = TextSecondary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -391,8 +397,11 @@ private fun SettingsItem(
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
                 contentDescription = null,
-                tint = TextSecondary
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
 }
+
+
+

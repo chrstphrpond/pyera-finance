@@ -1,35 +1,37 @@
 package com.pyera.app.di
 
-import com.pyera.app.data.repository.AccountRepository
 import com.pyera.app.data.repository.AccountRepositoryImpl
-import com.pyera.app.data.repository.AnalysisRepository
 import com.pyera.app.data.repository.AnalysisRepositoryImpl
-import com.pyera.app.data.repository.AuthRepository
-import com.pyera.app.data.repository.AuthRepositoryImpl
-import com.pyera.app.data.repository.BillRepository
 import com.pyera.app.data.repository.BillRepositoryImpl
-import com.pyera.app.data.repository.BudgetRepository
 import com.pyera.app.data.repository.BudgetRepositoryImpl
-import com.pyera.app.data.repository.CategoryRepository
 import com.pyera.app.data.repository.CategoryRepositoryImpl
-import com.pyera.app.data.repository.ChatRepository
 import com.pyera.app.data.repository.ChatRepositoryImpl
-import com.pyera.app.data.repository.DebtRepository
 import com.pyera.app.data.repository.DebtRepositoryImpl
-import com.pyera.app.data.repository.InvestmentRepository
 import com.pyera.app.data.repository.InvestmentRepositoryImpl
-import com.pyera.app.data.repository.OcrRepository
 import com.pyera.app.data.repository.OcrRepositoryImpl
-import com.pyera.app.data.repository.RecurringTransactionRepository
 import com.pyera.app.data.repository.RecurringTransactionRepositoryImpl
-import com.pyera.app.data.repository.SavingsRepository
-import com.pyera.app.data.repository.TransactionRuleRepository
-import com.pyera.app.data.repository.TransactionRuleRepositoryImpl
 import com.pyera.app.data.repository.SavingsRepositoryImpl
-import com.pyera.app.data.repository.TransactionRepository
 import com.pyera.app.data.repository.TransactionRepositoryImpl
-import com.pyera.app.data.repository.TransactionTemplateRepository
+import com.pyera.app.data.repository.TransactionRuleRepositoryImpl
 import com.pyera.app.data.repository.TransactionTemplateRepositoryImpl
+import com.pyera.app.data.repository.SpendingDataRepositoryImpl
+import com.pyera.app.domain.repository.AccountRepository
+import com.pyera.app.domain.repository.AnalysisRepository
+import com.pyera.app.domain.repository.AuthRepository
+import com.pyera.app.domain.repository.AuthRepositoryImpl
+import com.pyera.app.domain.repository.BillRepository
+import com.pyera.app.domain.repository.BudgetRepository
+import com.pyera.app.domain.repository.CategoryRepository
+import com.pyera.app.domain.repository.ChatRepository
+import com.pyera.app.domain.repository.DebtRepository
+import com.pyera.app.domain.repository.InvestmentRepository
+import com.pyera.app.domain.repository.OcrRepository
+import com.pyera.app.domain.repository.RecurringTransactionRepository
+import com.pyera.app.domain.repository.SavingsRepository
+import com.pyera.app.domain.repository.TransactionRepository
+import com.pyera.app.domain.repository.TransactionRuleRepository
+import com.pyera.app.domain.repository.TransactionTemplateRepository
+import com.pyera.app.domain.repository.SpendingDataRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -133,4 +135,10 @@ abstract class RepositoryModule {
     abstract fun bindTransactionTemplateRepository(
         impl: TransactionTemplateRepositoryImpl
     ): TransactionTemplateRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindSpendingDataRepository(
+        impl: SpendingDataRepositoryImpl
+    ): SpendingDataRepository
 }

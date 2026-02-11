@@ -1,5 +1,9 @@
 package com.pyera.app.ui.account
 
+import com.pyera.app.ui.components.PyeraCard
+import com.pyera.app.ui.theme.tokens.ColorTokens
+import com.pyera.app.ui.theme.tokens.SpacingTokens
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -9,6 +13,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -24,9 +29,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.pyera.app.data.local.entity.AccountEntity
 import com.pyera.app.data.local.entity.TransactionEntity
+import com.pyera.app.data.local.entity.displayName
 import com.pyera.app.data.local.entity.formattedBalance
 import com.pyera.app.ui.navigation.Screen
 import com.pyera.app.ui.theme.*
+import com.pyera.app.ui.util.CurrencyFormatter
+import com.pyera.app.ui.util.pyeraBackground
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -67,9 +75,9 @@ fun AccountDetailScreen(
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = DeepBackground,
-                        titleContentColor = TextPrimary,
-                        navigationIconContentColor = TextPrimary
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        titleContentColor = MaterialTheme.colorScheme.onSurface,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onSurface
                     )
                 )
             },
@@ -82,8 +90,8 @@ fun AccountDetailScreen(
                         onClick = {
                             navController.navigate(Screen.Transfer.createRoute(accountId))
                         },
-                        containerColor = SurfaceElevated,
-                        contentColor = AccentGreen
+                        containerColor = ColorTokens.SurfaceLevel2,
+                        contentColor = ColorTokens.Primary500
                     ) {
                         Icon(Icons.Default.SwapHoriz, contentDescription = "Transfer")
                     }
@@ -93,21 +101,22 @@ fun AccountDetailScreen(
                         onClick = {
                             navController.navigate(Screen.AddTransaction.route)
                         },
-                        containerColor = AccentGreen,
-                        contentColor = DeepBackground
+                        containerColor = ColorTokens.Primary500,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
                     ) {
                         Icon(Icons.Default.Add, contentDescription = "Add Transaction")
                     }
                 }
             },
-            containerColor = DeepBackground
+            containerColor = Color.Transparent
         ) { padding ->
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
+                    .pyeraBackground()
                     .padding(padding),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                contentPadding = PaddingValues(SpacingTokens.Medium),
+                verticalArrangement = Arrangement.spacedBy(SpacingTokens.Medium)
             ) {
                 // Account Header Card
                 item {
@@ -129,12 +138,12 @@ fun AccountDetailScreen(
                         Text(
                             text = "Recent Transactions",
                             style = MaterialTheme.typography.titleMedium,
-                            color = TextPrimary
+                            color = MaterialTheme.colorScheme.onBackground
                         )
                         TextButton(onClick = { 
                             navController.navigate(Screen.Main.Transactions.route)
                         }) {
-                            Text("See All", color = AccentGreen)
+                            Text("See All", color = ColorTokens.Primary500)
                         }
                     }
                 }
@@ -157,9 +166,9 @@ fun AccountDetailScreen(
             contentAlignment = Alignment.Center
         ) {
             if (isLoading) {
-                CircularProgressIndicator(color = AccentGreen)
+                CircularProgressIndicator(color = ColorTokens.Primary500)
             } else {
-                Text("Account not found", color = TextSecondary)
+                Text("Account not found", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -167,13 +176,14 @@ fun AccountDetailScreen(
 
 @Composable
 private fun AccountHeaderCard(account: AccountEntity) {
-    Card(
+    PyeraCard(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = SurfaceElevated)
+        cornerRadius = 20.dp,
+        containerColor = ColorTokens.SurfaceLevel2,
+        borderWidth = 0.dp
     ) {
         Column(
-            modifier = Modifier.padding(24.dp),
+            modifier = Modifier.padding(SpacingTokens.Large),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Account Icon
@@ -190,13 +200,13 @@ private fun AccountHeaderCard(account: AccountEntity) {
                 )
             }
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Medium))
             
             // Account Name
             Text(
                 text = account.name,
                 style = MaterialTheme.typography.headlineSmall,
-                color = TextPrimary,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.Bold
             )
             
@@ -204,23 +214,23 @@ private fun AccountHeaderCard(account: AccountEntity) {
             Text(
                 text = account.type.displayName(),
                 style = MaterialTheme.typography.bodyMedium,
-                color = TextSecondary
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Medium))
             
             // Balance
             Text(
                 text = account.formattedBalance(),
                 style = MaterialTheme.typography.headlineMedium,
-                color = if (account.balance >= 0) AccentGreen else ColorError,
+                color = if (account.balance >= 0) ColorTokens.Primary500 else ColorTokens.Error500,
                 fontWeight = FontWeight.Bold
             )
             
             Text(
                 text = "Current Balance",
                 style = MaterialTheme.typography.bodySmall,
-                color = TextSecondary
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             
             // Status Badges
@@ -231,8 +241,8 @@ private fun AccountHeaderCard(account: AccountEntity) {
                 ) {
                     if (account.isDefault) {
                         Surface(
-                            color = AccentGreen.copy(alpha = 0.2f),
-                            shape = RoundedCornerShape(16.dp)
+                            color = ColorTokens.Primary500.copy(alpha = 0.2f),
+                            shape = RoundedCornerShape(SpacingTokens.Medium)
                         ) {
                             Row(
                                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
@@ -241,14 +251,14 @@ private fun AccountHeaderCard(account: AccountEntity) {
                                 Icon(
                                     imageVector = Icons.Default.Star,
                                     contentDescription = null,
-                                    tint = AccentGreen,
-                                    modifier = Modifier.size(16.dp)
+                                    tint = ColorTokens.Primary500,
+                                    modifier = Modifier.size(SpacingTokens.Medium)
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Text(
                                     text = "Default",
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = AccentGreen
+                                    color = ColorTokens.Primary500
                                 )
                             }
                         }
@@ -256,8 +266,8 @@ private fun AccountHeaderCard(account: AccountEntity) {
                     
                     if (account.isArchived) {
                         Surface(
-                            color = TextSecondary.copy(alpha = 0.2f),
-                            shape = RoundedCornerShape(16.dp)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f),
+                            shape = RoundedCornerShape(SpacingTokens.Medium)
                         ) {
                             Row(
                                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
@@ -266,14 +276,14 @@ private fun AccountHeaderCard(account: AccountEntity) {
                                 Icon(
                                     imageVector = Icons.Default.Archive,
                                     contentDescription = null,
-                                    tint = TextSecondary,
-                                    modifier = Modifier.size(16.dp)
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(SpacingTokens.Medium)
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Text(
                                     text = "Archived",
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = TextSecondary
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
@@ -288,20 +298,21 @@ private fun AccountHeaderCard(account: AccountEntity) {
 private fun AccountTransactionItem(transaction: TransactionEntity) {
     val dateFormat = remember { SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()) }
     val amountText = if (transaction.type == "INCOME") {
-        "+ ₱${String.format("%,.2f", transaction.amount)}"
+        "+ ${CurrencyFormatter.format(transaction.amount)}"
     } else {
-        "- ₱${String.format("%,.2f", transaction.amount)}"
+        "- ${CurrencyFormatter.format(transaction.amount)}"
     }
 
-    Card(
+    PyeraCard(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = SurfaceElevated),
-        shape = RoundedCornerShape(16.dp)
+        cornerRadius = SpacingTokens.Medium,
+        containerColor = ColorTokens.SurfaceLevel2,
+        borderWidth = 0.dp
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(SpacingTokens.Medium),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -309,19 +320,19 @@ private fun AccountTransactionItem(transaction: TransactionEntity) {
                 Text(
                     text = transaction.note.ifBlank { "Transaction" },
                     style = MaterialTheme.typography.bodyLarge,
-                    color = TextPrimary,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Medium
                 )
                 Text(
                     text = dateFormat.format(Date(transaction.date)),
                     style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             Text(
                 text = amountText,
                 style = MaterialTheme.typography.bodyLarge,
-                color = if (transaction.type == "INCOME") ColorSuccess else ColorError,
+                color = if (transaction.type == "INCOME") ColorTokens.Success500 else ColorTokens.Error500,
                 fontWeight = FontWeight.SemiBold
             )
         }
@@ -358,13 +369,14 @@ private fun QuickStatCard(
     icon: String,
     modifier: Modifier = Modifier
 ) {
-    Card(
+    PyeraCard(
         modifier = modifier,
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = SurfaceDark)
+        cornerRadius = 12.dp,
+        containerColor = ColorTokens.SurfaceLevel1,
+        borderWidth = 0.dp
     ) {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(SpacingTokens.Medium)
         ) {
             Text(
                 text = icon,
@@ -374,49 +386,54 @@ private fun QuickStatCard(
             Text(
                 text = value,
                 style = MaterialTheme.typography.titleMedium,
-                color = TextPrimary,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.SemiBold
             )
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodySmall,
-                color = TextSecondary
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
 }
 
+@Suppress("DEPRECATION")
 @Composable
 private fun EmptyTransactionsPlaceholder() {
-    Card(
+    PyeraCard(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = SurfaceDark)
+        cornerRadius = SpacingTokens.Medium,
+        containerColor = ColorTokens.SurfaceLevel1,
+        borderWidth = 0.dp
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(32.dp),
+                .padding(SpacingTokens.ExtraLarge),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Icon(
-                imageVector = Icons.Default.ReceiptLong,
+                imageVector = Icons.AutoMirrored.Filled.ReceiptLong,
                 contentDescription = null,
-                tint = TextSecondary,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(48.dp)
             )
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Medium))
             Text(
                 text = "No transactions yet",
                 style = MaterialTheme.typography.bodyLarge,
-                color = TextSecondary
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "Transactions for this account will appear here",
                 style = MaterialTheme.typography.bodySmall,
-                color = TextTertiary
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
             )
         }
     }
 }
+
+
+

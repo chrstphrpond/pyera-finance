@@ -1,4 +1,5 @@
 package com.pyera.app.ui.main
+import com.pyera.app.ui.theme.tokens.ColorTokens
 
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -7,6 +8,8 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
@@ -21,9 +24,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
-import com.pyera.app.ui.theme.ColorSuccess
-import com.pyera.app.ui.theme.ColorError
-import com.pyera.app.ui.theme.NeonYellow
+import androidx.compose.ui.graphics.Color
+import com.pyera.app.ui.theme.PrimaryAccent
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -64,6 +66,7 @@ import com.pyera.app.ui.budget.BudgetViewModel
 import com.pyera.app.ui.budget.CreateBudgetScreen
 import com.pyera.app.ui.components.PyeraBottomBar
 import com.pyera.app.ui.navigation.Screen
+import com.pyera.app.ui.util.pyeraBackground
 
 /**
  * CompositionLocal to provide SnackbarHostState to child screens.
@@ -82,15 +85,21 @@ fun MainScreen() {
     val currentRoute = navBackStackEntry?.destination?.route
 
     CompositionLocalProvider(LocalSnackbarHostState provides snackbarHostState) {
-        Scaffold(
-            snackbarHost = { SnackbarHost(snackbarHostState) },
-            bottomBar = { PyeraBottomBar(navController = bottomNavController, currentRoute = currentRoute) }
-        ) { innerPadding ->
-            NavHost(
-                navController = bottomNavController,
-                startDestination = Screen.Main.Dashboard.route,
-                modifier = Modifier.padding(innerPadding)
-            ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .pyeraBackground()
+        ) {
+            Scaffold(
+                snackbarHost = { SnackbarHost(snackbarHostState) },
+                bottomBar = { PyeraBottomBar(navController = bottomNavController, currentRoute = currentRoute) },
+                containerColor = Color.Transparent
+            ) { innerPadding ->
+                NavHost(
+                    navController = bottomNavController,
+                    startDestination = Screen.Main.Dashboard.route,
+                    modifier = Modifier.padding(innerPadding)
+                ) {
                 // Dashboard
                 composable(
                     route = Screen.Main.Dashboard.route,
@@ -567,6 +576,7 @@ fun MainScreen() {
                         onTemplateSaved = { bottomNavController.popBackStack() }
                     )
                 }
+                }
             }
         }
     }
@@ -651,3 +661,6 @@ suspend fun SnackbarHostState.showInfo(
     }
     return result
 }
+
+
+

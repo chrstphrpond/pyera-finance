@@ -1,5 +1,8 @@
 package com.pyera.app.ui.budget
 
+import com.pyera.app.ui.theme.tokens.ColorTokens
+import com.pyera.app.ui.theme.tokens.SpacingTokens
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -61,14 +64,8 @@ import com.pyera.app.data.local.entity.CategoryEntity
 import com.pyera.app.data.local.entity.BudgetPeriod
 import com.pyera.app.ui.components.PyeraCard
 import com.pyera.app.ui.components.PyeraPrimaryButton
-import com.pyera.app.ui.theme.AccentGreen
 import com.pyera.app.ui.theme.CardBackground
-import com.pyera.app.ui.theme.ColorError
-import com.pyera.app.ui.theme.ColorWarning
-import com.pyera.app.ui.theme.DeepBackground
-import com.pyera.app.ui.theme.TextPrimary
-import com.pyera.app.ui.theme.TextSecondary
-import com.pyera.app.ui.theme.TextTertiary
+import com.pyera.app.ui.util.pyeraBackground
 import java.text.NumberFormat
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -114,37 +111,37 @@ fun CreateBudgetScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("Create Budget", color = TextPrimary) },
+                title = { Text("Create Budget", color = MaterialTheme.colorScheme.onBackground) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint = TextPrimary
+                            tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = DeepBackground
+                    containerColor = MaterialTheme.colorScheme.surface
                 )
             )
         },
-        containerColor = DeepBackground
+        containerColor = Color.Transparent
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .pyeraBackground()
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp),
+                .padding(SpacingTokens.Medium),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             // Category Selection
             CategorySelectionSection(
-                categories = categories,
                 expenseCategories = expenseCategories,
                 selectedCategory = selectedCategory,
-                onCategorySelected = { selectedCategory = it }
+                onCategorySelected = { category -> selectedCategoryId = category.id }
             )
 
             // Amount Input
@@ -195,7 +192,7 @@ fun CreateBudgetScreen(
                     modifier = Modifier.fillMaxWidth(),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(color = AccentGreen)
+                    CircularProgressIndicator(color = ColorTokens.Primary500)
                 }
             }
         }
@@ -204,7 +201,6 @@ fun CreateBudgetScreen(
 
 @Composable
 private fun CategorySelectionSection(
-    categories: List<CategoryEntity>,
     expenseCategories: List<CategoryEntity>,
     selectedCategory: CategoryEntity?,
     onCategorySelected: (CategoryEntity) -> Unit
@@ -220,16 +216,16 @@ private fun CategorySelectionSection(
             Text(
                 text = "Select Category",
                 style = MaterialTheme.typography.titleMedium,
-                color = TextPrimary,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.SemiBold
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
             if (expenseCategories.isEmpty()) {
                 Text(
                     text = "No expense categories available",
-                    color = TextSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodyMedium
                 )
             } else {
@@ -238,9 +234,9 @@ private fun CategorySelectionSection(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(12.dp))
-                            .background(DeepBackground)
+                            .background(MaterialTheme.colorScheme.surface)
                             .clickable { expanded = true }
-                            .padding(16.dp),
+                            .padding(SpacingTokens.Medium),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
@@ -263,14 +259,14 @@ private fun CategorySelectionSection(
                             }
                             Text(
                                 text = selectedCategory?.name ?: "Choose a category",
-                                color = if (selectedCategory != null) TextPrimary else TextTertiary,
+                                color = if (selectedCategory != null) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
                                 style = MaterialTheme.typography.bodyLarge
                             )
                         }
                         Icon(
                             imageVector = Icons.Default.ArrowDropDown,
                             contentDescription = "Select",
-                            tint = TextSecondary
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
 
@@ -285,7 +281,7 @@ private fun CategorySelectionSection(
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Box(
                                             modifier = Modifier
-                                                .size(32.dp)
+                                                .size(SpacingTokens.ExtraLarge)
                                                 .clip(CircleShape)
                                                 .background(Color(category.color)),
                                             contentAlignment = Alignment.Center
@@ -300,7 +296,7 @@ private fun CategorySelectionSection(
                                         Spacer(modifier = Modifier.width(12.dp))
                                         Text(
                                             category.name,
-                                            color = TextPrimary
+                                            color = MaterialTheme.colorScheme.onBackground
                                         )
                                     }
                                 },
@@ -331,32 +327,32 @@ private fun AmountInputSection(
             Text(
                 text = "Budget Amount",
                 style = MaterialTheme.typography.titleMedium,
-                color = TextPrimary,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.SemiBold
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
             OutlinedTextField(
                 value = amountText,
                 onValueChange = onAmountChange,
-                label = { Text("Enter amount", color = TextSecondary) },
-                placeholder = { Text("0.00", color = TextTertiary) },
+                label = { Text("Enter amount", color = MaterialTheme.colorScheme.onSurfaceVariant) },
+                placeholder = { Text("0.00", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = TextPrimary,
-                    unfocusedTextColor = TextPrimary,
-                    focusedBorderColor = AccentGreen,
-                    unfocusedBorderColor = TextTertiary.copy(alpha = 0.3f),
-                    focusedLabelColor = AccentGreen,
-                    unfocusedLabelColor = TextSecondary
+                    focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    focusedBorderColor = ColorTokens.Primary500,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f).copy(alpha = 0.3f),
+                    focusedLabelColor = ColorTokens.Primary500,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
                 ),
                 prefix = {
                     Text(
                         text = NumberFormat.getCurrencyInstance().currency?.symbol ?: "$",
-                        color = TextSecondary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontWeight = FontWeight.Medium
                     )
                 }
@@ -379,11 +375,11 @@ private fun PeriodSelectionSection(
             Text(
                 text = "Budget Period",
                 style = MaterialTheme.typography.titleMedium,
-                color = TextPrimary,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.SemiBold
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -409,9 +405,8 @@ private fun PeriodChip(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val backgroundColor = if (isSelected) AccentGreen else CardBackground
-    val textColor = if (isSelected) Color.Black else TextPrimary
-    val borderColor = if (isSelected) AccentGreen else TextTertiary.copy(alpha = 0.3f)
+    val backgroundColor = if (isSelected) ColorTokens.Primary500 else CardBackground
+    val textColor = if (isSelected) Color.Black else MaterialTheme.colorScheme.onBackground
 
     Box(
         modifier = modifier
@@ -451,13 +446,13 @@ private fun AlertThresholdSection(
                 Text(
                     text = "Alert Threshold",
                     style = MaterialTheme.typography.titleMedium,
-                    color = TextPrimary,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
                     text = String.format("%.0f%%", threshold * 100),
                     style = MaterialTheme.typography.titleMedium,
-                    color = AccentGreen,
+                    color = ColorTokens.Primary500,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -467,10 +462,10 @@ private fun AlertThresholdSection(
             Text(
                 text = "Get notified when you reach this percentage of your budget",
                 style = MaterialTheme.typography.bodySmall,
-                color = TextSecondary
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
             Slider(
                 value = threshold,
@@ -478,9 +473,9 @@ private fun AlertThresholdSection(
                 valueRange = 0.5f..0.95f,
                 steps = 8,
                 colors = SliderDefaults.colors(
-                    thumbColor = AccentGreen,
-                    activeTrackColor = AccentGreen,
-                    inactiveTrackColor = TextTertiary.copy(alpha = 0.2f)
+                    thumbColor = ColorTokens.Primary500,
+                    activeTrackColor = ColorTokens.Primary500,
+                    inactiveTrackColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f).copy(alpha = 0.2f)
                 ),
                 modifier = Modifier.fillMaxWidth()
             )
@@ -489,9 +484,13 @@ private fun AlertThresholdSection(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("50%", color = TextTertiary, style = MaterialTheme.typography.labelSmall)
-                Text("95%", color = TextTertiary, style = MaterialTheme.typography.labelSmall)
+                Text("50%", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f), style = MaterialTheme.typography.labelSmall)
+                Text("95%", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f), style = MaterialTheme.typography.labelSmall)
             }
         }
     }
 }
+
+
+
+

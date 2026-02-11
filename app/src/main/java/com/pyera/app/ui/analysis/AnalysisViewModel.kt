@@ -4,8 +4,8 @@ import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pyera.app.data.local.entity.CategoryEntity
-import com.pyera.app.data.repository.AnalysisRepository
-import com.pyera.app.data.repository.CategoryRepository
+import com.pyera.app.domain.repository.AnalysisRepository
+import com.pyera.app.domain.repository.CategoryRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 import com.pyera.app.domain.smart.PredictiveBudgetUseCase
-import com.pyera.app.data.repository.TransactionRepository
+import com.pyera.app.domain.repository.TransactionRepository
 
 @Immutable
 data class ExpenseByCategory(

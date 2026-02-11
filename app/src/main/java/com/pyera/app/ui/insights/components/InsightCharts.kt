@@ -6,6 +6,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -13,27 +14,25 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
-import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottomAxis
-import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStartAxis
-import com.patrykandpatrick.vico.compose.cartesian.layer.rememberColumnCartesianLayer
-import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLayer
-import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
-import com.patrykandpatrick.vico.compose.common.ProvideVicoTheme
-import com.patrykandpatrick.vico.compose.common.component.rememberLineComponent
-import com.patrykandpatrick.vico.compose.common.component.rememberTextComponent
-import com.patrykandpatrick.vico.compose.common.fill
-import com.patrykandpatrick.vico.compose.common.vicoTheme
-import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
-import com.patrykandpatrick.vico.core.cartesian.data.columnSeries
-import com.patrykandpatrick.vico.core.cartesian.data.lineSeries
-import com.patrykandpatrick.vico.core.cartesian.layer.ColumnCartesianLayer
-import com.patrykandpatrick.vico.core.common.component.TextComponent
+import com.patrykandpatrick.vico.compose.axis.horizontal.rememberBottomAxis
+import com.patrykandpatrick.vico.compose.axis.vertical.rememberStartAxis
+import com.patrykandpatrick.vico.compose.chart.Chart
+import com.patrykandpatrick.vico.compose.chart.column.columnChart
+import com.patrykandpatrick.vico.compose.chart.line.lineChart
+import com.patrykandpatrick.vico.compose.chart.line.lineSpec
+import com.patrykandpatrick.vico.compose.component.lineComponent
+import com.patrykandpatrick.vico.compose.component.textComponent
+import com.patrykandpatrick.vico.core.axis.formatter.AxisValueFormatter
+import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
+import com.patrykandpatrick.vico.core.entry.entryOf
 import com.pyera.app.domain.analysis.CategoryInsight
 import com.pyera.app.domain.analysis.DailySpending
 import com.pyera.app.domain.analysis.MonthlySpending
 import com.pyera.app.ui.components.PyeraCard
 import com.pyera.app.ui.theme.*
+import com.pyera.app.ui.theme.tokens.ColorTokens
+import com.pyera.app.ui.theme.tokens.SpacingTokens
+import com.pyera.app.ui.util.CurrencyFormatter
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -52,59 +51,57 @@ fun SpendingTrendChart(
         return
     }
 
-    val modelProducer = remember { CartesianChartModelProducer.build() }
+    val modelProducer = remember { ChartEntryModelProducer() }
     val dateFormat = remember { SimpleDateFormat("MMM dd", Locale.getDefault()) }
 
-    // Prepare data for Vico
-    val xValues = data.mapIndexed { index, _ -> index.toFloat() }
-    val yValues = data.map { it.amount.toFloat() }
     val labels = data.map { dateFormat.format(Date(it.date)) }
 
-    modelProducer.tryRunTransaction {
-        lineSeries { series(xValues, yValues) }
+    LaunchedEffect(data) {
+        val entries = data.mapIndexed { index, item ->
+            entryOf(index.toFloat(), item.amount.toFloat())
+        }
+        modelProducer.setEntries(entries)
     }
 
     PyeraCard(modifier = modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(Spacing.CardPadding)) {
+        Column(modifier = Modifier.padding(SpacingTokens.MediumLarge)) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
-                color = TextPrimary,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.SemiBold
             )
 
-            Spacer(modifier = Modifier.height(Spacing.Medium))
+            Spacer(modifier = Modifier.height(SpacingTokens.MediumSmall))
 
-            ProvideVicoTheme(
-                vicoTheme.copy(
-                    textColor = TextPrimary.hashCode()
-                )
-            ) {
-                CartesianChartHost(
-                    chart = rememberCartesianChart(
-                        rememberLineCartesianLayer(
-                            fill = fill(NeonYellow.copy(alpha = 0.2f)),
-                            strokeFill = fill(NeonYellow)
-                        ),
-                        startAxis = rememberStartAxis(
-                            label = rememberTextComponent(color = TextSecondary),
-                            line = rememberLineComponent(color = ColorBorder)
-                        ),
-                        bottomAxis = rememberBottomAxis(
-                            label = rememberTextComponent(color = TextSecondary),
-                            line = rememberLineComponent(color = ColorBorder),
-                            valueFormatter = { value, _, _ ->
-                                labels.getOrNull(value.toInt()) ?: ""
-                            },
-                            labelRotationDegrees = 45f
-                        ),
-                    ),
-                    modelProducer = modelProducer,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                )
-            }
+            val axisLabel = textComponent(color = MaterialTheme.colorScheme.onSurfaceVariant)
+            val axisLine = lineComponent(color = ColorBorder, thickness = 1.dp)
+
+            Chart(
+                chart = lineChart(
+                    lines = listOf(
+                        lineSpec(lineColor = ColorTokens.Primary500)
+                    )
+                ),
+                chartModelProducer = modelProducer,
+                startAxis = rememberStartAxis(
+                    label = axisLabel,
+                    axis = axisLine,
+                    guideline = lineComponent(color = ColorBorder.copy(alpha = 0.3f), thickness = 1.dp)
+                ),
+                bottomAxis = rememberBottomAxis(
+                    label = axisLabel,
+                    axis = axisLine,
+                    guideline = lineComponent(color = ColorBorder.copy(alpha = 0.2f), thickness = 1.dp),
+                    valueFormatter = AxisValueFormatter { value, _ ->
+                        labels.getOrNull(value.toInt()) ?: ""
+                    },
+                    labelRotationDegrees = 45f
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+            )
         }
     }
 }
@@ -123,30 +120,31 @@ fun MonthlyComparisonChart(
         return
     }
 
-    val modelProducer = remember { CartesianChartModelProducer.build() }
-
-    val xValues = data.mapIndexed { index, _ -> index.toFloat() }
+    val modelProducer = remember { ChartEntryModelProducer() }
     val spendingValues = data.map { it.totalSpending.toFloat() }
     val incomeValues = data.map { it.totalIncome.toFloat() }
     val labels = data.map { it.monthName }
 
-    modelProducer.tryRunTransaction {
-        columnSeries {
-            series(xValues, spendingValues)
-            series(xValues, incomeValues)
+    LaunchedEffect(data) {
+        val spendingEntries = spendingValues.mapIndexed { index, value ->
+            entryOf(index.toFloat(), value)
         }
+        val incomeEntries = incomeValues.mapIndexed { index, value ->
+            entryOf(index.toFloat(), value)
+        }
+        modelProducer.setEntries(spendingEntries, incomeEntries)
     }
 
     PyeraCard(modifier = modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(Spacing.CardPadding)) {
+        Column(modifier = Modifier.padding(SpacingTokens.MediumLarge)) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
-                color = TextPrimary,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.SemiBold
             )
 
-            Spacer(modifier = Modifier.height(Spacing.Medium))
+            Spacer(modifier = Modifier.height(SpacingTokens.MediumSmall))
 
             // Legend
             Row(
@@ -154,46 +152,41 @@ fun MonthlyComparisonChart(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                ChartLegendItem(color = ColorError, label = "Spending")
-                Spacer(modifier = Modifier.width(Spacing.Large))
-                ChartLegendItem(color = ColorSuccess, label = "Income")
+                ChartLegendItem(color = ColorTokens.Error500, label = "Spending")
+                Spacer(modifier = Modifier.width(SpacingTokens.Medium))
+                ChartLegendItem(color = ColorTokens.Success500, label = "Income")
             }
 
-            Spacer(modifier = Modifier.height(Spacing.Small))
+            Spacer(modifier = Modifier.height(SpacingTokens.Small))
 
-            ProvideVicoTheme(
-                vicoTheme.copy(
-                    textColor = TextPrimary.hashCode()
-                )
-            ) {
-                CartesianChartHost(
-                    chart = rememberCartesianChart(
-                        rememberColumnCartesianLayer(
-                            columnProvider = ColumnCartesianLayer.ColumnProvider.series(
-                                listOf(
-                                    rememberLineComponent(fill = fill(ColorError), thickness = 16.dp),
-                                    rememberLineComponent(fill = fill(ColorSuccess), thickness = 16.dp)
-                                )
-                            )
-                        ),
-                        startAxis = rememberStartAxis(
-                            label = rememberTextComponent(color = TextSecondary),
-                            line = rememberLineComponent(color = ColorBorder)
-                        ),
-                        bottomAxis = rememberBottomAxis(
-                            label = rememberTextComponent(color = TextSecondary),
-                            line = rememberLineComponent(color = ColorBorder),
-                            valueFormatter = { value, _, _ ->
-                                labels.getOrNull(value.toInt()) ?: ""
-                            }
-                        ),
-                    ),
-                    modelProducer = modelProducer,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                )
-            }
+            val axisLabel = textComponent(color = MaterialTheme.colorScheme.onSurfaceVariant)
+            val axisLine = lineComponent(color = ColorBorder, thickness = 1.dp)
+
+            Chart(
+                chart = columnChart(
+                    columns = listOf(
+                        lineComponent(color = ColorTokens.Error500, thickness = SpacingTokens.Medium),
+                        lineComponent(color = ColorTokens.Success500, thickness = SpacingTokens.Medium)
+                    )
+                ),
+                chartModelProducer = modelProducer,
+                startAxis = rememberStartAxis(
+                    label = axisLabel,
+                    axis = axisLine,
+                    guideline = lineComponent(color = ColorBorder.copy(alpha = 0.3f), thickness = 1.dp)
+                ),
+                bottomAxis = rememberBottomAxis(
+                    label = axisLabel,
+                    axis = axisLine,
+                    guideline = lineComponent(color = ColorBorder.copy(alpha = 0.2f), thickness = 1.dp),
+                    valueFormatter = AxisValueFormatter { value, _ ->
+                        labels.getOrNull(value.toInt()) ?: ""
+                    }
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+            )
         }
     }
 }
@@ -220,15 +213,15 @@ fun CategoryBreakdownChart(
     val totalSpending = sortedCategories.sumOf { it.currentPeriodSpending }
 
     PyeraCard(modifier = modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(Spacing.CardPadding)) {
+        Column(modifier = Modifier.padding(SpacingTokens.MediumLarge)) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
-                color = TextPrimary,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.SemiBold
             )
 
-            Spacer(modifier = Modifier.height(Spacing.Medium))
+            Spacer(modifier = Modifier.height(SpacingTokens.MediumSmall))
 
             // Custom donut chart using simple composables
             Box(
@@ -248,7 +241,7 @@ fun CategoryBreakdownChart(
                 )
             }
 
-            Spacer(modifier = Modifier.height(Spacing.Medium))
+            Spacer(modifier = Modifier.height(SpacingTokens.MediumSmall))
 
             // Category legend
             sortedCategories.forEach { category ->
@@ -270,6 +263,7 @@ fun CategoryBreakdownChart(
 /**
  * Simple donut chart implementation
  */
+@Suppress("UNUSED_PARAMETER")
 @Composable
 private fun DonutChart(
     segments: List<DonutSegment>,
@@ -284,15 +278,15 @@ private fun DonutChart(
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "₱${String.format("%,.0f", totalValue)}",
+                text = CurrencyFormatter.formatShort(totalValue.toDouble()),
                 style = MaterialTheme.typography.headlineSmall,
-                color = TextPrimary,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.Bold
             )
             Text(
                 text = "Total",
                 style = MaterialTheme.typography.labelSmall,
-                color = TextTertiary
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
             )
         }
     }
@@ -314,13 +308,13 @@ private fun CategoryLegendItem(
     amount: Double,
     percentage: Float
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Spacing.Small)
-    ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(SpacingTokens.Small)
+            ) {
         // Color indicator
         Box(
             modifier = Modifier
@@ -333,7 +327,7 @@ private fun CategoryLegendItem(
         Text(
             text = label,
             style = MaterialTheme.typography.bodySmall,
-            color = TextPrimary,
+            color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier.weight(1f)
         )
 
@@ -341,15 +335,15 @@ private fun CategoryLegendItem(
         Text(
             text = "${String.format("%.1f", percentage)}%",
             style = MaterialTheme.typography.bodySmall,
-            color = TextSecondary,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = FontWeight.Medium
         )
 
         // Amount
         Text(
-            text = "₱${String.format("%,.0f", amount)}",
+            text = CurrencyFormatter.formatShort(amount),
             style = MaterialTheme.typography.bodySmall,
-            color = TextPrimary,
+            color = MaterialTheme.colorScheme.onBackground,
             fontWeight = FontWeight.SemiBold
         )
     }
@@ -370,7 +364,7 @@ private fun ChartLegendItem(color: Color, label: String) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall,
-            color = TextSecondary
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -387,22 +381,22 @@ private fun EmptyChartState(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(Spacing.XLarge),
+                .padding(SpacingTokens.MediumLarge),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
-                color = TextPrimary,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.SemiBold
             )
 
-            Spacer(modifier = Modifier.height(Spacing.Medium))
+            Spacer(modifier = Modifier.height(SpacingTokens.MediumSmall))
 
             Text(
                 text = message,
                 style = MaterialTheme.typography.bodyMedium,
-                color = TextTertiary
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
             )
         }
     }
@@ -426,15 +420,15 @@ fun SpendingHeatMap(
     val minAmount = data.minOfOrNull { it.amount } ?: 0.0
 
     PyeraCard(modifier = modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(Spacing.CardPadding)) {
+        Column(modifier = Modifier.padding(SpacingTokens.MediumLarge)) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
-                color = TextPrimary,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.SemiBold
             )
 
-            Spacer(modifier = Modifier.height(Spacing.Medium))
+            Spacer(modifier = Modifier.height(SpacingTokens.MediumSmall))
 
             // Simple heat map representation
             // In a real implementation, you'd use a grid layout
@@ -453,10 +447,10 @@ fun SpendingHeatMap(
 
                             Box(
                                 modifier = Modifier
-                                    .size(32.dp)
+                                    .size(SpacingTokens.ExtraLarge)
                                     .clip(RoundedCornerShape(4.dp))
                                     .background(
-                                        NeonYellow.copy(
+                                        ColorTokens.Primary500.copy(
                                             alpha = 0.2f + (intensity * 0.8f)
                                         )
                                     ),
@@ -466,7 +460,7 @@ fun SpendingHeatMap(
                                     Text(
                                         text = "${String.format("%.0f", day.amount / 1000)}k",
                                         style = MaterialTheme.typography.labelSmall,
-                                        color = if (intensity > 0.5f) DarkGreen else TextPrimary
+                                        color = if (intensity > 0.5f) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground
                                     )
                                 }
                             }
@@ -475,7 +469,7 @@ fun SpendingHeatMap(
                 }
             }
 
-            Spacer(modifier = Modifier.height(Spacing.Small))
+            Spacer(modifier = Modifier.height(SpacingTokens.Small))
 
             // Legend
             Row(
@@ -486,7 +480,7 @@ fun SpendingHeatMap(
                 Text(
                     text = "Low",
                     style = MaterialTheme.typography.labelSmall,
-                    color = TextTertiary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Box(
@@ -497,8 +491,8 @@ fun SpendingHeatMap(
                         .background(
                             androidx.compose.ui.graphics.Brush.horizontalGradient(
                                 colors = listOf(
-                                    NeonYellow.copy(alpha = 0.2f),
-                                    NeonYellow
+                                    ColorTokens.Primary500.copy(alpha = 0.2f),
+                                    ColorTokens.Primary500
                                 )
                             )
                         )
@@ -507,9 +501,11 @@ fun SpendingHeatMap(
                 Text(
                     text = "High",
                     style = MaterialTheme.typography.labelSmall,
-                    color = TextTertiary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
                 )
             }
         }
     }
 }
+
+

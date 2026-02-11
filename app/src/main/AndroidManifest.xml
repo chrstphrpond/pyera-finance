@@ -28,64 +28,6 @@
             </intent-filter>
         </activity>
 
-        <!-- Widget Configuration Activity -->
-        <activity
-            android:name=".widget.WidgetConfigurationActivity"
-            android:exported="false"
-            android:theme="@style/Theme.Pyera">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
-            </intent-filter>
-        </activity>
-
-        <!-- Balance Widget Receiver (2x1) -->
-        <receiver
-            android:name=".widget.BalanceWidgetReceiver"
-            android:exported="true"
-            android:label="Pyera Balance">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-            </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/balance_widget_info" />
-            <meta-data
-                android:name="android.appwidget.configuration"
-                android:value=".widget.WidgetConfigurationActivity" />
-        </receiver>
-
-        <!-- Quick Add Widget Receiver (3x1) -->
-        <receiver
-            android:name=".widget.QuickAddWidgetReceiver"
-            android:exported="true"
-            android:label="Pyera Quick Add">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-            </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/quick_add_widget_info" />
-            <meta-data
-                android:name="android.appwidget.configuration"
-                android:value=".widget.WidgetConfigurationActivity" />
-        </receiver>
-
-        <!-- Transactions Widget Receiver (4x2) -->
-        <receiver
-            android:name=".widget.TransactionsWidgetReceiver"
-            android:exported="true"
-            android:label="Pyera Transactions">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-            </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/transactions_widget_info" />
-            <meta-data
-                android:name="android.appwidget.configuration"
-                android:value=".widget.WidgetConfigurationActivity" />
-        </receiver>
-
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

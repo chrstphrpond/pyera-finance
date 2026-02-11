@@ -3,7 +3,7 @@ package com.pyera.app.ui.insights
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.pyera.app.data.repository.AnalysisRepository
+import com.pyera.app.domain.repository.AnalysisRepository
 import com.pyera.app.domain.analysis.AnalysisPeriod
 import com.pyera.app.domain.analysis.BudgetAdherence
 import com.pyera.app.domain.analysis.CategoryInsight

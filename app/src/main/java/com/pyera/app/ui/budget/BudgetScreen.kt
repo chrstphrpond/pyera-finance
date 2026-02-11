@@ -1,4 +1,6 @@
 package com.pyera.app.ui.budget
+import com.pyera.app.ui.theme.tokens.ColorTokens
+import com.pyera.app.ui.theme.tokens.SpacingTokens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -10,6 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -24,19 +27,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.pyera.app.data.local.entity.CategoryEntity
-import com.google.accompanist.swiperefresh.SwipeRefresh
-import com.google.accompanist.swiperefresh.SwipeRefreshIndicator
-import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import com.pyera.app.ui.components.EmptyBudget
 import com.pyera.app.ui.components.PyeraCard
-import com.pyera.app.ui.theme.AccentGreen
 import com.pyera.app.ui.theme.CardBackground
-import com.pyera.app.ui.theme.ColorError
-import com.pyera.app.ui.theme.DeepBackground
-import com.pyera.app.ui.theme.TextPrimary
-import com.pyera.app.ui.theme.TextSecondary
-import com.pyera.app.ui.theme.TextTertiary
+import com.pyera.app.ui.util.CurrencyFormatter
+import com.pyera.app.ui.util.pyeraBackground
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun BudgetScreen(
     viewModel: BudgetViewModel = hiltViewModel()
@@ -47,7 +47,15 @@ fun BudgetScreen(
         state.items.find { it.category.id == catId }
     }
     var isRefreshing by rememberSaveable { mutableStateOf(false) }
-    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshing || state.isLoading)
+    val refreshing = isRefreshing || state.isLoading
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = refreshing,
+        onRefresh = {
+            isRefreshing = true
+            viewModel.refreshBudgets()
+            isRefreshing = false
+        }
+    )
 
     showSetBudgetDialog?.let { budgetItem ->
         SetBudgetDialog(
@@ -63,60 +71,46 @@ fun BudgetScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(DeepBackground)
-            .padding(16.dp)
+            .pyeraBackground()
+            .padding(SpacingTokens.Medium)
     ) {
         Text(
             text = "Monthly Budget",
             style = MaterialTheme.typography.headlineMedium,
-            color = TextPrimary
+            color = MaterialTheme.colorScheme.onBackground
         )
         Text(
             text = state.currentPeriod,
             style = MaterialTheme.typography.bodyLarge,
-            color = TextSecondary
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
         // Budget List with Pull-to-Refresh
-        SwipeRefresh(
-            state = swipeRefreshState,
-            onRefresh = {
-                isRefreshing = true
-                viewModel.refreshBudgets()
-                isRefreshing = false
-            },
-            indicator = { refreshState, trigger ->
-                SwipeRefreshIndicator(
-                    state = refreshState,
-                    refreshTriggerDistance = trigger,
-                    backgroundColor = CardBackground,
-                    contentColor = AccentGreen
-                )
-            },
-            modifier = Modifier.fillMaxSize()
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .pullRefresh(pullRefreshState)
         ) {
             when {
                 state.isLoading -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(color = AccentGreen)
+                        CircularProgressIndicator(color = ColorTokens.Primary500)
                     }
                 }
                 state.items.isEmpty() -> {
-                    EmptyBudget(onCreateClick = { showSetBudgetDialogCategoryId = -1 // Placeholder for new budget
-                    })
-                        category = CategoryEntity(name = "New Budget", color = AccentGreen.hashCode(), icon = "", type = "EXPENSE"),
-                        spentAmount = 0.0,
-                        budgetAmount = 0.0,
-                        progress = 0f,
-                        remaining = 0.0
-                    ) })
+                    EmptyBudget(
+                        onCreateClick = { showSetBudgetDialogCategoryId = -1 }
+                    )
                 }
                 else -> {
                     LazyColumn(
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                        verticalArrangement = Arrangement.spacedBy(SpacingTokens.Medium)
                     ) {
-                        items(state.items) { item ->
+                        items(
+                            items = state.items,
+                            key = { it.category.id }
+                        ) { item ->
                             BudgetItemCard(
                                 item = item,
                                 onClick = { showSetBudgetDialogCategoryId = item.category.id }
@@ -125,6 +119,14 @@ fun BudgetScreen(
                     }
                 }
             }
+
+            PullRefreshIndicator(
+                refreshing = refreshing,
+                state = pullRefreshState,
+                modifier = Modifier.align(Alignment.TopCenter),
+                backgroundColor = CardBackground,
+                contentColor = ColorTokens.Primary500
+            )
         }
     }
 }
@@ -141,7 +143,7 @@ fun BudgetItemCard(
     ) {
         Column(
             modifier = Modifier
-                .padding(16.dp)
+                .padding(SpacingTokens.Medium)
                 .fillMaxWidth()
         ) {
             Row(
@@ -169,7 +171,7 @@ fun BudgetItemCard(
                     Text(
                         text = item.category.name,
                         style = MaterialTheme.typography.titleMedium,
-                        color = TextPrimary
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 }
                 
@@ -177,47 +179,47 @@ fun BudgetItemCard(
                     Icon(
                         imageVector = Icons.Default.Edit,
                         contentDescription = "Edit Budget",
-                        tint = AccentGreen
+                        tint = ColorTokens.Primary500
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.MediumSmall))
 
             // Progress Bar
             LinearProgressIndicator(
-                progress = item.progress,
+                progress = { item.progress },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(8.dp)
+                    .height(SpacingTokens.Small)
                     .clip(RoundedCornerShape(4.dp)),
-                color = if (item.progress >= 1f) ColorError else AccentGreen,
-                trackColor = TextTertiary.copy(alpha = 0.3f)
+                color = if (item.progress >= 1f) ColorTokens.Error500 else ColorTokens.Primary500,
+                trackColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f).copy(alpha = 0.3f)
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Small))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "Spent: ₱${String.format("%.0f", item.spentAmount)}",
+                    text = "Spent: ${CurrencyFormatter.formatShort(item.spentAmount)}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    text = "Budget: ₱${String.format("%.0f", item.budgetAmount)}",
+                    text = "Budget: ${CurrencyFormatter.formatShort(item.budgetAmount)}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = TextPrimary
+                    color = MaterialTheme.colorScheme.onBackground
                 )
             }
             
             if (item.remaining < 0) {
                  Text(
-                    text = "Over budget by ₱${String.format("%.0f", -item.remaining)}",
+                    text = "Over budget by ${CurrencyFormatter.formatShort(kotlin.math.abs(item.remaining))}",
                     style = MaterialTheme.typography.labelSmall,
-                    color = ColorError,
+                    color = ColorTokens.Error500,
                     modifier = Modifier.align(Alignment.End)
                 )
             }
@@ -234,20 +236,21 @@ fun SetBudgetDialog(
     var amountText by rememberSaveable { mutableStateOf(if (item.budgetAmount > 0) item.budgetAmount.toString() else "") }
 
     Dialog(onDismissRequest = onDismiss) {
-        Card(
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = CardBackground)
+        PyeraCard(
+            cornerRadius = SpacingTokens.Medium,
+            containerColor = CardBackground,
+            borderWidth = 0.dp
         ) {
             Column(
-                modifier = Modifier.padding(24.dp),
+                modifier = Modifier.padding(SpacingTokens.Large),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
                     text = "Set Budget for ${item.category.name}",
                     style = MaterialTheme.typography.titleLarge,
-                    color = TextPrimary
+                    color = MaterialTheme.colorScheme.onBackground
                 )
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(SpacingTokens.Medium))
                 
                 OutlinedTextField(
                     value = amountText,
@@ -256,24 +259,24 @@ fun SetBudgetDialog(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = TextPrimary,
-                        unfocusedTextColor = TextPrimary,
-                        focusedBorderColor = AccentGreen,
-                        unfocusedBorderColor = TextTertiary,
-                        focusedLabelColor = AccentGreen,
-                        unfocusedLabelColor = TextTertiary
+                        focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        focusedBorderColor = ColorTokens.Primary500,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
+                        focusedLabelColor = ColorTokens.Primary500,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
                 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(SpacingTokens.Large))
                 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End
                 ) {
                     TextButton(onClick = onDismiss) {
-                        Text("Cancel", color = TextSecondary)
+                        Text("Cancel", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     Button(
@@ -281,7 +284,7 @@ fun SetBudgetDialog(
                             val amount = amountText.toDoubleOrNull() ?: 0.0
                             onConfirm(amount)
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = AccentGreen)
+                        colors = ButtonDefaults.buttonColors(containerColor = ColorTokens.Primary500)
                     ) {
                         Text("Save", color = Color.Black)
                     }
@@ -290,3 +293,6 @@ fun SetBudgetDialog(
         }
     }
 }
+
+
+

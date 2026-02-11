@@ -1,5 +1,8 @@
 package com.pyera.app.ui.debt
 
+import com.pyera.app.ui.theme.tokens.ColorTokens
+import com.pyera.app.ui.theme.tokens.SpacingTokens
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
@@ -26,6 +29,7 @@ import androidx.compose.material.icons.outlined.AccountBalance
 import androidx.compose.material.icons.outlined.CalendarToday
 import androidx.compose.material.icons.outlined.MoneyOff
 import androidx.compose.material.icons.outlined.AttachMoney
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -43,28 +47,22 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.google.accompanist.swiperefresh.SwipeRefresh
-import com.google.accompanist.swiperefresh.SwipeRefreshIndicator
-import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import com.pyera.app.data.local.entity.DebtEntity
 import com.pyera.app.ui.components.ConfirmationDialog
 import com.pyera.app.ui.components.EmptyDebt
 import com.pyera.app.ui.components.PyeraCard
-import com.pyera.app.ui.theme.ColorError
-import com.pyera.app.ui.theme.ColorSuccess
-import com.pyera.app.ui.theme.ColorWarning
-import com.pyera.app.ui.theme.DeepBackground
 import com.pyera.app.ui.theme.ErrorContainer
-import com.pyera.app.ui.theme.AccentGreen
 import com.pyera.app.ui.theme.SuccessContainer
-import com.pyera.app.ui.theme.SurfaceElevated
-import com.pyera.app.ui.theme.TextPrimary
-import com.pyera.app.ui.theme.TextSecondary
+import com.pyera.app.ui.util.CurrencyFormatter
+import com.pyera.app.ui.util.pyeraBackground
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun DebtScreen(
     viewModel: DebtViewModel = hiltViewModel()
@@ -73,26 +71,41 @@ fun DebtScreen(
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     var selectedTab by rememberSaveable { mutableStateOf(0) } // 0: I Owe, 1: Owed to Me
     var showAddDialog by rememberSaveable { mutableStateOf(false) }
-    var debtToEditId by rememberSaveable { mutableStateOf<Long?>(null) }
+    var debtToEditId by rememberSaveable { mutableStateOf<Int?>(null) }
     val debtToEdit = debtToEditId?.let { id -> debts.find { it.id == id } }
-    var debtToDeleteId by rememberSaveable { mutableStateOf<Long?>(null) }
+    var debtToDeleteId by rememberSaveable { mutableStateOf<Int?>(null) }
     val debtToDelete = debtToDeleteId?.let { id -> debts.find { it.id == id } }
-    var debtToMarkPaidId by rememberSaveable { mutableStateOf<Long?>(null) }
+    var debtToMarkPaidId by rememberSaveable { mutableStateOf<Int?>(null) }
     val debtToMarkPaid = debtToMarkPaidId?.let { id -> debts.find { it.id == id } }
     var showCelebration by rememberSaveable { mutableStateOf(false) }
 
     val listState = rememberLazyListState()
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
-    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isRefreshing)
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = isRefreshing,
+        onRefresh = { viewModel.refresh() }
+    )
 
     // Calculate summary values
-    val totalYouOwe = debts.filter { it.type == "PAYABLE" && !it.isPaid }.sumOf { it.amount }
-    val totalOwedToYou = debts.filter { it.type == "RECEIVABLE" && !it.isPaid }.sumOf { it.amount }
-    val netPosition = totalOwedToYou - totalYouOwe
+    val totals by remember(debts) {
+        derivedStateOf {
+            val totalYouOwe = debts.filter { it.type == "PAYABLE" && !it.isPaid }.sumOf { it.amount }
+            val totalOwedToYou = debts.filter { it.type == "RECEIVABLE" && !it.isPaid }.sumOf { it.amount }
+            DebtTotals(
+                totalYouOwe = totalYouOwe,
+                totalOwedToYou = totalOwedToYou,
+                netPosition = totalOwedToYou - totalYouOwe
+            )
+        }
+    }
 
-    val filteredDebts = debts.filter {
-        if (selectedTab == 0) it.type == "PAYABLE" else it.type == "RECEIVABLE"
-    }.filter { !it.isPaid }
+    val filteredDebts by remember(debts, selectedTab) {
+        derivedStateOf {
+            debts.filter {
+                if (selectedTab == 0) it.type == "PAYABLE" else it.type == "RECEIVABLE"
+            }.filter { !it.isPaid }
+        }
+    }
 
     // Celebration effect
     if (showCelebration) {
@@ -168,18 +181,18 @@ fun DebtScreen(
                         Icon(
                             imageVector = Icons.Outlined.AccountBalance,
                             contentDescription = null,
-                            tint = AccentGreen,
-                            modifier = Modifier.size(32.dp)
+                            tint = ColorTokens.Primary500,
+                            modifier = Modifier.size(SpacingTokens.ExtraLarge)
                         )
                         Text(
                             text = "Debt Manager",
-                            color = TextPrimary
+                            color = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 },
                 colors = TopAppBarDefaults.largeTopAppBarColors(
-                    containerColor = DeepBackground,
-                    scrolledContainerColor = DeepBackground
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    scrolledContainerColor = MaterialTheme.colorScheme.surface
                 ),
                 scrollBehavior = scrollBehavior
             )
@@ -192,27 +205,28 @@ fun DebtScreen(
             ) {
                 FloatingActionButton(
                     onClick = { showAddDialog = true },
-                    containerColor = AccentGreen,
-                    contentColor = DeepBackground,
+                    containerColor = ColorTokens.Primary500,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
                     shape = CircleShape
                 ) {
                     Icon(Icons.Default.Add, contentDescription = "Add Debt")
                 }
             }
         },
-        containerColor = DeepBackground
+        containerColor = Color.Transparent
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .pyeraBackground()
                 .padding(innerPadding)
         ) {
             // Summary Card
             DebtSummaryCard(
-                totalYouOwe = totalYouOwe,
-                totalOwedToYou = totalOwedToYou,
-                netPosition = netPosition,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                totalYouOwe = totals.totalYouOwe,
+                totalOwedToYou = totals.totalOwedToYou,
+                netPosition = totals.netPosition,
+                modifier = Modifier.padding(horizontal = SpacingTokens.Medium, vertical = 8.dp)
             )
 
             // Tab Row with badges
@@ -221,62 +235,58 @@ fun DebtScreen(
                 onTabSelected = { selectedTab = it },
                 iOweCount = debts.count { it.type == "PAYABLE" && !it.isPaid },
                 owedToMeCount = debts.count { it.type == "RECEIVABLE" && !it.isPaid },
-                modifier = Modifier.padding(horizontal = 16.dp)
+                modifier = Modifier.padding(horizontal = SpacingTokens.Medium)
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
             // Debt List with Pull-to-Refresh
-            SwipeRefresh(
-                state = swipeRefreshState,
-                onRefresh = {
-                    viewModel.refresh()
-                },
-                indicator = { state, trigger ->
-                    SwipeRefreshIndicator(
-                        state = state,
-                        refreshTriggerDistance = trigger,
-                        backgroundColor = SurfaceElevated,
-                        contentColor = AccentGreen
-                    )
-                },
-                modifier = Modifier.fillMaxSize()
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .pullRefresh(pullRefreshState)
             ) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    if (filteredDebts.isEmpty()) {
-                        EmptyDebt(
-                            isIOwe = selectedTab == 0,
-                            onAddClick = { showAddDialog = true }
-                        )
-                    } else {
-                        LazyColumn(
-                            state = listState,
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            items(
-                                items = filteredDebts,
-                                key = { it.id }
-                            ) { debt ->
-                                DebtItem(
-                                    debt = debt,
-                                    onMarkPaid = { debtToMarkPaid = debt },
-                                    onDelete = { debtToDelete = debt },
-                                    onEdit = { debtToEdit = debt }
-                                )
-                            }
-                            // Bottom spacer for FAB
-                            item { Spacer(modifier = Modifier.height(80.dp)) }
+                if (filteredDebts.isEmpty()) {
+                    EmptyDebt(
+                        isIOwe = selectedTab == 0,
+                        onAddClick = { showAddDialog = true }
+                    )
+                } else {
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(horizontal = SpacingTokens.Medium, vertical = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(
+                            items = filteredDebts,
+                            key = { it.id }
+                        ) { debt ->
+                            DebtItem(
+                                debt = debt,
+                                onMarkPaid = { debtToMarkPaidId = debt.id },
+                                onDelete = { debtToDeleteId = debt.id },
+                                onEdit = { debtToEditId = debt.id }
+                            )
                         }
+                        // Bottom spacer for FAB
+                        item { Spacer(modifier = Modifier.height(80.dp)) }
                     }
+                }
 
-                    // Celebration overlay
-                    if (showCelebration) {
-                        CelebrationAnimation(
-                            modifier = Modifier.align(Alignment.Center)
-                        )
-                    }
+                PullRefreshIndicator(
+                    refreshing = isRefreshing,
+                    state = pullRefreshState,
+                    modifier = Modifier.align(Alignment.TopCenter),
+                    backgroundColor = ColorTokens.SurfaceLevel2,
+                    contentColor = ColorTokens.Primary500
+                )
+
+                // Celebration overlay
+                if (showCelebration) {
+                    CelebrationAnimation(
+                        modifier = Modifier.align(Alignment.Center)
+                    )
                 }
             }
         }
@@ -292,15 +302,15 @@ private fun DebtSummaryCard(
 ) {
     PyeraCard(
         modifier = modifier.fillMaxWidth(),
-        containerColor = SurfaceElevated
+        containerColor = ColorTokens.SurfaceLevel2
     ) {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(SpacingTokens.Medium)
         ) {
             Text(
                 text = "Summary",
                 style = MaterialTheme.typography.titleSmall,
-                color = TextSecondary
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -313,7 +323,7 @@ private fun DebtSummaryCard(
                     title = "You Owe",
                     amount = totalYouOwe,
                     icon = Icons.Outlined.MoneyOff,
-                    color = ColorError,
+                    color = ColorTokens.Error500,
                     modifier = Modifier.weight(1f)
                 )
 
@@ -322,7 +332,7 @@ private fun DebtSummaryCard(
                     title = "Owed to You",
                     amount = totalOwedToYou,
                     icon = Icons.Outlined.AttachMoney,
-                    color = ColorSuccess,
+                    color = ColorTokens.Success500,
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -340,7 +350,7 @@ private fun DebtSummaryCard(
                 Text(
                     text = "Net Position",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = TextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -351,12 +361,12 @@ private fun DebtSummaryCard(
                         modifier = Modifier
                             .size(8.dp)
                             .clip(CircleShape)
-                            .background(if (isPositive) ColorSuccess else ColorError)
+                            .background(if (isPositive) ColorTokens.Success500 else ColorTokens.Error500)
                     )
                     Text(
                         text = formatCurrency(netPosition),
                         style = MaterialTheme.typography.titleMedium,
-                        color = if (isPositive) ColorSuccess else ColorError,
+                        color = if (isPositive) ColorTokens.Success500 else ColorTokens.Error500,
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -385,12 +395,12 @@ private fun SummaryItem(
                 imageVector = icon,
                 contentDescription = null,
                 tint = color,
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier.size(SpacingTokens.Medium)
             )
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodySmall,
-                color = TextSecondary
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
         Spacer(modifier = Modifier.height(4.dp))
@@ -412,14 +422,14 @@ private fun DebtTabRow(
     modifier: Modifier = Modifier
 ) {
     val tabs = listOf(
-        Triple("I Owe", ColorError, iOweCount),
-        Triple("Owed to Me", ColorSuccess, owedToMeCount)
+        Triple("I Owe", ColorTokens.Error500, iOweCount),
+        Triple("Owed to Me", ColorTokens.Success500, owedToMeCount)
     )
 
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        color = SurfaceElevated
+        color = ColorTokens.SurfaceLevel2
     ) {
         Row(
             modifier = Modifier
@@ -452,13 +462,13 @@ private fun DebtTabRow(
                             modifier = Modifier
                                 .size(8.dp)
                                 .clip(CircleShape)
-                                .background(if (isSelected) color else TextSecondary.copy(alpha = 0.5f))
+                                .background(if (isSelected) color else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
                         )
 
                         Text(
                             text = title,
                             style = MaterialTheme.typography.bodyMedium,
-                            color = if (isSelected) color else TextSecondary,
+                            color = if (isSelected) color else MaterialTheme.colorScheme.onSurfaceVariant,
                             fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
                         )
 
@@ -466,13 +476,13 @@ private fun DebtTabRow(
                         if (count > 0) {
                             Surface(
                                 shape = RoundedCornerShape(10.dp),
-                                color = if (isSelected) color else TextSecondary.copy(alpha = 0.3f),
+                                color = if (isSelected) color else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
                                 modifier = Modifier.defaultMinSize(minWidth = 20.dp)
                             ) {
                                 Text(
                                     text = count.toString(),
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = if (isSelected) DeepBackground else TextPrimary,
+                                    color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground,
                                     textAlign = TextAlign.Center,
                                     modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                                 )
@@ -493,7 +503,7 @@ private fun DebtItem(
     onEdit: () -> Unit
 ) {
     val isPayable = debt.type == "PAYABLE"
-    val tintColor = if (isPayable) ColorError else ColorSuccess
+    val tintColor = if (isPayable) ColorTokens.Error500 else ColorTokens.Success500
     val containerColor = if (isPayable) ErrorContainer else SuccessContainer
 
     val daysRemaining = calculateDaysRemaining(debt.dueDate)
@@ -501,8 +511,8 @@ private fun DebtItem(
     val isDueSoon = daysRemaining in 0..3
 
     val statusColor = when {
-        isOverdue -> ColorError
-        isDueSoon -> ColorWarning
+        isOverdue -> ColorTokens.Error500
+        isDueSoon -> ColorTokens.Warning500
         else -> tintColor
     }
 
@@ -519,7 +529,7 @@ private fun DebtItem(
         borderColor = tintColor.copy(alpha = 0.3f)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(SpacingTokens.Medium)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -548,7 +558,7 @@ private fun DebtItem(
                     Text(
                         text = debt.name,
                         style = MaterialTheme.typography.titleMedium,
-                        color = TextPrimary,
+                        color = MaterialTheme.colorScheme.onBackground,
                         fontWeight = FontWeight.Bold
                     )
 
@@ -562,13 +572,13 @@ private fun DebtItem(
                         Icon(
                             imageVector = Icons.Outlined.CalendarToday,
                             contentDescription = null,
-                            tint = TextSecondary,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(14.dp)
                         )
                         Text(
                             text = formatDate(debt.dueDate),
                             style = MaterialTheme.typography.bodySmall,
-                            color = TextSecondary
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
 
@@ -618,7 +628,7 @@ private fun DebtItem(
                 TextButton(
                     onClick = onEdit,
                     colors = ButtonDefaults.textButtonColors(
-                        contentColor = TextSecondary
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 ) {
                     Icon(
@@ -636,7 +646,7 @@ private fun DebtItem(
                 TextButton(
                     onClick = onDelete,
                     colors = ButtonDefaults.textButtonColors(
-                        contentColor = ColorError.copy(alpha = 0.8f)
+                        contentColor = ColorTokens.Error500.copy(alpha = 0.8f)
                     )
                 ) {
                     Icon(
@@ -693,13 +703,14 @@ private fun AddEditDebtDialog(
     val dateFormatter = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
 
     Dialog(onDismissRequest = onDismiss) {
-        Card(
-            shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(containerColor = SurfaceElevated),
-            modifier = Modifier.fillMaxWidth()
+        PyeraCard(
+            modifier = Modifier.fillMaxWidth(),
+            cornerRadius = 20.dp,
+            containerColor = ColorTokens.SurfaceLevel2,
+            borderWidth = 0.dp
         ) {
             Column(
-                modifier = Modifier.padding(24.dp),
+                modifier = Modifier.padding(SpacingTokens.Large),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // Dialog title
@@ -710,7 +721,7 @@ private fun AddEditDebtDialog(
                         else -> "Add Receivable (Owed to Me)"
                     },
                     style = MaterialTheme.typography.headlineSmall,
-                    color = TextPrimary,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Bold
                 )
 
@@ -719,10 +730,10 @@ private fun AddEditDebtDialog(
                 Text(
                     text = if (type == "PAYABLE") "Record money you owe to someone" else "Record money someone owes you",
                     style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(SpacingTokens.Large))
 
                 // Person name field
                 OutlinedTextField(
@@ -740,21 +751,21 @@ private fun AddEditDebtDialog(
                         Icon(
                             imageVector = Icons.Default.Person,
                             contentDescription = null,
-                            tint = AccentGreen
+                            tint = ColorTokens.Primary500
                         )
                     },
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = TextPrimary,
-                        unfocusedTextColor = TextPrimary,
-                        focusedBorderColor = AccentGreen,
+                        focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        focusedBorderColor = ColorTokens.Primary500,
                         unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                        errorBorderColor = ColorError,
-                        focusedLabelColor = AccentGreen
+                        errorBorderColor = ColorTokens.Error500,
+                        focusedLabelColor = ColorTokens.Primary500
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
                 // Amount field
                 OutlinedTextField(
@@ -771,24 +782,24 @@ private fun AddEditDebtDialog(
                     supportingText = amountError?.let { { Text(it) } },
                     leadingIcon = {
                         Text(
-                            text = "₱",
+                            text = CurrencyFormatter.SYMBOL,
                             style = MaterialTheme.typography.titleMedium,
-                            color = AccentGreen,
-                            modifier = Modifier.padding(start = 16.dp)
+                            color = ColorTokens.Primary500,
+                            modifier = Modifier.padding(start = SpacingTokens.Medium)
                         )
                     },
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = TextPrimary,
-                        unfocusedTextColor = TextPrimary,
-                        focusedBorderColor = AccentGreen,
+                        focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        focusedBorderColor = ColorTokens.Primary500,
                         unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                        errorBorderColor = ColorError,
-                        focusedLabelColor = AccentGreen
+                        errorBorderColor = ColorTokens.Error500,
+                        focusedLabelColor = ColorTokens.Primary500
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
                 // Due date field
                 OutlinedTextField(
@@ -800,7 +811,7 @@ private fun AddEditDebtDialog(
                         Icon(
                             imageVector = Icons.Outlined.CalendarToday,
                             contentDescription = null,
-                            tint = AccentGreen
+                            tint = ColorTokens.Primary500
                         )
                     },
                     trailingIcon = {
@@ -809,16 +820,16 @@ private fun AddEditDebtDialog(
                         }
                     },
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = TextPrimary,
-                        unfocusedTextColor = TextPrimary,
-                        focusedBorderColor = AccentGreen,
+                        focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        focusedBorderColor = ColorTokens.Primary500,
                         unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                        focusedLabelColor = AccentGreen
+                        focusedLabelColor = ColorTokens.Primary500
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(SpacingTokens.Large))
 
                 // Action buttons
                 Row(
@@ -828,7 +839,7 @@ private fun AddEditDebtDialog(
                     TextButton(
                         onClick = onDismiss,
                         colors = ButtonDefaults.textButtonColors(
-                            contentColor = TextSecondary
+                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     ) {
                         Text("Cancel")
@@ -852,8 +863,8 @@ private fun AddEditDebtDialog(
                             }
                         },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = AccentGreen,
-                            contentColor = DeepBackground
+                            containerColor = ColorTokens.Primary500,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
                         )
                     ) {
                         Text(if (isEdit) "Update" else "Save")
@@ -886,19 +897,19 @@ private fun AddEditDebtDialog(
                 }
             },
             colors = DatePickerDefaults.colors(
-                containerColor = SurfaceElevated
+                containerColor = ColorTokens.SurfaceLevel2
             )
         ) {
             DatePicker(
                 state = datePickerState,
                 colors = DatePickerDefaults.colors(
-                    selectedDayContainerColor = AccentGreen,
-                    selectedDayContentColor = DeepBackground,
-                    todayDateBorderColor = AccentGreen,
-                    todayContentColor = AccentGreen,
-                    titleContentColor = TextPrimary,
-                    headlineContentColor = TextPrimary,
-                    weekdayContentColor = TextSecondary
+                    selectedDayContainerColor = ColorTokens.Primary500,
+                    selectedDayContentColor = MaterialTheme.colorScheme.onPrimary,
+                    todayDateBorderColor = ColorTokens.Primary500,
+                    todayContentColor = ColorTokens.Primary500,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    headlineContentColor = MaterialTheme.colorScheme.onBackground,
+                    weekdayContentColor = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             )
         }
@@ -931,14 +942,14 @@ private fun CelebrationAnimation(modifier: Modifier = Modifier) {
             Icon(
                 imageVector = Icons.Default.Check,
                 contentDescription = null,
-                tint = ColorSuccess,
+                tint = ColorTokens.Success500,
                 modifier = Modifier.size(48.dp)
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "Paid!",
                 style = MaterialTheme.typography.titleMedium,
-                color = ColorSuccess,
+                color = ColorTokens.Success500,
                 fontWeight = FontWeight.Bold
             )
         }
@@ -977,5 +988,15 @@ private fun formatDate(timestamp: Long): String {
 }
 
 private fun formatCurrency(amount: Double): String {
-    return "₱${String.format("%,.2f", amount)}"
+    return CurrencyFormatter.format(amount)
 }
+
+private data class DebtTotals(
+    val totalYouOwe: Double,
+    val totalOwedToYou: Double,
+    val netPosition: Double
+)
+
+
+
+

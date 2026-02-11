@@ -1,5 +1,7 @@
 package com.pyera.app.data.repository
 
+import com.pyera.app.domain.repository.*
+
 import com.pyera.app.data.local.dao.TransactionRuleDao
 import com.pyera.app.data.local.entity.MatchType
 import com.pyera.app.data.local.entity.TransactionRuleEntity
@@ -139,7 +141,7 @@ class TransactionRuleRepositoryImpl @Inject constructor(
     ): Result<Long> {
         // Extract a meaningful pattern from the description
         // Use the first 3-4 words or the whole description if it's short
-        val words = description.trim().split("\s+")
+        val words = description.trim().split(Regex("\\s+"))
         val pattern = when {
             words.size <= 2 -> description.trim()
             words.size <= 4 -> words.take(words.size - 1).joinToString(" ")

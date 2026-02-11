@@ -14,7 +14,8 @@ import androidx.work.WorkerParameters
 import com.pyera.app.data.local.entity.RecurringFrequency
 import com.pyera.app.data.local.entity.RecurringTransactionEntity
 import com.pyera.app.data.local.entity.TransactionEntity
-import com.pyera.app.data.repository.RecurringTransactionRepository
+import com.pyera.app.domain.repository.AuthRepository
+import com.pyera.app.domain.repository.RecurringTransactionRepository
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers
@@ -30,7 +31,8 @@ import java.util.concurrent.TimeUnit
 class RecurringTransactionWorker @AssistedInject constructor(
     @Assisted context: Context,
     @Assisted params: WorkerParameters,
-    private val recurringRepository: RecurringTransactionRepository
+    private val recurringRepository: RecurringTransactionRepository,
+    private val authRepository: AuthRepository
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
@@ -82,13 +84,27 @@ class RecurringTransactionWorker @AssistedInject constructor(
     private suspend fun processRecurringTransaction(recurring: RecurringTransactionEntity) {
         Log.d(TAG, "Processing recurring transaction ${recurring.id}: ${recurring.description}")
 
+        val userId = authRepository.currentUser?.uid
+        if (userId.isNullOrBlank()) {
+            Log.e(TAG, "Skipping recurring ${recurring.id}: user not authenticated")
+            return
+        }
+
+        val accountId = recurring.accountId
+        if (accountId == null) {
+            Log.e(TAG, "Skipping recurring ${recurring.id}: account not set")
+            return
+        }
+
         // Create the actual transaction
         val transaction = TransactionEntity(
             amount = recurring.amount,
             note = recurring.description,
             date = recurring.nextDueDate,
             type = recurring.type.name,
-            categoryId = recurring.categoryId?.toInt()
+            categoryId = recurring.categoryId?.toInt(),
+            accountId = accountId,
+            userId = userId
         )
 
         // Insert the transaction and update next due date

@@ -1,7 +1,7 @@
 package com.pyera.app.data.export
 
 import com.pyera.app.data.local.entity.TransactionEntity
-import com.pyera.app.data.repository.ExportSummary
+import com.pyera.app.domain.repository.ExportSummary
 import org.apache.poi.ss.usermodel.*
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import java.io.OutputStream
@@ -204,7 +204,7 @@ class ExcelExporter {
             }
         }
         
-        sheet.createRow(currentRow++).apply {
+        sheet.createRow(currentRow).apply {
             createCell(0).setCellValue("Total Transactions:")
             createCell(1).apply {
                 setCellValue(summary.transactionCount.toDouble())

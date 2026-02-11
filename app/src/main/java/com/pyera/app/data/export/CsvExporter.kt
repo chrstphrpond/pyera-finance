@@ -1,7 +1,7 @@
 package com.pyera.app.data.export
 
 import com.pyera.app.data.local.entity.TransactionEntity
-import com.pyera.app.data.repository.ExportSummary
+import com.pyera.app.domain.repository.ExportSummary
 import java.io.OutputStream
 import java.io.OutputStreamWriter
 import java.text.SimpleDateFormat
@@ -35,7 +35,7 @@ class CsvExporter {
     ) {
         OutputStreamWriter(outputStream, Charsets.UTF_8).use { writer ->
             // Write BOM for Excel UTF-8 compatibility
-            writer.write('\uFEFF')
+            writer.write("\uFEFF")
             
             // Write summary as comments
             writer.write("# Pyera Finance Export\n")

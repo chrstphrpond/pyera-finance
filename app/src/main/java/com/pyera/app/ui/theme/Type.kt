@@ -2,143 +2,153 @@ package com.pyera.app.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import com.pyera.app.R
 
-// Ibrand Font Family - Used for Headers (Display, Headline)
-val IbrandFontFamily = FontFamily(
-    Font(R.font.ibrand, FontWeight.Normal)
-)
-
-// Outfit Font Family - Used for Body text, Subtexts, Titles, Labels
-val OutfitFontFamily = FontFamily(
-    Font(R.font.outfit, FontWeight.Thin),
-    Font(R.font.outfit, FontWeight.ExtraLight),
-    Font(R.font.outfit, FontWeight.Light),
-    Font(R.font.outfit, FontWeight.Normal),
-    Font(R.font.outfit, FontWeight.Medium),
-    Font(R.font.outfit, FontWeight.SemiBold),
-    Font(R.font.outfit, FontWeight.Bold),
-    Font(R.font.outfit, FontWeight.ExtraBold),
-    Font(R.font.outfit, FontWeight.Black)
-)
-
+/**
+ * Material 3 Typography with custom money display styles.
+ */
 val Typography = Typography(
-    // Display - Large numbers, hero text (uses Ibrand)
+    // Display styles for large amounts/hero text
     displayLarge = TextStyle(
-        fontFamily = IbrandFontFamily,
-        fontWeight = FontWeight.Normal,
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Light,
         fontSize = 57.sp,
         lineHeight = 64.sp,
         letterSpacing = (-0.25).sp
     ),
     displayMedium = TextStyle(
-        fontFamily = IbrandFontFamily,
+        fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Normal,
         fontSize = 45.sp,
         lineHeight = 52.sp,
-        letterSpacing = (-0.2).sp
+        letterSpacing = 0.sp
     ),
     displaySmall = TextStyle(
-        fontFamily = IbrandFontFamily,
+        fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Normal,
         fontSize = 36.sp,
         lineHeight = 44.sp,
-        letterSpacing = (-0.15).sp
+        letterSpacing = 0.sp
     ),
-    
-    // Headlines - Screen titles (uses Ibrand)
+
+    // Headlines for section headers
     headlineLarge = TextStyle(
-        fontFamily = IbrandFontFamily,
-        fontWeight = FontWeight.Normal,
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Medium,
         fontSize = 32.sp,
         lineHeight = 40.sp,
-        letterSpacing = (-0.1).sp
+        letterSpacing = 0.sp
     ),
     headlineMedium = TextStyle(
-        fontFamily = IbrandFontFamily,
-        fontWeight = FontWeight.Normal,
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Medium,
         fontSize = 28.sp,
         lineHeight = 36.sp,
-        letterSpacing = (-0.05).sp
+        letterSpacing = 0.sp
     ),
     headlineSmall = TextStyle(
-        fontFamily = IbrandFontFamily,
-        fontWeight = FontWeight.Normal,
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Medium,
         fontSize = 24.sp,
         lineHeight = 32.sp,
         letterSpacing = 0.sp
     ),
-    
-    // Titles - Card titles, section headers (uses Outfit)
+
+    // Titles for cards and lists
     titleLarge = TextStyle(
-        fontFamily = OutfitFontFamily,
-        fontWeight = FontWeight.SemiBold,
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Medium,
         fontSize = 22.sp,
         lineHeight = 28.sp,
         letterSpacing = 0.sp
     ),
     titleMedium = TextStyle(
-        fontFamily = OutfitFontFamily,
+        fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Medium,
         fontSize = 16.sp,
         lineHeight = 24.sp,
         letterSpacing = 0.15.sp
     ),
     titleSmall = TextStyle(
-        fontFamily = OutfitFontFamily,
+        fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Medium,
         fontSize = 14.sp,
         lineHeight = 20.sp,
         letterSpacing = 0.1.sp
     ),
-    
-    // Body - Main content text (uses Outfit)
+
+    // Body text
     bodyLarge = TextStyle(
-        fontFamily = OutfitFontFamily,
+        fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp,
         lineHeight = 24.sp,
         letterSpacing = 0.5.sp
     ),
     bodyMedium = TextStyle(
-        fontFamily = OutfitFontFamily,
+        fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Normal,
         fontSize = 14.sp,
         lineHeight = 20.sp,
         letterSpacing = 0.25.sp
     ),
     bodySmall = TextStyle(
-        fontFamily = OutfitFontFamily,
+        fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Normal,
         fontSize = 12.sp,
         lineHeight = 16.sp,
         letterSpacing = 0.4.sp
     ),
-    
-    // Labels - Buttons, captions, overlines (uses Outfit)
+
+    // Labels for buttons, chips
     labelLarge = TextStyle(
-        fontFamily = OutfitFontFamily,
+        fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Medium,
         fontSize = 14.sp,
         lineHeight = 20.sp,
         letterSpacing = 0.1.sp
     ),
     labelMedium = TextStyle(
-        fontFamily = OutfitFontFamily,
+        fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Medium,
         fontSize = 12.sp,
         lineHeight = 16.sp,
         letterSpacing = 0.5.sp
     ),
     labelSmall = TextStyle(
-        fontFamily = OutfitFontFamily,
+        fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Medium,
         fontSize = 11.sp,
         lineHeight = 16.sp,
         letterSpacing = 0.5.sp
     )
+)
+
+/**
+ * Money display typography with tabular figures for alignment.
+ */
+val MoneyLarge = TextStyle(
+    fontFamily = FontFamily.Default,
+    fontWeight = FontWeight.SemiBold,
+    fontSize = 40.sp,
+    lineHeight = 48.sp,
+    letterSpacing = 0.sp
+)
+
+val MoneyMedium = TextStyle(
+    fontFamily = FontFamily.Default,
+    fontWeight = FontWeight.SemiBold,
+    fontSize = 28.sp,
+    lineHeight = 36.sp,
+    letterSpacing = 0.sp
+)
+
+val MoneySmall = TextStyle(
+    fontFamily = FontFamily.Default,
+    fontWeight = FontWeight.SemiBold,
+    fontSize = 16.sp,
+    lineHeight = 24.sp,
+    letterSpacing = 0.sp
 )

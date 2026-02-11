@@ -1,5 +1,9 @@
 package com.pyera.app.ui.rules
 
+import com.pyera.app.ui.components.PyeraCard
+import com.pyera.app.ui.theme.tokens.ColorTokens
+import com.pyera.app.ui.theme.tokens.SpacingTokens
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandVertically
@@ -19,6 +23,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -31,10 +36,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Rule
 import androidx.compose.material.icons.filled.ToggleOff
 import androidx.compose.material.icons.filled.ToggleOn
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DismissDirection
-import androidx.compose.material3.DismissValue
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -43,11 +45,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SwipeToDismiss
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberDismissState
+import androidx.compose.material.DismissDirection
+import androidx.compose.material.DismissValue
+import androidx.compose.material.SwipeToDismiss
+import androidx.compose.material.rememberDismissState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -69,15 +73,7 @@ import com.pyera.app.R
 import com.pyera.app.data.local.entity.MatchType
 import com.pyera.app.data.local.entity.TransactionRuleEntity
 import com.pyera.app.ui.navigation.Screen
-import com.pyera.app.ui.theme.AccentGreen
-import com.pyera.app.ui.theme.ColorError
-import com.pyera.app.ui.theme.ColorSuccess
-import com.pyera.app.ui.theme.ColorWarning
-import com.pyera.app.ui.theme.DeepBackground
-import com.pyera.app.ui.theme.SurfaceDark
-import com.pyera.app.ui.theme.SurfaceElevated
-import com.pyera.app.ui.theme.TextPrimary
-import com.pyera.app.ui.theme.TextSecondary
+import com.pyera.app.ui.util.pyeraBackground
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -115,13 +111,13 @@ fun TransactionRulesScreen(
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.rules_back_content_desc),
-                            tint = TextPrimary
+                            tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = DeepBackground,
-                    titleContentColor = TextPrimary
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
         },
@@ -131,47 +127,47 @@ fun TransactionRulesScreen(
                     viewModel.resetForm()
                     navController.navigate(Screen.AddTransactionRule.route)
                 },
-                containerColor = AccentGreen,
-                contentColor = DeepBackground
+                containerColor = ColorTokens.Primary500,
+                contentColor = MaterialTheme.colorScheme.onPrimary
             ) {
                 Icon(Icons.Default.Add, contentDescription = stringResource(R.string.rules_add_rule_content_desc))
             }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = DeepBackground
+        containerColor = androidx.compose.ui.graphics.Color.Transparent
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .pyeraBackground()
                 .padding(padding)
         ) {
             // Info card
-            Card(
+            PyeraCard(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = SurfaceElevated
-                ),
-                shape = RoundedCornerShape(12.dp)
+                    .padding(SpacingTokens.Medium),
+                cornerRadius = 12.dp,
+                containerColor = ColorTokens.SurfaceLevel2,
+                borderWidth = 0.dp
             ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
+                        .padding(SpacingTokens.Medium),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
                         imageVector = Icons.Default.Rule,
                         contentDescription = stringResource(R.string.rules_icon_content_desc),
-                        tint = AccentGreen,
-                        modifier = Modifier.size(24.dp)
+                        tint = ColorTokens.Primary500,
+                        modifier = Modifier.size(SpacingTokens.Large)
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
                         text = stringResource(R.string.rules_info_description),
                         style = MaterialTheme.typography.bodySmall,
-                        color = TextSecondary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -182,7 +178,7 @@ fun TransactionRulesScreen(
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    contentPadding = PaddingValues(horizontal = SpacingTokens.Medium, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(
@@ -213,7 +209,7 @@ fun TransactionRulesScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun RuleItem(
     rule: TransactionRuleEntity,
@@ -222,7 +218,7 @@ private fun RuleItem(
     onToggleActive: () -> Unit
 ) {
     val dismissState = rememberDismissState(
-        confirmValueChange = { dismissValue ->
+        confirmStateChange = { dismissValue ->
             if (dismissValue == DismissValue.DismissedToStart) {
                 onDelete()
                 true
@@ -245,15 +241,15 @@ private fun RuleItem(
                 modifier = Modifier
                     .fillMaxSize()
                     .clip(RoundedCornerShape(12.dp))
-                    .background(ColorError.copy(alpha = progress * 0.8f))
-                    .padding(end = 16.dp),
+                    .background(ColorTokens.Error500.copy(alpha = progress * 0.8f))
+                    .padding(end = SpacingTokens.Medium),
                 contentAlignment = Alignment.CenterEnd
             ) {
                 Icon(
                     imageVector = Icons.Default.Delete,
                     contentDescription = stringResource(R.string.rules_delete_button),
-                    tint = TextPrimary,
-                    modifier = Modifier.size(24.dp)
+                    tint = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.size(SpacingTokens.Large)
                 )
             }
         },
@@ -281,19 +277,18 @@ private fun RuleCard(
         MatchType.REGEX -> stringResource(R.string.rules_match_type_regex)
     }
 
-    Card(
+    PyeraCard(
         modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp)),
-        colors = CardDefaults.cardColors(
-            containerColor = if (rule.isActive) SurfaceDark else SurfaceDark.copy(alpha = 0.5f)
-        ),
+            .fillMaxWidth(),
+        cornerRadius = 12.dp,
+        containerColor = if (rule.isActive) ColorTokens.SurfaceLevel1 else ColorTokens.SurfaceLevel1.copy(alpha = 0.5f),
+        borderWidth = 0.dp,
         onClick = onEdit
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(SpacingTokens.Medium)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -304,13 +299,13 @@ private fun RuleCard(
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(8.dp))
-                        .background(AccentGreen.copy(alpha = 0.15f))
+                        .background(ColorTokens.Primary500.copy(alpha = 0.15f))
                         .padding(horizontal = 12.dp, vertical = 6.dp)
                 ) {
                     Text(
                         text = rule.pattern,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = AccentGreen,
+                        color = ColorTokens.Primary500,
                         fontWeight = FontWeight.Medium,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -326,9 +321,9 @@ private fun RuleCard(
                                 .clip(RoundedCornerShape(4.dp))
                                 .background(
                                     when {
-                                        rule.priority >= 8 -> ColorError
-                                        rule.priority >= 5 -> ColorWarning
-                                        else -> ColorSuccess
+                                        rule.priority >= 8 -> ColorTokens.Error500
+                                        rule.priority >= 5 -> ColorTokens.Warning500
+                                        else -> ColorTokens.Success500
                                     }.copy(alpha = 0.2f)
                                 )
                                 .padding(horizontal = 8.dp, vertical = 4.dp)
@@ -337,9 +332,9 @@ private fun RuleCard(
                                 text = "P${rule.priority}",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = when {
-                                    rule.priority >= 8 -> ColorError
-                                    rule.priority >= 5 -> ColorWarning
-                                    else -> ColorSuccess
+                                    rule.priority >= 8 -> ColorTokens.Error500
+                                    rule.priority >= 5 -> ColorTokens.Warning500
+                                    else -> ColorTokens.Success500
                                 }
                             )
                         }
@@ -352,7 +347,7 @@ private fun RuleCard(
                             imageVector = if (rule.isActive) 
                                 Icons.Default.ToggleOn else Icons.Default.ToggleOff,
                             contentDescription = if (rule.isActive) stringResource(R.string.rules_active_content_desc) else stringResource(R.string.rules_inactive_content_desc),
-                            tint = if (rule.isActive) AccentGreen else TextSecondary,
+                            tint = if (rule.isActive) ColorTokens.Primary500 else MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(28.dp)
                         )
                     }
@@ -362,7 +357,7 @@ private fun RuleCard(
                         Icon(
                             imageVector = Icons.Default.Edit,
                             contentDescription = stringResource(R.string.rules_edit_content_desc),
-                            tint = TextSecondary,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -375,7 +370,7 @@ private fun RuleCard(
             Text(
                 text = stringResource(R.string.rules_pattern_description, matchTypeLabel, rule.pattern),
                 style = MaterialTheme.typography.bodySmall,
-                color = TextSecondary
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.height(4.dp))
@@ -386,13 +381,13 @@ private fun RuleCard(
                     modifier = Modifier
                         .size(8.dp)
                         .clip(CircleShape)
-                        .background(AccentGreen)
+                        .background(ColorTokens.Primary500)
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
                     text = stringResource(R.string.rules_category_prefix, rule.categoryId),
                     style = MaterialTheme.typography.bodySmall,
-                    color = TextPrimary
+                    color = MaterialTheme.colorScheme.onBackground
                 )
             }
 
@@ -405,7 +400,7 @@ private fun RuleCard(
                 Text(
                     text = stringResource(R.string.rules_inactive_badge),
                     style = MaterialTheme.typography.labelSmall,
-                    color = TextSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 8.dp)
                 )
             }
@@ -418,34 +413,38 @@ private fun EmptyRulesState() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(32.dp),
+            .padding(SpacingTokens.ExtraLarge),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         Icon(
             imageVector = Icons.Default.Rule,
             contentDescription = stringResource(R.string.rules_no_rules_icon_content_desc),
-            tint = TextSecondary.copy(alpha = 0.5f),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
             modifier = Modifier.size(64.dp)
         )
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(SpacingTokens.Medium))
         Text(
             text = stringResource(R.string.rules_empty_title),
             style = MaterialTheme.typography.titleMedium,
-            color = TextPrimary
+            color = MaterialTheme.colorScheme.onBackground
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = stringResource(R.string.rules_empty_message),
             style = MaterialTheme.typography.bodyMedium,
-            color = TextSecondary,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = androidx.compose.ui.text.style.TextAlign.Center
         )
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(SpacingTokens.Medium))
         Text(
             text = stringResource(R.string.rules_empty_hint),
             style = MaterialTheme.typography.bodySmall,
-            color = AccentGreen
+            color = ColorTokens.Primary500
         )
     }
 }
+
+
+
+

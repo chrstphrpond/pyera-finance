@@ -1,5 +1,8 @@
 package com.pyera.app.ui.onboarding
 
+import com.pyera.app.ui.theme.tokens.ColorTokens
+import com.pyera.app.ui.theme.tokens.SpacingTokens
+
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -28,21 +31,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.pyera.app.ui.theme.AccentGreen
 import com.pyera.app.ui.theme.CardBackground
 import com.pyera.app.ui.theme.CardBorder
 import com.pyera.app.ui.theme.DeepBackground
-import com.pyera.app.ui.theme.TextSecondary
-import com.pyera.app.ui.theme.TextTertiary
+import com.pyera.app.ui.theme.PrimaryAccent
 import androidx.compose.ui.graphics.graphicsLayer
 import kotlinx.coroutines.launch
 import com.pyera.app.R
+import com.pyera.app.ui.util.pyeraBackground
+import com.pyera.app.ui.theme.TextSecondary
+import com.pyera.app.ui.theme.TextTertiary
 
 data class OnboardingPage(
     val title: String,
     val description: String,
     val icon: ImageVector,
-    val accentColor: Color = AccentGreen
+    val accentColor: Color = ColorTokens.Primary500
 )
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -81,7 +85,7 @@ fun OnboardingScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(DeepBackground)
+            .pyeraBackground(forceDark = true)
     ) {
         // Background Image with scrim
         Box(
@@ -103,7 +107,7 @@ fun OnboardingScreen(
                     .background(
                         brush = Brush.verticalGradient(
                             colors = listOf(
-                                Color.Transparent,
+                                PrimaryAccent.copy(alpha = 0.06f),
                                 DeepBackground
                             ),
                             startY = 0f,
@@ -118,7 +122,7 @@ fun OnboardingScreen(
             onClick = onSkip,
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(16.dp)
+                .padding(SpacingTokens.Medium)
         ) {
             Text(
                 text = "Skip",
@@ -130,7 +134,7 @@ fun OnboardingScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 24.dp),
+                .padding(horizontal = SpacingTokens.Large),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(80.dp))
@@ -145,12 +149,12 @@ fun OnboardingScreen(
 
             // Page indicators
             Row(
-                modifier = Modifier.padding(vertical = 32.dp),
+                modifier = Modifier.padding(vertical = SpacingTokens.ExtraLarge),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 pages.indices.forEach { index ->
                     val width by animateDpAsState(
-                        targetValue = if (index == pagerState.currentPage) 24.dp else 8.dp,
+                        targetValue = if (index == pagerState.currentPage) SpacingTokens.Large else 8.dp,
                         label = "indicator width"
                     )
                     Box(
@@ -159,7 +163,7 @@ fun OnboardingScreen(
                             .height(8.dp)
                             .clip(CircleShape)
                             .background(
-                                if (index == pagerState.currentPage) AccentGreen
+                                if (index == pagerState.currentPage) ColorTokens.Primary500
                                 else CardBorder
                             )
                     )
@@ -205,10 +209,10 @@ fun OnboardingScreen(
                         }
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = AccentGreen,
+                        containerColor = ColorTokens.Primary500,
                         contentColor = DeepBackground
                     ),
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(SpacingTokens.Medium),
                     modifier = Modifier
                         .height(52.dp)
                         .widthIn(min = 160.dp)
@@ -245,22 +249,22 @@ private fun OnboardingPageContent(page: OnboardingPage) {
         Box(
             modifier = Modifier
                 .size(140.dp)
-                .clip(RoundedCornerShape(32.dp))
+                .clip(RoundedCornerShape(SpacingTokens.ExtraLarge))
                 .background(CardBackground)
-                .border(1.dp, CardBorder, RoundedCornerShape(32.dp)),
+                .border(1.dp, CardBorder, RoundedCornerShape(SpacingTokens.ExtraLarge)),
             contentAlignment = Alignment.Center
         ) {
             Box(
                 modifier = Modifier
                     .size(80.dp)
                     .clip(CircleShape)
-                    .background(AccentGreen.copy(alpha = 0.15f)),
+                    .background(ColorTokens.Primary500.copy(alpha = 0.15f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = page.icon,
                     contentDescription = null,
-                    tint = AccentGreen,
+                    tint = ColorTokens.Primary500,
                     modifier = Modifier.size(40.dp)
                 )
             }
@@ -277,7 +281,7 @@ private fun OnboardingPageContent(page: OnboardingPage) {
             textAlign = TextAlign.Center
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
         // Description
         Text(
@@ -289,3 +293,6 @@ private fun OnboardingPageContent(page: OnboardingPage) {
         )
     }
 }
+
+
+

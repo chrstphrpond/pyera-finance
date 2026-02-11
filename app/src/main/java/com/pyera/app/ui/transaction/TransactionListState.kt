@@ -32,6 +32,7 @@ data class TransactionListState(
     val filteredTransactions: List<TransactionEntity> = emptyList(),
     val categories: List<CategoryEntity> = emptyList(),
     val accounts: List<AccountEntity> = emptyList(),
+    val defaultAccount: AccountEntity? = null,
     val isLoading: Boolean = false,
     val isRefreshing: Boolean = false,
     val error: String? = null,

@@ -1,7 +1,7 @@
 package com.pyera.app.di
 
-import com.pyera.app.data.repository.TransactionRepository
 import com.pyera.app.domain.analysis.SpendingAnalyzer
+import com.pyera.app.domain.repository.SpendingDataRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -19,8 +19,8 @@ object DomainModule {
     @Provides
     @Singleton
     fun provideSpendingAnalyzer(
-        transactionRepository: TransactionRepository
+        spendingDataRepository: SpendingDataRepository
     ): SpendingAnalyzer {
-        return SpendingAnalyzer(transactionRepository)
+        return SpendingAnalyzer(spendingDataRepository)
     }
 }

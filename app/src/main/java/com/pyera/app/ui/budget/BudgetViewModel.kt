@@ -3,14 +3,14 @@ package com.pyera.app.ui.budget
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pyera.app.data.local.entity.CategoryEntity
-import com.pyera.app.data.repository.AuthRepository
-import com.pyera.app.data.repository.CategoryRepository
+import com.pyera.app.domain.repository.AuthRepository
+import com.pyera.app.domain.repository.CategoryRepository
 import com.pyera.app.data.local.entity.BudgetEntity
 import com.pyera.app.data.local.entity.BudgetPeriod
 import com.pyera.app.data.local.entity.BudgetStatus
 import com.pyera.app.data.local.entity.BudgetSummary
 import com.pyera.app.data.local.entity.BudgetWithSpending
-import com.pyera.app.data.repository.BudgetRepository
+import com.pyera.app.domain.repository.BudgetRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import android.database.sqlite.SQLiteException
+import com.pyera.app.util.ValidationUtils
 import java.io.IOException
 import java.util.Calendar
 import javax.inject.Inject
@@ -312,19 +313,16 @@ class BudgetViewModel @Inject constructor(
     // ==================== Validation Methods ====================
     
     fun validateBudgetAmount(amount: String): BudgetValidationResult {
-        return when {
-            amount.isBlank() -> BudgetValidationResult.Error("Amount is required")
-            amount.toDoubleOrNull() == null -> BudgetValidationResult.Error("Invalid amount")
-            amount.toDouble() <= 0 -> BudgetValidationResult.Error("Amount must be greater than 0")
-            amount.toDouble() > 999999999.99 -> BudgetValidationResult.Error("Amount is too large")
-            else -> BudgetValidationResult.Success
+        return when (val result = ValidationUtils.validateBudgetAmount(amount)) {
+            is ValidationUtils.ValidationResult.Error -> BudgetValidationResult.Error(result.message)
+            ValidationUtils.ValidationResult.Success -> BudgetValidationResult.Success
         }
     }
     
     fun validateBudgetCategory(categoryId: Int?): BudgetValidationResult {
-        return when {
-            categoryId == null || categoryId <= 0 -> BudgetValidationResult.Error("Please select a category")
-            else -> BudgetValidationResult.Success
+        return when (val result = ValidationUtils.validateBudgetCategory(categoryId)) {
+            is ValidationUtils.ValidationResult.Error -> BudgetValidationResult.Error(result.message)
+            ValidationUtils.ValidationResult.Success -> BudgetValidationResult.Success
         }
     }
     
@@ -339,6 +337,12 @@ class BudgetViewModel @Inject constructor(
         val amountResult = validateBudgetAmount(state.amount)
         if (amountResult is BudgetValidationResult.Error) {
             return amountResult
+        }
+
+        val thresholdPercent = (state.alertThreshold * 100).toInt()
+        val thresholdResult = ValidationUtils.validateAlertThreshold(thresholdPercent)
+        if (thresholdResult is ValidationUtils.ValidationResult.Error) {
+            return BudgetValidationResult.Error(thresholdResult.message)
         }
         
         return BudgetValidationResult.Success

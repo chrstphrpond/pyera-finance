@@ -1,5 +1,7 @@
 package com.pyera.app.data.repository
 
+import com.pyera.app.domain.repository.*
+
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.pyera.app.data.local.dao.TransactionDao
@@ -24,6 +26,10 @@ class TransactionRepositoryImpl @Inject constructor(
 
     override suspend fun insertTransaction(transaction: TransactionEntity) {
         transactionDao.insertTransaction(transaction)
+    }
+
+    override suspend fun insertTransactionAndReturnId(transaction: TransactionEntity): Long {
+        return transactionDao.insertTransaction(transaction)
     }
 
     override suspend fun deleteTransaction(transaction: TransactionEntity) {

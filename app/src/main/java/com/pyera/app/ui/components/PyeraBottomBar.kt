@@ -1,4 +1,5 @@
 package com.pyera.app.ui.components
+import com.pyera.app.ui.theme.tokens.ColorTokens
 
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -13,8 +14,8 @@ fun PyeraBottomBar(
     currentRoute: String?
 ) {
     NavigationBar(
-        containerColor = SurfaceDark,
-        contentColor = TextPrimary,
+        containerColor = ColorTokens.SurfaceLevel1,
+        contentColor = MaterialTheme.colorScheme.onBackground,
         tonalElevation = 0.dp
     ) {
         bottomNavItems.forEach { item ->
@@ -38,13 +39,15 @@ fun PyeraBottomBar(
                     }
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = NeonYellow,
-                    selectedTextColor = NeonYellow,
-                    unselectedIconColor = TextSecondary,
-                    unselectedTextColor = TextSecondary,
-                    indicatorColor = NeonYellow.copy(alpha = 0.1f)
+                    selectedIconColor = ColorTokens.Primary500,
+                    selectedTextColor = ColorTokens.Primary500,
+                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    indicatorColor = ColorTokens.Primary500.copy(alpha = 0.1f)
                 )
             )
         }
     }
 }
+
+

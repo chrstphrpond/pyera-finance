@@ -32,7 +32,20 @@ jobs:
       - name: Create google-services.json
         run: echo '${{ secrets.GOOGLE_SERVICES_JSON }}' > app/google-services.json
 
-      - name: Run Lint
+      - name: Run KtLint Check
+        run: ./gradlew ktlintCheck
+
+      - name: Run Detekt
+        run: ./gradlew detekt
+
+      - name: Upload Detekt SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: build/reports/detekt/detekt.sarif
+          category: detekt
+
+      - name: Run Android Lint
         run: ./gradlew lint
 
       - name: Run Unit Tests
@@ -47,7 +60,23 @@ jobs:
           name: debug-apk
           path: app/build/outputs/apk/debug/*.apk
 
-      - name: Upload Lint Results
+      - name: Upload KtLint Results
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: ktlint-results
+          path: |
+            **/build/reports/ktlint/
+
+      - name: Upload Detekt Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: detekt-results
+          path: |
+            build/reports/detekt/
+
+      - name: Upload Android Lint Results
         uses: actions/upload-artifact@v4
         if: always()
         with:

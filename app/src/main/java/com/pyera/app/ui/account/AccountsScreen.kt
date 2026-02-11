@@ -1,15 +1,16 @@
 package com.pyera.app.ui.account
 
+import com.pyera.app.ui.theme.tokens.ColorTokens
+import com.pyera.app.ui.theme.tokens.SpacingTokens
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
@@ -31,9 +32,14 @@ import com.pyera.app.data.local.entity.AccountType
 import com.pyera.app.data.local.entity.defaultIcon
 import com.pyera.app.data.local.entity.displayName
 import com.pyera.app.data.local.entity.formattedBalance
+import com.pyera.app.ui.components.CardVariant
+import com.pyera.app.ui.components.PyeraCard
 import com.pyera.app.ui.navigation.Screen
 import com.pyera.app.ui.theme.*
+import com.pyera.app.ui.util.CurrencyFormatter
+import com.pyera.app.ui.util.pyeraBackground
 
+@Suppress("DEPRECATION")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AccountsScreen(
@@ -73,26 +79,27 @@ fun AccountsScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = DeepBackground,
-                    titleContentColor = TextPrimary,
-                    navigationIconContentColor = TextPrimary
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
         },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { navController.navigate(Screen.AddAccount.route) },
-                containerColor = AccentGreen,
-                contentColor = DeepBackground
+                containerColor = ColorTokens.Primary500,
+                contentColor = MaterialTheme.colorScheme.onPrimary
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add Account")
             }
         },
-        containerColor = DeepBackground
+        containerColor = Color.Transparent
     ) { padding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .pyeraBackground()
                 .padding(padding)
         ) {
             Column(
@@ -104,7 +111,7 @@ fun AccountsScreen(
                 // Accounts List
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
+                    contentPadding = PaddingValues(SpacingTokens.Medium),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(
@@ -136,7 +143,7 @@ fun AccountsScreen(
                         .background(Color.Black.copy(alpha = 0.5f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(color = AccentGreen)
+                    CircularProgressIndicator(color = ColorTokens.Primary500)
                 }
             }
         }
@@ -153,12 +160,12 @@ fun AccountsScreen(
 
 @Composable
 private fun TotalBalanceCard(totalBalance: Double) {
-    Card(
+    PyeraCard(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = SurfaceElevated)
+            .padding(SpacingTokens.Medium),
+        variant = CardVariant.Elevated,
+        containerColor = ColorTokens.SurfaceLevel2
     ) {
         Column(
             modifier = Modifier.padding(20.dp),
@@ -167,15 +174,15 @@ private fun TotalBalanceCard(totalBalance: Double) {
             Text(
                 text = "Total Balance",
                 style = MaterialTheme.typography.bodyMedium,
-                color = TextSecondary
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "₱${String.format("%,.2f", totalBalance)}",
+                text = CurrencyFormatter.format(totalBalance),
                 style = MaterialTheme.typography.headlineLarge.copy(
                     fontWeight = FontWeight.Bold
                 ),
-                color = AccentGreen
+                color = ColorTokens.Primary500
             )
         }
     }
@@ -191,20 +198,18 @@ private fun AccountCard(
     onUnarchive: () -> Unit
 ) {
     var showMenu by rememberSaveable { mutableStateOf(false) }
-    
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (account.isArchived) SurfaceDark else SurfaceElevated
-        )
+
+    PyeraCard(
+        modifier = Modifier.fillMaxWidth(),
+        cornerRadius = SpacingTokens.Medium,
+        containerColor = if (account.isArchived) ColorTokens.SurfaceLevel1 else ColorTokens.SurfaceLevel2,
+        borderWidth = 0.dp,
+        onClick = onClick
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(SpacingTokens.Medium),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Account Icon
@@ -221,7 +226,7 @@ private fun AccountCard(
                 )
             }
             
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(SpacingTokens.Medium))
             
             // Account Info
             Column(
@@ -233,7 +238,7 @@ private fun AccountCard(
                     Text(
                         text = account.name,
                         style = MaterialTheme.typography.titleMedium,
-                        color = TextPrimary,
+                        color = MaterialTheme.colorScheme.onBackground,
                         fontWeight = FontWeight.SemiBold
                     )
                     if (account.isDefault) {
@@ -241,8 +246,8 @@ private fun AccountCard(
                         Icon(
                             imageVector = Icons.Default.Star,
                             contentDescription = "Default",
-                            tint = AccentGreen,
-                            modifier = Modifier.size(16.dp)
+                            tint = ColorTokens.Primary500,
+                            modifier = Modifier.size(SpacingTokens.Medium)
                         )
                     }
                     if (account.isArchived) {
@@ -250,7 +255,7 @@ private fun AccountCard(
                         Text(
                             text = "Archived",
                             style = MaterialTheme.typography.bodySmall,
-                            color = TextSecondary
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -258,7 +263,7 @@ private fun AccountCard(
                 Text(
                     text = account.type.displayName(),
                     style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             
@@ -269,7 +274,7 @@ private fun AccountCard(
                 Text(
                     text = account.formattedBalance(),
                     style = MaterialTheme.typography.titleMedium,
-                    color = if (account.balance >= 0) AccentGreen else ColorError,
+                    color = if (account.balance >= 0) ColorTokens.Primary500 else ColorTokens.Error500,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -280,7 +285,7 @@ private fun AccountCard(
                     Icon(
                         imageVector = Icons.Default.MoreVert,
                         contentDescription = "More options",
-                        tint = TextSecondary
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 
@@ -329,3 +334,5 @@ private fun AccountCard(
         }
     }
 }
+
+

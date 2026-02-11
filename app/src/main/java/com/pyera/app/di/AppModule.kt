@@ -1,6 +1,7 @@
 package com.pyera.app.di
 
 import android.content.Context
+import com.google.ai.client.generativeai.GenerativeModel
 import com.pyera.app.data.biometric.BiometricAuthManager
 import com.pyera.app.domain.ocr.ReceiptParser
 import com.pyera.app.data.security.AppLockManager
@@ -9,6 +10,8 @@ import com.pyera.app.data.security.SecurityChecker
 import com.pyera.app.data.security.SecurityPreferences
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.pyera.app.BuildConfig
+import com.pyera.app.domain.repository.AuthRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -40,6 +43,15 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideGenerativeModel(): GenerativeModel {
+        return GenerativeModel(
+            modelName = "gemini-1.5-flash",
+            apiKey = BuildConfig.GEMINI_API_KEY
+        )
+    }
+
+    @Provides
+    @Singleton
     fun provideSecurityChecker(@ApplicationContext context: Context): SecurityChecker = 
         SecurityChecker(context)
 
@@ -52,8 +64,9 @@ object AppModule {
     @Provides
     @Singleton
     fun provideAppLockManager(
-        securityPreferences: SecurityPreferences
-    ): AppLockManager = AppLockManager(securityPreferences)
+        securityPreferences: SecurityPreferences,
+        authRepository: AuthRepository
+    ): AppLockManager = AppLockManager(securityPreferences, authRepository)
 
     @Provides
     @Singleton

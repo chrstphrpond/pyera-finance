@@ -48,17 +48,34 @@ class SecurityViewModel @Inject constructor(
     }
 
     /**
-     * Verify PIN for unlocking the app
+     * Verify PIN for unlocking the app with rate limiting
      */
     fun verifyPin(pin: String): Boolean {
+        // Check if locked out first
+        if (appLockManager.isLockedOut()) {
+            val remainingTime = appLockManager.getRemainingLockoutTime()
+            _uiState.value = _uiState.value.copy(
+                pinError = "Too many failed attempts. Try again in ${formatLockoutTime(remainingTime)}."
+            )
+            return false
+        }
+        
         return if (appLockManager.verifyAndUnlock(pin)) {
             viewModelScope.launch {
                 _events.emit(SecurityEvent.UnlockSuccess)
             }
             true
         } else {
+            val remainingAttempts = appLockManager.getRemainingAttempts()
+            val errorMessage = if (appLockManager.isLockedOut()) {
+                val remainingTime = appLockManager.getRemainingLockoutTime()
+                "Too many failed attempts. Try again in ${formatLockoutTime(remainingTime)}."
+            } else {
+                "Incorrect PIN. $remainingAttempts attempts remaining."
+            }
+            
             _uiState.value = _uiState.value.copy(
-                pinError = "Incorrect PIN. Please try again.",
+                pinError = errorMessage,
                 shakePin = true
             )
             viewModelScope.launch {
@@ -66,6 +83,35 @@ class SecurityViewModel @Inject constructor(
                 _uiState.value = _uiState.value.copy(shakePin = false)
             }
             false
+        }
+    }
+    
+    /**
+     * Check if the user is currently locked out from PIN entry
+     */
+    fun isLockedOut(): Boolean = appLockManager.isLockedOut()
+    
+    /**
+     * Get the remaining lockout time in milliseconds
+     */
+    fun getRemainingLockoutTime(): Long = appLockManager.getRemainingLockoutTime()
+    
+    /**
+     * Get the number of remaining PIN attempts before lockout
+     */
+    fun getRemainingAttempts(): Int = appLockManager.getRemainingAttempts()
+    
+    /**
+     * Format lockout time in human-readable format
+     */
+    private fun formatLockoutTime(millis: Long): String {
+        val seconds = (millis / 1000).toInt()
+        val minutes = seconds / 60
+        val remainingSeconds = seconds % 60
+        
+        return when {
+            minutes > 0 -> "${minutes}m ${remainingSeconds}s"
+            else -> "${remainingSeconds}s"
         }
     }
 

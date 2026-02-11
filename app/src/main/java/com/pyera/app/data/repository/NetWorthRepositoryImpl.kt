@@ -1,5 +1,7 @@
 package com.pyera.app.data.repository
 
+import com.pyera.app.domain.repository.*
+
 import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken

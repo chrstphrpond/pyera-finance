@@ -22,8 +22,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -40,12 +38,10 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pyera.app.data.local.entity.TransactionTemplateEntity
+import com.pyera.app.ui.components.PyeraCard
 import com.pyera.app.ui.templates.TemplatesViewModel
-import com.pyera.app.ui.theme.DarkGreen
-import com.pyera.app.ui.theme.NeonYellow
-import com.pyera.app.ui.theme.SurfaceElevated
-import com.pyera.app.ui.theme.TextPrimary
-import com.pyera.app.ui.theme.TextSecondary
+import com.pyera.app.ui.theme.tokens.ColorTokens
+import com.pyera.app.ui.theme.tokens.SpacingTokens
 
 /**
  * Horizontal row of quick template chips for the dashboard
@@ -78,27 +74,27 @@ fun QuickTemplatesRow(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                    .padding(horizontal = SpacingTokens.Medium, vertical = SpacingTokens.Small),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = "Quick Templates",
                     style = MaterialTheme.typography.titleMedium,
-                    color = TextPrimary,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
                     text = "See All",
                     style = MaterialTheme.typography.bodySmall,
-                    color = NeonYellow,
+                    color = ColorTokens.Primary500,
                     modifier = Modifier.clickable(onClick = onSeeAllClick)
                 )
             }
 
             // Templates row
             LazyRow(
-                contentPadding = PaddingValues(horizontal = 16.dp),
+                contentPadding = PaddingValues(horizontal = SpacingTokens.Medium),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -123,13 +119,12 @@ private fun TemplateChip(
     template: TransactionTemplateEntity,
     onClick: () -> Unit
 ) {
-    Card(
+    PyeraCard(
         modifier = Modifier.clickable(onClick = onClick),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = SurfaceElevated
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        cornerRadius = SpacingTokens.Large,
+        containerColor = ColorTokens.SurfaceLevel2,
+        borderWidth = 0.dp,
+        elevation = 2.dp
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -140,7 +135,7 @@ private fun TemplateChip(
                 modifier = Modifier
                     .size(28.dp)
                     .clip(CircleShape)
-                    .background(NeonYellow.copy(alpha = 0.2f)),
+                    .background(ColorTokens.Primary500.copy(alpha = 0.2f)),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -155,7 +150,7 @@ private fun TemplateChip(
             Text(
                 text = template.name,
                 style = MaterialTheme.typography.bodySmall,
-                color = TextPrimary,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.Medium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -166,16 +161,12 @@ private fun TemplateChip(
 
 @Composable
 private fun AddTemplateChip(onClick: () -> Unit) {
-    Card(
+    PyeraCard(
         modifier = Modifier.clickable(onClick = onClick),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = SurfaceElevated.copy(alpha = 0.5f)
-        ),
-        border = androidx.compose.foundation.BorderStroke(
-            width = 1.dp,
-            color = TextSecondary.copy(alpha = 0.3f)
-        )
+        cornerRadius = SpacingTokens.Large,
+        containerColor = ColorTokens.SurfaceLevel2.copy(alpha = 0.5f),
+        borderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
+        borderWidth = 1.dp
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -185,14 +176,14 @@ private fun AddTemplateChip(onClick: () -> Unit) {
                 modifier = Modifier
                     .size(28.dp)
                     .clip(CircleShape)
-                    .background(TextSecondary.copy(alpha = 0.2f)),
+                    .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
                     contentDescription = "Add",
-                    tint = TextSecondary,
-                    modifier = Modifier.size(16.dp)
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(SpacingTokens.Medium)
                 )
             }
 
@@ -201,7 +192,7 @@ private fun AddTemplateChip(onClick: () -> Unit) {
             Text(
                 text = "Add",
                 style = MaterialTheme.typography.bodySmall,
-                color = TextSecondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontWeight = FontWeight.Medium
             )
         }
@@ -210,39 +201,38 @@ private fun AddTemplateChip(onClick: () -> Unit) {
 
 @Composable
 private fun EmptyTemplatesRow(onAddClick: () -> Unit) {
-    Card(
+    PyeraCard(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = SpacingTokens.Medium)
             .clickable(onClick = onAddClick),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = SurfaceElevated.copy(alpha = 0.5f)
-        ),
-        border = androidx.compose.foundation.BorderStroke(
-            width = 1.dp,
-            color = TextSecondary.copy(alpha = 0.3f)
-        )
+        cornerRadius = 12.dp,
+        containerColor = ColorTokens.SurfaceLevel2.copy(alpha = 0.5f),
+        borderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
+        borderWidth = 1.dp
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(SpacingTokens.Medium),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
             Icon(
                 imageVector = Icons.Default.Add,
                 contentDescription = null,
-                tint = NeonYellow,
+                tint = ColorTokens.Primary500,
                 modifier = Modifier.size(20.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = "Create templates for quick transactions",
                 style = MaterialTheme.typography.bodyMedium,
-                color = TextSecondary
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
 }
+
+
+

@@ -1,5 +1,7 @@
 package com.pyera.app.data.repository
 
+import com.pyera.app.domain.repository.*
+
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.pyera.app.data.local.dao.BudgetDao
@@ -81,7 +83,7 @@ class BudgetRepositoryImpl @Inject constructor(
         return budgetDao.getBudgetsWithSpending(userId, startDate, endDate)
             .map { budgets ->
                 budgets.map { budget ->
-                    budget.copy(daysRemaining = calculateDaysRemaining(budget.period, endDate))
+                    budget.copy(daysRemaining = calculateDaysRemaining(endDate))
                 }
             }
     }
@@ -93,7 +95,7 @@ class BudgetRepositoryImpl @Inject constructor(
     ): Flow<BudgetWithSpending?> {
         return budgetDao.getBudgetWithSpendingById(budgetId, startDate, endDate)
             .map { budget ->
-                budget?.copy(daysRemaining = calculateDaysRemaining(budget.period, endDate))
+                budget?.copy(daysRemaining = calculateDaysRemaining(endDate))
             }
     }
 
@@ -251,7 +253,7 @@ class BudgetRepositoryImpl @Inject constructor(
 
     // ==================== Private Helpers ====================
 
-    private fun calculateDaysRemaining(period: BudgetPeriod, periodEndDate: Long): Int {
+    private fun calculateDaysRemaining(periodEndDate: Long): Int {
         val now = System.currentTimeMillis()
         val diff = periodEndDate - now
         return if (diff > 0) {

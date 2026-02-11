@@ -3,7 +3,7 @@ package com.pyera.app.ui.investments
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pyera.app.data.local.entity.InvestmentEntity
-import com.pyera.app.data.repository.InvestmentRepository
+import com.pyera.app.domain.repository.InvestmentRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow

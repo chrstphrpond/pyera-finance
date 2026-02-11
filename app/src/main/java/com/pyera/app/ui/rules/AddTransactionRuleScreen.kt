@@ -1,5 +1,9 @@
 package com.pyera.app.ui.rules
 
+import com.pyera.app.ui.components.PyeraCard
+import com.pyera.app.ui.theme.tokens.ColorTokens
+import com.pyera.app.ui.theme.tokens.SpacingTokens
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -29,8 +33,6 @@ import androidx.compose.material.icons.filled.Help
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -58,6 +60,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -70,15 +73,7 @@ import androidx.navigation.NavController
 import com.pyera.app.R
 import com.pyera.app.data.local.entity.CategoryEntity
 import com.pyera.app.data.local.entity.MatchType
-import com.pyera.app.ui.theme.AccentGreen
-import com.pyera.app.ui.theme.ColorError
-import com.pyera.app.ui.theme.ColorSuccess
-import com.pyera.app.ui.theme.ColorWarning
-import com.pyera.app.ui.theme.DeepBackground
-import com.pyera.app.ui.theme.SurfaceDark
-import com.pyera.app.ui.theme.SurfaceElevated
-import com.pyera.app.ui.theme.TextPrimary
-import com.pyera.app.ui.theme.TextSecondary
+import com.pyera.app.ui.util.pyeraBackground
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -131,7 +126,7 @@ fun AddTransactionRuleScreen(
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.rules_back_content_desc),
-                            tint = TextPrimary
+                            tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 },
@@ -140,31 +135,32 @@ fun AddTransactionRuleScreen(
                         Icon(
                             Icons.Default.Help,
                             contentDescription = stringResource(R.string.add_rule_help_content_desc),
-                            tint = AccentGreen
+                            tint = ColorTokens.Primary500
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = DeepBackground,
-                    titleContentColor = TextPrimary
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = DeepBackground
+        containerColor = androidx.compose.ui.graphics.Color.Transparent
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .pyeraBackground()
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp)
+                .padding(SpacingTokens.Medium)
         ) {
             // Pattern Input
             Text(
                 text = stringResource(R.string.add_rule_pattern_label),
                 style = MaterialTheme.typography.titleSmall,
-                color = TextPrimary,
+                color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             
@@ -174,18 +170,18 @@ fun AddTransactionRuleScreen(
                 placeholder = { Text(stringResource(R.string.add_rule_pattern_placeholder)) },
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = AccentGreen,
-                    unfocusedBorderColor = TextSecondary,
-                    focusedTextColor = TextPrimary,
-                    unfocusedTextColor = TextPrimary,
-                    focusedPlaceholderColor = TextSecondary.copy(alpha = 0.5f),
-                    unfocusedPlaceholderColor = TextSecondary.copy(alpha = 0.5f)
+                    focusedBorderColor = ColorTokens.Primary500,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                    unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                 ),
                 singleLine = true,
                 shape = RoundedCornerShape(12.dp)
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Large))
 
             // Match Type Selector
             Row(
@@ -196,13 +192,13 @@ fun AddTransactionRuleScreen(
                 Text(
                     text = stringResource(R.string.add_rule_match_type_label),
                     style = MaterialTheme.typography.titleSmall,
-                    color = TextPrimary
+                    color = MaterialTheme.colorScheme.onBackground
                 )
                 IconButton(onClick = { showHelpDialog = true }) {
                     Icon(
                         Icons.Default.Help,
                         contentDescription = stringResource(R.string.add_rule_match_type_help_content_desc),
-                        tint = TextSecondary,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -225,23 +221,23 @@ fun AddTransactionRuleScreen(
                             )
                         },
                         colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = AccentGreen,
-                            selectedLabelColor = DeepBackground,
-                            containerColor = SurfaceDark,
-                            labelColor = TextPrimary
+                            selectedContainerColor = ColorTokens.Primary500,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                            containerColor = ColorTokens.SurfaceLevel1,
+                            labelColor = MaterialTheme.colorScheme.onBackground
                         ),
                         border = null
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Large))
 
             // Category Selector
             Text(
                 text = stringResource(R.string.add_rule_category_label),
                 style = MaterialTheme.typography.titleSmall,
-                color = TextPrimary,
+                color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
@@ -251,13 +247,13 @@ fun AddTransactionRuleScreen(
                         .fillMaxWidth()
                         .height(100.dp)
                         .clip(RoundedCornerShape(12.dp))
-                        .background(SurfaceDark),
+                        .background(ColorTokens.SurfaceLevel1),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = stringResource(R.string.add_rule_category_loading),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = TextSecondary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             } else {
@@ -267,7 +263,7 @@ fun AddTransactionRuleScreen(
                 Text(
                     text = stringResource(R.string.add_rule_expense_section),
                     style = MaterialTheme.typography.labelSmall,
-                    color = TextSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
                 
@@ -285,13 +281,13 @@ fun AddTransactionRuleScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
                 // Income categories
                 Text(
                     text = stringResource(R.string.add_rule_income_section),
                     style = MaterialTheme.typography.labelSmall,
-                    color = TextSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
                 
@@ -310,7 +306,7 @@ fun AddTransactionRuleScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Large))
 
             // Priority Slider
             Row(
@@ -321,16 +317,16 @@ fun AddTransactionRuleScreen(
                 Text(
                     text = stringResource(R.string.add_rule_priority_label),
                     style = MaterialTheme.typography.titleSmall,
-                    color = TextPrimary
+                    color = MaterialTheme.colorScheme.onBackground
                 )
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(4.dp))
                         .background(
                             when {
-                                state.priority >= 8 -> ColorError
-                                state.priority >= 5 -> ColorWarning
-                                else -> ColorSuccess
+                                state.priority >= 8 -> ColorTokens.Error500
+                                state.priority >= 5 -> ColorTokens.Warning500
+                                else -> ColorTokens.Success500
                             }
                         )
                         .padding(horizontal = 8.dp, vertical = 4.dp)
@@ -338,7 +334,7 @@ fun AddTransactionRuleScreen(
                     Text(
                         text = state.priority.toString(),
                         style = MaterialTheme.typography.labelMedium,
-                        color = DeepBackground,
+                        color = MaterialTheme.colorScheme.onPrimary,
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -347,7 +343,7 @@ fun AddTransactionRuleScreen(
             Text(
                 text = stringResource(R.string.add_rule_priority_description),
                 style = MaterialTheme.typography.bodySmall,
-                color = TextSecondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
@@ -357,31 +353,30 @@ fun AddTransactionRuleScreen(
                 valueRange = 0f..10f,
                 steps = 9,
                 colors = SliderDefaults.colors(
-                    thumbColor = AccentGreen,
-                    activeTrackColor = AccentGreen,
-                    inactiveTrackColor = SurfaceDark
+                    thumbColor = ColorTokens.Primary500,
+                    activeTrackColor = ColorTokens.Primary500,
+                    inactiveTrackColor = ColorTokens.SurfaceLevel1
                 )
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Large))
 
             // Test Section
-            Card(
+            PyeraCard(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = SurfaceElevated
-                ),
-                shape = RoundedCornerShape(12.dp)
+                cornerRadius = 12.dp,
+                containerColor = ColorTokens.SurfaceLevel2,
+                borderWidth = 0.dp
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
+                        .padding(SpacingTokens.Medium)
                 ) {
                     Text(
                         text = stringResource(R.string.add_rule_test_section_title),
                         style = MaterialTheme.typography.titleSmall,
-                        color = TextPrimary,
+                        color = MaterialTheme.colorScheme.onBackground,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
                     
@@ -391,10 +386,10 @@ fun AddTransactionRuleScreen(
                         placeholder = { Text(stringResource(R.string.add_rule_test_placeholder)) },
                         modifier = Modifier.fillMaxWidth(),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = AccentGreen,
-                            unfocusedBorderColor = TextSecondary,
-                            focusedTextColor = TextPrimary,
-                            unfocusedTextColor = TextPrimary
+                            focusedBorderColor = ColorTokens.Primary500,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onBackground
                         ),
                         singleLine = true,
                         shape = RoundedCornerShape(12.dp),
@@ -404,7 +399,7 @@ fun AddTransactionRuleScreen(
                                     imageVector = if (result) 
                                         Icons.Default.CheckCircle else Icons.Default.Error,
                                     contentDescription = if (result) stringResource(R.string.add_rule_test_matches_content_desc) else stringResource(R.string.add_rule_test_no_match_content_desc),
-                                    tint = if (result) ColorSuccess else ColorError
+                                    tint = if (result) ColorTokens.Success500 else ColorTokens.Error500
                                 )
                             }
                         }
@@ -416,8 +411,8 @@ fun AddTransactionRuleScreen(
                         onClick = { viewModel.testRule() },
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = SurfaceDark,
-                            contentColor = TextPrimary
+                            containerColor = ColorTokens.SurfaceLevel1,
+                            contentColor = MaterialTheme.colorScheme.onBackground
                         ),
                         enabled = state.pattern.isNotBlank() && state.testDescription.isNotBlank()
                     ) {
@@ -432,8 +427,8 @@ fun AddTransactionRuleScreen(
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(8.dp))
                                 .background(
-                                    if (result) ColorSuccess.copy(alpha = 0.15f) 
-                                    else ColorError.copy(alpha = 0.15f)
+                                    if (result) ColorTokens.Success500.copy(alpha = 0.15f) 
+                                    else ColorTokens.Error500.copy(alpha = 0.15f)
                                 )
                                 .padding(12.dp),
                             contentAlignment = Alignment.Center
@@ -441,7 +436,7 @@ fun AddTransactionRuleScreen(
                             Text(
                                 text = if (result) stringResource(R.string.add_rule_test_matches) else stringResource(R.string.add_rule_test_no_match),
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = if (result) ColorSuccess else ColorError,
+                                color = if (result) ColorTokens.Success500 else ColorTokens.Error500,
                                 fontWeight = FontWeight.Medium
                             )
                         }
@@ -449,7 +444,7 @@ fun AddTransactionRuleScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.ExtraLarge))
 
             // Save Button
             Button(
@@ -458,8 +453,8 @@ fun AddTransactionRuleScreen(
                     .fillMaxWidth()
                     .height(50.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = AccentGreen,
-                    contentColor = DeepBackground
+                    containerColor = ColorTokens.Primary500,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
                 ),
                 enabled = state.pattern.isNotBlank() && state.selectedCategoryId != null && !state.isLoading
             ) {
@@ -482,12 +477,12 @@ fun AddTransactionRuleScreen(
                 ) {
                     Text(
                         text = stringResource(R.string.rules_cancel_button),
-                        color = TextSecondary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Large))
         }
     }
 }
@@ -498,9 +493,9 @@ private fun CategoryChip(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    val backgroundColor = if (isSelected) Color(category.color) else SurfaceDark
-    val contentColor = if (isSelected) TextPrimary else TextPrimary
-    val borderColor = if (isSelected) Color.Transparent else TextSecondary.copy(alpha = 0.3f)
+    val backgroundColor = if (isSelected) Color(category.color) else ColorTokens.SurfaceLevel1
+    val contentColor = if (isSelected) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.onBackground
+    val borderColor = if (isSelected) Color.Transparent else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
 
     Box(
         modifier = Modifier
@@ -523,7 +518,7 @@ private fun CategoryChip(
                 modifier = Modifier
                     .size(8.dp)
                     .clip(CircleShape)
-                    .background(if (isSelected) TextPrimary else androidx.compose.ui.graphics.Color(category.color))
+                    .background(if (isSelected) MaterialTheme.colorScheme.onBackground else androidx.compose.ui.graphics.Color(category.color))
             )
             Text(
                 text = category.name,
@@ -535,7 +530,7 @@ private fun CategoryChip(
                 Icon(
                     imageVector = Icons.Default.Check,
                     contentDescription = stringResource(R.string.add_rule_category_selected_content_desc),
-                    tint = TextPrimary,
+                    tint = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.size(14.dp)
                 )
             }
@@ -547,11 +542,11 @@ private fun CategoryChip(
 private fun MatchTypeHelpDialog(onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = SurfaceElevated,
+        containerColor = ColorTokens.SurfaceLevel2,
         title = {
             Text(
                 text = stringResource(R.string.add_rule_help_title),
-                color = TextPrimary,
+                color = MaterialTheme.colorScheme.onBackground,
                 style = MaterialTheme.typography.titleMedium
             )
         },
@@ -585,7 +580,7 @@ private fun MatchTypeHelpDialog(onDismiss: () -> Unit) {
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.add_rule_help_close), color = AccentGreen)
+                Text(stringResource(R.string.add_rule_help_close), color = ColorTokens.Primary500)
             }
         }
     )
@@ -596,14 +591,18 @@ private fun HelpItem(title: String, description: String) {
     Column {
         Text(
             text = title,
-            color = AccentGreen,
+            color = ColorTokens.Primary500,
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.SemiBold
         )
         Text(
             text = description,
-            color = TextSecondary,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             style = MaterialTheme.typography.bodySmall
         )
     }
 }
+
+
+
+

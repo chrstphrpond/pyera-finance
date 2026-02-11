@@ -1,4 +1,5 @@
 package com.pyera.app.ui.util
+import com.pyera.app.ui.theme.tokens.ColorTokens
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.layout.Box
@@ -9,7 +10,6 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import com.pyera.app.ui.theme.AccentGreen
 import kotlinx.coroutines.delay
 
 /**
@@ -108,7 +108,7 @@ fun Modifier.staggeredSlideIn(
  */
 @Composable
 fun Modifier.pulseGlow(
-    glowColor: Color = AccentGreen,
+    glowColor: Color = ColorTokens.Primary500,
     enabled: Boolean = true
 ): Modifier = composed {
     if (!enabled) return@composed this
@@ -169,3 +169,6 @@ fun Modifier.fadeInOnMount(
     
     this.graphicsLayer { this.alpha = alpha }
 }
+
+
+

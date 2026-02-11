@@ -3,9 +3,10 @@ package com.pyera.app.ui.templates
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pyera.app.data.local.entity.TransactionEntity
 import com.pyera.app.data.local.entity.TransactionTemplateEntity
-import com.pyera.app.data.repository.AuthRepository
-import com.pyera.app.data.repository.TransactionTemplateRepository
+import com.pyera.app.domain.repository.AuthRepository
+import com.pyera.app.domain.repository.TransactionTemplateRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -65,7 +66,7 @@ class TemplatesViewModel @Inject constructor(
     }
 
     fun loadTemplates() {
-        val userId = authRepository.getCurrentUserId() ?: return
+        val userId = authRepository.currentUser?.uid ?: return
 
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
@@ -180,7 +181,7 @@ class TemplatesViewModel @Inject constructor(
 
     fun saveTemplate() {
         val currentState = _formState.value
-        val userId = authRepository.getCurrentUserId()
+        val userId = authRepository.currentUser?.uid
 
         if (userId == null) {
             _formState.value = currentState.copy(error = "User not authenticated")
@@ -219,6 +220,7 @@ class TemplatesViewModel @Inject constructor(
                     categoryId = currentState.categoryId,
                     accountId = currentState.accountId,
                     icon = currentState.icon,
+                    color = null,
                     isActive = true
                 )
                 templateRepository.updateTemplate(template)
@@ -232,7 +234,8 @@ class TemplatesViewModel @Inject constructor(
                     type = currentState.type,
                     categoryId = currentState.categoryId,
                     accountId = currentState.accountId,
-                    icon = currentState.icon
+                    icon = currentState.icon,
+                    color = null
                 )
             }
 
@@ -257,6 +260,42 @@ class TemplatesViewModel @Inject constructor(
     fun clearForm() {
         _formState.value = TemplateFormState()
         editingTemplateId = null
+    }
+
+    fun createTemplateFromTransaction(
+        transaction: TransactionEntity,
+        name: String,
+        icon: String? = null
+    ) {
+        val userId = authRepository.currentUser?.uid
+        if (userId == null) {
+            _uiState.value = _uiState.value.copy(error = "User not authenticated")
+            return
+        }
+
+        viewModelScope.launch {
+            templateRepository.createTemplateFromTransaction(
+                userId = userId,
+                transaction = transaction,
+                name = name.trim(),
+                icon = icon
+            ).onFailure { e ->
+                _uiState.value = _uiState.value.copy(
+                    error = e.message ?: "Failed to create template"
+                )
+            }
+        }
+    }
+
+    fun useTemplate(templateId: Long) {
+        viewModelScope.launch {
+            templateRepository.useTemplate(templateId)
+                .onFailure { e ->
+                    _uiState.value = _uiState.value.copy(
+                        error = e.message ?: "Failed to update template usage"
+                    )
+                }
+        }
     }
 
     /**

@@ -21,6 +21,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pyera.app.ui.theme.*
+import com.pyera.app.ui.theme.tokens.ColorTokens
+import com.pyera.app.ui.theme.tokens.SpacingTokens
 
 /**
  * Reusable authentication button component for Pyera auth screens.
@@ -54,7 +56,7 @@ fun PyeraAuthButton(
         ) { loading ->
             if (loading) {
                 CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp),
+                    modifier = Modifier.size(SpacingTokens.Large),
                     color = contentColor,
                     strokeWidth = 2.dp
                 )
@@ -106,7 +108,7 @@ fun PyeraAuthSecondaryButton(
                 text = text,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
-                color = TextPrimary
+                color = MaterialTheme.colorScheme.onBackground
             )
         }
     }
@@ -143,7 +145,7 @@ fun PyeraSocialButton(
                 text = text,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
-                color = TextPrimary
+                color = MaterialTheme.colorScheme.onBackground
             )
         }
     }
@@ -167,8 +169,10 @@ fun PyeraAuthTextButton(
         Text(
             text = text,
             style = MaterialTheme.typography.bodyMedium,
-            color = if (enabled) AccentGreen else TextTertiary,
+            color = if (enabled) ColorTokens.Primary500 else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
             fontWeight = FontWeight.Medium
         )
     }
 }
+
+

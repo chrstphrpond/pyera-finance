@@ -1,5 +1,9 @@
 package com.pyera.app.ui.analysis
 
+import com.pyera.app.ui.components.PyeraCard
+import com.pyera.app.ui.theme.tokens.ColorTokens
+import com.pyera.app.ui.theme.tokens.SpacingTokens
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,13 +20,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.pyera.app.ui.theme.AccentGreen
 import com.pyera.app.ui.theme.CardBackground
-import com.pyera.app.ui.theme.DeepBackground
 import com.pyera.app.ui.theme.GlassOverlay
-import com.pyera.app.ui.theme.TextPrimary
-import com.pyera.app.ui.theme.TextSecondary
-import com.pyera.app.ui.theme.TextTertiary
+import com.pyera.app.ui.util.CurrencyFormatter
+import com.pyera.app.ui.util.pyeraBackground
 
 @Composable
 fun AnalysisScreen(
@@ -33,49 +34,53 @@ fun AnalysisScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(DeepBackground)
-            .padding(16.dp)
+            .pyeraBackground()
+            .padding(SpacingTokens.Medium)
     ) {
         Text(
             text = "Analysis",
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
-            color = TextPrimary
+            color = MaterialTheme.colorScheme.onBackground
         )
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
         // Basic Summary for now (replacing Charts temporary until I configure Vico properly)
-        Card(
-            colors = CardDefaults.cardColors(containerColor = CardBackground),
-            shape = RoundedCornerShape(16.dp),
-            modifier = Modifier.fillMaxWidth()
+        PyeraCard(
+            modifier = Modifier.fillMaxWidth(),
+            cornerRadius = SpacingTokens.Medium,
+            containerColor = CardBackground,
+            borderWidth = 0.dp
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text("Total Expenses", color = TextSecondary, fontSize = 14.sp)
+            Column(modifier = Modifier.padding(SpacingTokens.Medium)) {
+                Text("Total Expenses", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
                 Text(
-                    text = "₱${String.format("%.2f", state.totalExpense)}",
-                    color = AccentGreen,
+                    text = CurrencyFormatter.format(state.totalExpense),
+                    color = ColorTokens.Primary500,
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold
                 )
-                Spacer(modifier = Modifier.height(8.dp))
-                HorizontalDivider(color = TextPrimary.copy(alpha = 0.2f))
-                Spacer(modifier = Modifier.height(8.dp))
-                Text("Predicted Next Month", color = TextTertiary, fontSize = 12.sp)
+                Spacer(modifier = Modifier.height(SpacingTokens.Small))
+                HorizontalDivider(color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f))
+                Spacer(modifier = Modifier.height(SpacingTokens.Small))
+                Text("Predicted Next Month", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f), fontSize = 12.sp)
                 Text(
-                    text = "₱${String.format("%.2f", state.predictedExpense)}",
-                    color = TextPrimary,
+                    text = CurrencyFormatter.format(state.predictedExpense),
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )
             }
         }
         
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(SpacingTokens.Medium))
         
         Button(
             onClick = { viewModel.exportData() },
-            colors = ButtonDefaults.buttonColors(containerColor = AccentGreen, contentColor = DeepBackground),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = ColorTokens.Primary500,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            ),
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Export Data to CSV")
@@ -84,30 +89,30 @@ fun AnalysisScreen(
         state.exportMessage?.let { message ->
             Text(
                 text = message,
-                color = AccentGreen,
+                color = ColorTokens.Primary500,
                 fontSize = 12.sp,
                 modifier = Modifier.padding(top = 8.dp)
             )
         }
         
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(SpacingTokens.Large))
         
         Text(
             text = "Expense by Category",
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
-            color = TextPrimary
+            color = MaterialTheme.colorScheme.onBackground
         )
         
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        LazyColumn(verticalArrangement = Arrangement.spacedBy(SpacingTokens.Small)) {
             items(state.expensesByCategory) { item ->
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(GlassOverlay, RoundedCornerShape(8.dp))
-                        .padding(12.dp),
+                        .padding(SpacingTokens.MediumSmall),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -118,11 +123,11 @@ fun AnalysisScreen(
                                 .background(androidx.compose.ui.graphics.Color(item.color), RoundedCornerShape(2.dp))
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(item.categoryName, color = TextPrimary)
+                        Text(item.categoryName, color = MaterialTheme.colorScheme.onBackground)
                     }
                     Text(
-                        text = "₱${String.format("%.2f", item.amount)}",
-                        color = TextPrimary,
+                        text = CurrencyFormatter.format(item.amount),
+                        color = MaterialTheme.colorScheme.onBackground,
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -130,3 +135,7 @@ fun AnalysisScreen(
         }
     }
 }
+
+
+
+

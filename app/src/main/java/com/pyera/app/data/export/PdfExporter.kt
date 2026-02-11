@@ -12,7 +12,7 @@ import com.itextpdf.layout.borders.SolidBorder
 import com.itextpdf.layout.element.*
 import com.itextpdf.layout.properties.*
 import com.pyera.app.data.local.entity.TransactionEntity
-import com.pyera.app.data.repository.ExportSummary
+import com.pyera.app.domain.repository.ExportSummary
 import java.io.OutputStream
 import java.text.SimpleDateFormat
 import java.util.*

@@ -23,11 +23,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.pyera.app.ui.theme.AccentGreen
 import com.pyera.app.ui.theme.CardBackground
 import com.pyera.app.ui.theme.CardBorder
-import com.pyera.app.ui.theme.DeepBackground
-import com.pyera.app.ui.theme.TextSecondary
+import com.pyera.app.ui.theme.tokens.ColorTokens
+import com.pyera.app.ui.theme.tokens.SpacingTokens
 import com.pyera.app.ui.util.bounceClick
 
 @Composable
@@ -37,12 +36,12 @@ fun CircularActionButton(
     modifier: Modifier = Modifier,
     isHighlighted: Boolean = false,
     containerSize: Dp = 56.dp,
-    iconSize: Dp = 24.dp,
+    iconSize: Dp = SpacingTokens.Large,
     onClick: () -> Unit = {}
 ) {
-    val containerColor = if (isHighlighted) AccentGreen else CardBackground
-    val iconColor = if (isHighlighted) DeepBackground else MaterialTheme.colorScheme.onBackground
-    val labelColor = if (isHighlighted) AccentGreen else TextSecondary
+    val containerColor = if (isHighlighted) ColorTokens.Primary500 else CardBackground
+    val iconColor = if (isHighlighted) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground
+    val labelColor = if (isHighlighted) ColorTokens.Primary500 else MaterialTheme.colorScheme.onSurfaceVariant
 
     Column(
         modifier = modifier.width(72.dp),
@@ -84,3 +83,6 @@ fun CircularActionButton(
         )
     }
 }
+
+
+

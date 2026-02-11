@@ -1,4 +1,5 @@
 package com.pyera.app.ui.components
+import com.pyera.app.ui.theme.tokens.ColorTokens
 
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.height
@@ -12,45 +13,50 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.pyera.app.ui.theme.*
+import androidx.compose.material3.MaterialTheme
 
 enum class ButtonVariant { Primary, Secondary, Tertiary, Destructive }
 enum class ButtonSize { Small, Medium, Large }
 
 internal object PyeraButtonTokens {
-    val shape = RoundedCornerShape(Radius.lg)
+    val shape = RoundedCornerShape(Radius.Button)
 
     fun height(size: ButtonSize) = when (size) {
-        ButtonSize.Small -> 32.dp
+        ButtonSize.Small -> 36.dp
         ButtonSize.Medium -> 48.dp
         ButtonSize.Large -> 56.dp
     }
 
+    @Composable
     fun colors(variant: ButtonVariant) = when (variant) {
         ButtonVariant.Primary -> ButtonDefaults.buttonColors(
-            containerColor = NeonYellow,
-            contentColor = DarkGreen,
-            disabledContainerColor = NeonYellow.copy(alpha = 0.38f),
-            disabledContentColor = DarkGreen.copy(alpha = 0.38f)
+            containerColor = PrimaryAccent,
+            contentColor = BackgroundPrimary,
+            disabledContainerColor = PrimaryAccentDark.copy(alpha = 0.35f),
+            disabledContentColor = BackgroundPrimary.copy(alpha = 0.45f)
         )
         ButtonVariant.Secondary -> ButtonDefaults.buttonColors(
-            containerColor = SurfaceElevated,
-            contentColor = TextPrimary
+            containerColor = SurfaceSecondary,
+            contentColor = MaterialTheme.colorScheme.onBackground,
+            disabledContainerColor = SurfaceSecondary.copy(alpha = 0.6f),
+            disabledContentColor = TextMuted
         )
         ButtonVariant.Tertiary -> ButtonDefaults.buttonColors(
             containerColor = Color.Transparent,
-            contentColor = NeonYellow
+            contentColor = PrimaryAccent
         )
         ButtonVariant.Destructive -> ButtonDefaults.buttonColors(
             containerColor = ColorErrorContainer,
-            contentColor = ColorError
+            contentColor = ColorTokens.Error500
         )
     }
 
+    @Composable
     fun contentColor(variant: ButtonVariant) = when (variant) {
-        ButtonVariant.Primary -> DarkGreen
-        ButtonVariant.Secondary -> TextPrimary
-        ButtonVariant.Tertiary -> NeonYellow
-        ButtonVariant.Destructive -> ColorError
+        ButtonVariant.Primary -> BackgroundPrimary
+        ButtonVariant.Secondary -> MaterialTheme.colorScheme.onBackground
+        ButtonVariant.Tertiary -> PrimaryAccent
+        ButtonVariant.Destructive -> ColorTokens.Error500
     }
 }
 
@@ -86,3 +92,5 @@ fun PyeraButton(
         }
     }
 }
+
+

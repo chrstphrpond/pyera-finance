@@ -1,15 +1,21 @@
 package com.pyera.app.data.repository
 
+import com.pyera.app.domain.repository.*
+
+import androidx.room.withTransaction
+import com.pyera.app.data.local.PyeraDatabase
 import com.pyera.app.data.local.dao.AccountDao
 import com.pyera.app.data.local.dao.TransactionDao
 import com.pyera.app.data.local.entity.AccountEntity
 import com.pyera.app.data.local.entity.AccountType
 import com.pyera.app.data.local.entity.TransactionEntity
+import com.pyera.app.data.local.entity.defaultIcon
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
 class AccountRepositoryImpl @Inject constructor(
+    private val database: PyeraDatabase,
     private val accountDao: AccountDao,
     private val transactionDao: TransactionDao,
     private val authRepository: AuthRepository
@@ -66,26 +72,28 @@ class AccountRepositoryImpl @Inject constructor(
                 return Result.failure(IllegalArgumentException("Account name already exists"))
             }
 
-            val account = AccountEntity(
-                userId = currentUserId,
-                name = name.trim(),
-                type = type,
-                balance = initialBalance,
-                currency = currency,
-                color = color,
-                icon = icon.ifBlank { type.defaultIcon() },
-                isDefault = isDefault,
-                isArchived = false
-            )
+            database.withTransaction {
+                val account = AccountEntity(
+                    userId = currentUserId,
+                    name = name.trim(),
+                    type = type,
+                    balance = initialBalance,
+                    currency = currency,
+                    color = color,
+                    icon = icon.ifBlank { type.defaultIcon() },
+                    isDefault = isDefault,
+                    isArchived = false
+                )
 
-            val id = accountDao.insertAccount(account)
-            
-            // If this is the first account or set as default, update default status
-            if (isDefault || accountDao.getAccountCount(currentUserId) == 1) {
-                accountDao.setDefaultAccount(currentUserId, id)
+                val id = accountDao.insertAccount(account)
+
+                // If this is the first account or set as default, update default status
+                if (isDefault || accountDao.getAccountCount(currentUserId) == 1) {
+                    accountDao.setDefaultAccount(currentUserId, id)
+                }
+
+                Result.success(id)
             }
-            
-            Result.success(id)
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -173,66 +181,68 @@ class AccountRepositoryImpl @Inject constructor(
         date: Long
     ): Result<Unit> {
         return try {
-            // Validation
-            if (fromAccountId == toAccountId) {
-                return Result.failure(IllegalArgumentException("Cannot transfer to the same account"))
+            database.withTransaction {
+                // Validation
+                if (fromAccountId == toAccountId) {
+                    return@withTransaction Result.failure(IllegalArgumentException("Cannot transfer to the same account"))
+                }
+                if (amount <= 0) {
+                    return@withTransaction Result.failure(IllegalArgumentException("Transfer amount must be positive"))
+                }
+
+                val fromAccount = accountDao.getAccountById(fromAccountId)
+                    ?: return@withTransaction Result.failure(IllegalArgumentException("Source account not found"))
+                val toAccount = accountDao.getAccountById(toAccountId)
+                    ?: return@withTransaction Result.failure(IllegalArgumentException("Destination account not found"))
+
+                if (fromAccount.balance < amount) {
+                    return@withTransaction Result.failure(IllegalArgumentException("Insufficient balance in source account"))
+                }
+
+                val timestamp = System.currentTimeMillis()
+                val transferNote = description.ifBlank { "Transfer to ${toAccount.name}" }
+                val receiveNote = description.ifBlank { "Transfer from ${fromAccount.name}" }
+
+                // Create expense transaction for source account
+                val expenseTransaction = TransactionEntity(
+                    amount = amount,
+                    note = transferNote,
+                    date = date,
+                    type = "EXPENSE",
+                    categoryId = null, // Transfers don't have categories
+                    accountId = fromAccountId,
+                    userId = currentUserId,
+                    isTransfer = true,
+                    transferAccountId = toAccountId,
+                    createdAt = timestamp,
+                    updatedAt = timestamp
+                )
+
+                // Create income transaction for destination account
+                val incomeTransaction = TransactionEntity(
+                    amount = amount,
+                    note = receiveNote,
+                    date = date,
+                    type = "INCOME",
+                    categoryId = null,
+                    accountId = toAccountId,
+                    userId = currentUserId,
+                    isTransfer = true,
+                    transferAccountId = fromAccountId,
+                    createdAt = timestamp,
+                    updatedAt = timestamp
+                )
+
+                // Insert both transactions
+                transactionDao.insertTransaction(expenseTransaction)
+                transactionDao.insertTransaction(incomeTransaction)
+
+                // Update balances
+                accountDao.updateBalance(fromAccountId, fromAccount.balance - amount)
+                accountDao.updateBalance(toAccountId, toAccount.balance + amount)
+
+                Result.success(Unit)
             }
-            if (amount <= 0) {
-                return Result.failure(IllegalArgumentException("Transfer amount must be positive"))
-            }
-            
-            val fromAccount = accountDao.getAccountById(fromAccountId)
-                ?: return Result.failure(IllegalArgumentException("Source account not found"))
-            val toAccount = accountDao.getAccountById(toAccountId)
-                ?: return Result.failure(IllegalArgumentException("Destination account not found"))
-            
-            if (fromAccount.balance < amount) {
-                return Result.failure(IllegalArgumentException("Insufficient balance in source account"))
-            }
-
-            val timestamp = System.currentTimeMillis()
-            val transferNote = description.ifBlank { "Transfer to ${toAccount.name}" }
-            val receiveNote = description.ifBlank { "Transfer from ${fromAccount.name}" }
-
-            // Create expense transaction for source account
-            val expenseTransaction = TransactionEntity(
-                amount = amount,
-                note = transferNote,
-                date = date,
-                type = "EXPENSE",
-                categoryId = null, // Transfers don't have categories
-                accountId = fromAccountId,
-                userId = currentUserId,
-                isTransfer = true,
-                transferAccountId = toAccountId,
-                createdAt = timestamp,
-                updatedAt = timestamp
-            )
-
-            // Create income transaction for destination account
-            val incomeTransaction = TransactionEntity(
-                amount = amount,
-                note = receiveNote,
-                date = date,
-                type = "INCOME",
-                categoryId = null,
-                accountId = toAccountId,
-                userId = currentUserId,
-                isTransfer = true,
-                transferAccountId = fromAccountId,
-                createdAt = timestamp,
-                updatedAt = timestamp
-            )
-
-            // Insert both transactions
-            transactionDao.insertTransaction(expenseTransaction)
-            transactionDao.insertTransaction(incomeTransaction)
-
-            // Update balances
-            accountDao.updateBalance(fromAccountId, fromAccount.balance - amount)
-            accountDao.updateBalance(toAccountId, toAccount.balance + amount)
-
-            Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -242,13 +252,13 @@ class AccountRepositoryImpl @Inject constructor(
 
     override suspend fun recalculateBalance(accountId: Long): Result<Double> {
         return try {
-            val account = accountDao.getAccountById(accountId)
-                ?: return Result.failure(IllegalArgumentException("Account not found"))
+            if (accountDao.getAccountById(accountId) == null) {
+                return Result.failure(IllegalArgumentException("Account not found"))
+            }
             
             // Calculate from transactions
             val income = transactionDao.getAccountIncomeSum(accountId) ?: 0.0
             val expenses = transactionDao.getAccountExpenseSum(accountId) ?: 0.0
-            val transferOut = transactionDao.getAccountTransferOutSum(accountId) ?: 0.0
             
             // New balance = income - expenses (transfers are included in both)
             val newBalance = income - expenses

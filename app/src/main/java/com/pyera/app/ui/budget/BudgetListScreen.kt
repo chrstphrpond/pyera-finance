@@ -1,5 +1,8 @@
 package com.pyera.app.ui.budget
 
+import com.pyera.app.ui.theme.tokens.ColorTokens
+import com.pyera.app.ui.theme.tokens.SpacingTokens
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandVertically
@@ -46,6 +49,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,17 +63,11 @@ import com.pyera.app.data.local.entity.BudgetStatus
 import com.pyera.app.data.local.entity.BudgetSummary
 import com.pyera.app.data.local.entity.BudgetWithSpending
 import com.pyera.app.ui.components.PyeraCard
-import com.pyera.app.ui.theme.AccentGreen
 import com.pyera.app.ui.theme.CardBackground
-import com.pyera.app.ui.theme.ColorError
-import com.pyera.app.ui.theme.ColorWarning
-import com.pyera.app.ui.theme.DeepBackground
 import com.pyera.app.ui.theme.SuccessContainer
-import com.pyera.app.ui.theme.TextPrimary
-import com.pyera.app.ui.theme.TextSecondary
-import com.pyera.app.ui.theme.TextTertiary
 import com.pyera.app.ui.theme.ErrorContainer
 import com.pyera.app.ui.theme.WarningContainer
+import com.pyera.app.ui.util.pyeraBackground
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -100,19 +98,19 @@ fun BudgetListScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onNavigateToCreate,
-                containerColor = AccentGreen,
+                containerColor = ColorTokens.Primary500,
                 contentColor = Color.Black
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add Budget")
             }
         },
-        containerColor = DeepBackground
+        containerColor = Color.Transparent
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .pyeraBackground()
                 .padding(padding)
-                .background(DeepBackground)
         ) {
             // Header
             BudgetListHeader(
@@ -129,7 +127,7 @@ fun BudgetListScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(color = AccentGreen)
+                    CircularProgressIndicator(color = ColorTokens.Primary500)
                 }
             } else if (budgets.isEmpty()) {
                 EmptyBudgetState(onCreateClick = onNavigateToCreate)
@@ -137,7 +135,7 @@ fun BudgetListScreen(
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
-                    contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp)
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(SpacingTokens.Medium)
                 ) {
                     items(budgets, key = { it.id }) { budget ->
                         BudgetListItem(
@@ -162,7 +160,7 @@ private fun BudgetListHeader(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .padding(SpacingTokens.Medium)
     ) {
         // Title Row
         Row(
@@ -174,13 +172,13 @@ private fun BudgetListHeader(
                 Text(
                     text = "Budgets",
                     style = MaterialTheme.typography.headlineMedium,
-                    color = TextPrimary,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = "Track your spending limits",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = TextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
@@ -191,14 +189,14 @@ private fun BudgetListHeader(
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
         // Summary Cards
         if (summary != null) {
             BudgetSummaryCards(summary = summary)
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
         // Filter Chips
         BudgetFilterChips(
@@ -226,13 +224,13 @@ private fun PeriodSelector(
         ) {
             Text(
                 text = selectedPeriod.name.lowercase().replaceFirstChar { it.uppercase() },
-                color = TextPrimary,
+                color = MaterialTheme.colorScheme.onBackground,
                 style = MaterialTheme.typography.bodyMedium
             )
             Icon(
                 imageVector = Icons.Default.ArrowDropDown,
                 contentDescription = "Select period",
-                tint = TextSecondary
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
@@ -246,7 +244,7 @@ private fun PeriodSelector(
                     text = {
                         Text(
                             period.name.lowercase().replaceFirstChar { it.uppercase() },
-                            color = TextPrimary
+                            color = MaterialTheme.colorScheme.onBackground
                         )
                     },
                     onClick = {
@@ -270,7 +268,7 @@ private fun BudgetSummaryCards(summary: BudgetSummary) {
             title = "Total Budget",
             amount = summary.totalBudgetAmount,
             modifier = Modifier.weight(1f),
-            color = AccentGreen
+            color = ColorTokens.Primary500
         )
 
         // Spent Card
@@ -278,7 +276,7 @@ private fun BudgetSummaryCards(summary: BudgetSummary) {
             title = "Spent",
             amount = summary.totalSpent,
             modifier = Modifier.weight(1f),
-            color = if (summary.totalSpent > summary.totalBudgetAmount) ColorError else ColorWarning
+            color = if (summary.totalSpent > summary.totalBudgetAmount) ColorTokens.Error500 else ColorTokens.Warning500
         )
 
         // Remaining Card
@@ -286,7 +284,7 @@ private fun BudgetSummaryCards(summary: BudgetSummary) {
             title = "Remaining",
             amount = summary.totalRemaining,
             modifier = Modifier.weight(1f),
-            color = if (summary.totalRemaining < 0) ColorError else AccentGreen
+            color = if (summary.totalRemaining < 0) ColorTokens.Error500 else ColorTokens.Primary500
         )
     }
 }
@@ -296,7 +294,7 @@ private fun SummaryCard(
     title: String,
     amount: Double,
     modifier: Modifier = Modifier,
-    color: Color = AccentGreen
+    color: Color = ColorTokens.Primary500
 ) {
     PyeraCard(
         modifier = modifier,
@@ -311,7 +309,7 @@ private fun SummaryCard(
             Text(
                 text = title,
                 style = MaterialTheme.typography.labelSmall,
-                color = TextSecondary
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
@@ -343,14 +341,14 @@ private fun BudgetFilterChips(
             label = "Warning",
             isSelected = selectedFilter == BudgetStatus.WARNING,
             onClick = { onFilterChange(BudgetStatus.WARNING) },
-            color = ColorWarning
+            color = ColorTokens.Warning500
         )
 
         FilterChip(
             label = "Over Budget",
             isSelected = selectedFilter == BudgetStatus.OVER_BUDGET,
             onClick = { onFilterChange(BudgetStatus.OVER_BUDGET) },
-            color = ColorError
+            color = ColorTokens.Error500
         )
     }
 }
@@ -360,18 +358,17 @@ private fun FilterChip(
     label: String,
     isSelected: Boolean,
     onClick: () -> Unit,
-    color: Color = AccentGreen
+    color: Color = ColorTokens.Primary500
 ) {
     val backgroundColor = if (isSelected) color.copy(alpha = 0.2f) else CardBackground
-    val textColor = if (isSelected) color else TextSecondary
-    val borderColor = if (isSelected) color else TextTertiary.copy(alpha = 0.3f)
+    val textColor = if (isSelected) color else MaterialTheme.colorScheme.onSurfaceVariant
 
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(20.dp))
             .background(backgroundColor)
             .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .padding(horizontal = SpacingTokens.Medium, vertical = 8.dp)
     ) {
         Text(
             text = label,
@@ -392,10 +389,10 @@ private fun BudgetListItem(
     )
 
     val statusColor = when (budget.status) {
-        BudgetStatus.HEALTHY -> AccentGreen
-        BudgetStatus.ON_TRACK -> AccentGreen.copy(alpha = 0.7f)
-        BudgetStatus.WARNING -> ColorWarning
-        BudgetStatus.OVER_BUDGET -> ColorError
+        BudgetStatus.HEALTHY -> ColorTokens.Primary500
+        BudgetStatus.ON_TRACK -> ColorTokens.Primary500.copy(alpha = 0.7f)
+        BudgetStatus.WARNING -> ColorTokens.Warning500
+        BudgetStatus.OVER_BUDGET -> ColorTokens.Error500
     }
 
     PyeraCard(
@@ -405,7 +402,7 @@ private fun BudgetListItem(
     ) {
         Column(
             modifier = Modifier
-                .padding(16.dp)
+                .padding(SpacingTokens.Medium)
                 .fillMaxWidth()
         ) {
             // Header Row
@@ -439,13 +436,13 @@ private fun BudgetListItem(
                         Text(
                             text = budget.categoryName,
                             style = MaterialTheme.typography.titleMedium,
-                            color = TextPrimary,
+                            color = MaterialTheme.colorScheme.onBackground,
                             fontWeight = FontWeight.SemiBold
                         )
                         Text(
                             text = budget.period.name.lowercase().replaceFirstChar { it.uppercase() },
                             style = MaterialTheme.typography.bodySmall,
-                            color = TextSecondary
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -454,7 +451,7 @@ private fun BudgetListItem(
                 BudgetStatusIndicator(status = budget.status)
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
             // Progress Bar
             LinearProgressIndicator(
@@ -464,7 +461,7 @@ private fun BudgetListItem(
                     .height(8.dp)
                     .clip(RoundedCornerShape(4.dp)),
                 color = statusColor,
-                trackColor = TextTertiary.copy(alpha = 0.2f)
+                trackColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f).copy(alpha = 0.2f)
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -478,12 +475,12 @@ private fun BudgetListItem(
                     Text(
                         text = "Spent",
                         style = MaterialTheme.typography.labelSmall,
-                        color = TextSecondary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
                         text = formatCurrency(budget.spentAmount),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = if (budget.isOverBudget) ColorError else TextPrimary,
+                        color = if (budget.isOverBudget) ColorTokens.Error500 else MaterialTheme.colorScheme.onBackground,
                         fontWeight = FontWeight.Medium
                     )
                 }
@@ -492,12 +489,12 @@ private fun BudgetListItem(
                     Text(
                         text = "Budget",
                         style = MaterialTheme.typography.labelSmall,
-                        color = TextSecondary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
                         text = formatCurrency(budget.amount),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = TextPrimary,
+                        color = MaterialTheme.colorScheme.onBackground,
                         fontWeight = FontWeight.Medium
                     )
                 }
@@ -521,13 +518,13 @@ private fun BudgetListItem(
                     Icon(
                         imageVector = Icons.Default.Warning,
                         contentDescription = null,
-                        tint = ColorError,
+                        tint = ColorTokens.Error500,
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = "Over budget by ${formatCurrency(kotlin.math.abs(budget.remainingAmount))}",
-                        color = ColorError,
+                        color = ColorTokens.Error500,
                         style = MaterialTheme.typography.bodySmall,
                         fontWeight = FontWeight.Medium
                     )
@@ -542,22 +539,22 @@ private fun BudgetStatusIndicator(status: BudgetStatus) {
     val (backgroundColor, textColor, label) = when (status) {
         BudgetStatus.HEALTHY -> Triple(
             SuccessContainer,
-            AccentGreen,
+            ColorTokens.Primary500,
             "On Track"
         )
         BudgetStatus.ON_TRACK -> Triple(
             SuccessContainer,
-            AccentGreen,
+            ColorTokens.Primary500,
             "Good"
         )
         BudgetStatus.WARNING -> Triple(
             WarningContainer,
-            ColorWarning,
+            ColorTokens.Warning500,
             "Warning"
         )
         BudgetStatus.OVER_BUDGET -> Triple(
             com.pyera.app.ui.theme.ErrorContainer,
-            ColorError,
+            ColorTokens.Error500,
             "Over"
         )
     }
@@ -585,32 +582,32 @@ private fun EmptyBudgetState(onCreateClick: () -> Unit) {
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(32.dp)
+            modifier = Modifier.padding(SpacingTokens.ExtraLarge)
         ) {
             Icon(
                 imageVector = Icons.Default.FilterList,
                 contentDescription = null,
-                tint = TextTertiary,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
                 modifier = Modifier.size(64.dp)
             )
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Medium))
             Text(
                 text = "No budgets yet",
                 style = MaterialTheme.typography.titleMedium,
-                color = TextPrimary
+                color = MaterialTheme.colorScheme.onBackground
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "Set up budgets to track your spending and stay on top of your finances",
                 style = MaterialTheme.typography.bodyMedium,
-                color = TextSecondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Large))
             androidx.compose.material3.Button(
                 onClick = onCreateClick,
                 colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                    containerColor = AccentGreen
+                    containerColor = ColorTokens.Primary500
                 )
             ) {
                 Text(
@@ -627,3 +624,7 @@ private fun formatCurrency(amount: Double): String {
     val formatter = java.text.NumberFormat.getCurrencyInstance(java.util.Locale.getDefault())
     return formatter.format(amount)
 }
+
+
+
+

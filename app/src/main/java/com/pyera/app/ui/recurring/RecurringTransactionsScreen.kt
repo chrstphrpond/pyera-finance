@@ -1,15 +1,15 @@
 package com.pyera.app.ui.recurring
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import com.pyera.app.ui.theme.tokens.ColorTokens
+import com.pyera.app.ui.theme.tokens.SpacingTokens
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -27,14 +27,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.pyera.app.data.local.entity.RecurringFrequency
 import com.pyera.app.data.local.entity.RecurringTransactionEntity
 import com.pyera.app.data.local.entity.TransactionType
 import com.pyera.app.ui.components.PyeraCard
 import com.pyera.app.ui.navigation.Screen
 import com.pyera.app.ui.theme.*
-import java.text.SimpleDateFormat
-import java.util.*
+import com.pyera.app.ui.util.CurrencyFormatter
+import com.pyera.app.ui.util.pyeraBackground
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,7 +42,7 @@ fun RecurringTransactionsScreen(
     viewModel: RecurringTransactionsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val scope = rememberCoroutineScope()
+    val accounts by viewModel.accounts.collectAsState()
 
     // Show error snackbar
     val snackbarHostState = remember { SnackbarHostState() }
@@ -61,39 +60,40 @@ fun RecurringTransactionsScreen(
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
-                            imageVector = androidx.compose.material.icons.Icons.AutoMirrored.Filled.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint = TextPrimary
+                            tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = DeepBackground,
-                    titleContentColor = TextPrimary
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
         },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { navController.navigate(Screen.Recurring.Add.route) },
-                containerColor = AccentGreen,
+                containerColor = ColorTokens.Primary500,
                 contentColor = Color.Black
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add Recurring Transaction")
             }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = DeepBackground
+        containerColor = Color.Transparent
     ) { padding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .pyeraBackground()
                 .padding(padding)
         ) {
             if (uiState.isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.Center),
-                    color = AccentGreen
+                    color = ColorTokens.Primary500
                 )
             } else if (uiState.recurringTransactions.isEmpty()) {
                 EmptyRecurringState(
@@ -103,17 +103,21 @@ fun RecurringTransactionsScreen(
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(horizontal = 16.dp),
+                        .padding(horizontal = SpacingTokens.Medium),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
-                    contentPadding = PaddingValues(vertical = 16.dp)
+                    contentPadding = PaddingValues(vertical = SpacingTokens.Medium)
                 ) {
+                    val accountsById = accounts.associateBy { it.id }
                     items(
                         items = uiState.recurringTransactions,
                         key = { it.id }
                     ) { recurring ->
+                        val account = accountsById[recurring.accountId]
                         RecurringTransactionItem(
                             recurring = recurring,
                             viewModel = viewModel,
+                            accountName = account?.name,
+                            isMissingAccount = recurring.accountId == null,
                             onEditClick = {
                                 navController.navigate(Screen.Recurring.Edit.createRoute(recurring.id))
                             }
@@ -129,6 +133,8 @@ fun RecurringTransactionsScreen(
 fun RecurringTransactionItem(
     recurring: RecurringTransactionEntity,
     viewModel: RecurringTransactionsViewModel,
+    accountName: String?,
+    isMissingAccount: Boolean,
     onEditClick: () -> Unit
 ) {
     var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
@@ -149,19 +155,19 @@ fun RecurringTransactionItem(
                         viewModel.deleteRecurring(recurring)
                         showDeleteDialog = false
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = ColorError)
+                    colors = ButtonDefaults.buttonColors(containerColor = ColorTokens.Error500)
                 ) {
                     Text("Delete")
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("Cancel", color = TextSecondary)
+                    Text("Cancel", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             },
-            containerColor = SurfaceElevated,
-            titleContentColor = TextPrimary,
-            textContentColor = TextSecondary
+            containerColor = ColorTokens.SurfaceLevel2,
+            titleContentColor = MaterialTheme.colorScheme.onSurface,
+            textContentColor = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 
@@ -171,7 +177,7 @@ fun RecurringTransactionItem(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(SpacingTokens.Medium)
         ) {
             // Header row with icon, description, and amount
             Row(
@@ -184,16 +190,16 @@ fun RecurringTransactionItem(
                         .size(48.dp)
                         .clip(CircleShape)
                         .background(
-                            if (recurring.isActive) AccentGreen.copy(alpha = 0.2f)
-                            else TextSecondary.copy(alpha = 0.2f)
+                            if (recurring.isActive) ColorTokens.Primary500.copy(alpha = 0.2f)
+                            else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f)
                         ),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.Repeat,
                         contentDescription = null,
-                        tint = if (recurring.isActive) AccentGreen else TextSecondary,
-                        modifier = Modifier.size(24.dp)
+                        tint = if (recurring.isActive) ColorTokens.Primary500 else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(SpacingTokens.Large)
                     )
                 }
 
@@ -204,22 +210,41 @@ fun RecurringTransactionItem(
                     Text(
                         text = recurring.description,
                         style = MaterialTheme.typography.titleMedium,
-                        color = if (recurring.isActive) TextPrimary else TextSecondary,
+                        color = if (recurring.isActive) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.onSurfaceVariant,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
                         text = "$frequencyLabel • ${if (recurring.type == TransactionType.INCOME) "Income" else "Expense"}",
                         style = MaterialTheme.typography.bodySmall,
-                        color = TextTertiary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
                     )
+                    if (isMissingAccount) {
+                        Text(
+                            text = "Account required",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = ColorTokens.Error500,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    } else if (!accountName.isNullOrBlank()) {
+                        Text(
+                            text = "Account: $accountName",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
+                        )
+                    }
                 }
 
                 // Amount
                 Column(horizontalAlignment = Alignment.End) {
+                    val signedAmount = if (recurring.type == TransactionType.INCOME) {
+                        recurring.amount
+                    } else {
+                        -recurring.amount
+                    }
                     Text(
-                        text = "${if (recurring.type == TransactionType.INCOME) "+" else "-"}₱${String.format("%.2f", recurring.amount)}",
+                        text = CurrencyFormatter.formatWithSign(signedAmount),
                         style = MaterialTheme.typography.titleMedium,
-                        color = if (recurring.isActive) amountColor else TextSecondary,
+                        color = if (recurring.isActive) amountColor else MaterialTheme.colorScheme.onSurfaceVariant,
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -243,15 +268,15 @@ fun RecurringTransactionItem(
                     Text(
                         text = "Next due",
                         style = MaterialTheme.typography.bodySmall,
-                        color = TextTertiary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
                     )
                     Text(
                         text = nextDueLabel,
                         style = MaterialTheme.typography.bodyMedium,
                         color = when {
-                            isOverdue -> ColorError
-                            recurring.isActive -> ColorSuccess
-                            else -> TextSecondary
+                            isOverdue -> ColorTokens.Error500
+                            recurring.isActive -> ColorTokens.Success500
+                            else -> MaterialTheme.colorScheme.onSurfaceVariant
                         },
                         fontWeight = if (isOverdue) FontWeight.Bold else FontWeight.Normal
                     )
@@ -259,6 +284,11 @@ fun RecurringTransactionItem(
 
                 // Action buttons
                 Row {
+                    if (isMissingAccount) {
+                        TextButton(onClick = onEditClick) {
+                            Text("Assign")
+                        }
+                    }
                     // Toggle active/pause button
                     IconButton(
                         onClick = {
@@ -268,7 +298,7 @@ fun RecurringTransactionItem(
                         Icon(
                             imageVector = if (recurring.isActive) Icons.Default.Pause else Icons.Default.PlayArrow,
                             contentDescription = if (recurring.isActive) "Pause" else "Resume",
-                            tint = if (recurring.isActive) ColorWarning else ColorSuccess
+                            tint = if (recurring.isActive) ColorTokens.Warning500 else ColorTokens.Success500
                         )
                     }
 
@@ -277,7 +307,7 @@ fun RecurringTransactionItem(
                         Icon(
                             imageVector = Icons.Default.Edit,
                             contentDescription = "Edit",
-                            tint = AccentGreen
+                            tint = ColorTokens.Primary500
                         )
                     }
 
@@ -286,7 +316,7 @@ fun RecurringTransactionItem(
                         Icon(
                             imageVector = Icons.Default.Delete,
                             contentDescription = "Delete",
-                            tint = ColorError.copy(alpha = 0.7f)
+                            tint = ColorTokens.Error500.copy(alpha = 0.7f)
                         )
                     }
                 }
@@ -302,7 +332,7 @@ fun EmptyRecurringState(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(32.dp),
+            .padding(SpacingTokens.ExtraLarge),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -310,23 +340,23 @@ fun EmptyRecurringState(
             modifier = Modifier
                 .size(80.dp)
                 .clip(CircleShape)
-                .background(AccentGreen.copy(alpha = 0.1f)),
+                .background(ColorTokens.Primary500.copy(alpha = 0.1f)),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = Icons.Default.Repeat,
                 contentDescription = null,
-                tint = AccentGreen,
+                tint = ColorTokens.Primary500,
                 modifier = Modifier.size(40.dp)
             )
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(SpacingTokens.Large))
 
         Text(
             text = "No Recurring Transactions",
             style = MaterialTheme.typography.titleLarge,
-            color = TextPrimary,
+            color = MaterialTheme.colorScheme.onBackground,
             fontWeight = FontWeight.Bold
         )
 
@@ -335,15 +365,15 @@ fun EmptyRecurringState(
         Text(
             text = "Set up automatic transactions for regular income or expenses like salary, rent, or subscriptions.",
             style = MaterialTheme.typography.bodyMedium,
-            color = TextSecondary,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = androidx.compose.ui.text.style.TextAlign.Center
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(SpacingTokens.Large))
 
         Button(
             onClick = onAddClick,
-            colors = ButtonDefaults.buttonColors(containerColor = AccentGreen)
+            colors = ButtonDefaults.buttonColors(containerColor = ColorTokens.Primary500)
         ) {
             Icon(
                 imageVector = Icons.Default.Add,
@@ -368,3 +398,6 @@ private fun HorizontalDivider(
             .background(color)
     )
 }
+
+
+

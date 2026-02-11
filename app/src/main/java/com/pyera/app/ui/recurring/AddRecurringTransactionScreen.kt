@@ -1,5 +1,8 @@
 package com.pyera.app.ui.recurring
 
+import com.pyera.app.ui.theme.tokens.ColorTokens
+import com.pyera.app.ui.theme.tokens.SpacingTokens
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -14,7 +17,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -33,7 +35,11 @@ import androidx.navigation.NavController
 import com.pyera.app.data.local.entity.CategoryEntity
 import com.pyera.app.data.local.entity.RecurringFrequency
 import com.pyera.app.data.local.entity.TransactionType
+import com.pyera.app.data.local.entity.AccountEntity
+import com.pyera.app.ui.transaction.AccountSelector
 import com.pyera.app.ui.theme.*
+import com.pyera.app.ui.util.CurrencyFormatter
+import com.pyera.app.ui.util.pyeraBackground
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -45,14 +51,25 @@ fun AddRecurringTransactionScreen(
 ) {
     val formState by viewModel.formState.collectAsState()
     val categories by viewModel.categories.collectAsState()
+    val accounts by viewModel.accounts.collectAsState()
     
     var showStartDatePicker by rememberSaveable { mutableStateOf(false) }
     var showEndDatePicker by rememberSaveable { mutableStateOf(false) }
     var isAmountError by rememberSaveable { mutableStateOf(false) }
+    var isAccountError by rememberSaveable { mutableStateOf(false) }
 
     // Reset form state when screen is first shown
     LaunchedEffect(Unit) {
         viewModel.resetFormState()
+    }
+
+    LaunchedEffect(accounts, formState.accountId) {
+        if (formState.accountId == null) {
+            val defaultAccount = accounts.firstOrNull { it.isDefault } ?: accounts.firstOrNull()
+            if (defaultAccount != null) {
+                viewModel.updateFormState { it.copy(accountId = defaultAccount.id) }
+            }
+        }
     }
 
     if (showStartDatePicker) {
@@ -86,21 +103,22 @@ fun AddRecurringTransactionScreen(
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint = TextPrimary
+                            tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = DeepBackground,
-                    titleContentColor = TextPrimary
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
         },
-        containerColor = DeepBackground
+        containerColor = Color.Transparent
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .pyeraBackground()
                 .padding(padding)
         ) {
             // Scrollable content
@@ -108,13 +126,13 @@ fun AddRecurringTransactionScreen(
                 modifier = Modifier
                     .weight(1f)
                     .verticalScroll(rememberScrollState())
-                    .padding(16.dp)
+                    .padding(SpacingTokens.Medium)
             ) {
                 // Type Selector
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 16.dp),
+                        .padding(bottom = SpacingTokens.Medium),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     TypeButton(
@@ -145,7 +163,7 @@ fun AddRecurringTransactionScreen(
                     isError = isAmountError
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
                 // Description Input
                 OutlinedTextField(
@@ -154,23 +172,61 @@ fun AddRecurringTransactionScreen(
                     label = { Text("Description") },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = AccentGreen,
-                        unfocusedBorderColor = TextSecondary,
-                        focusedTextColor = TextPrimary,
-                        unfocusedTextColor = TextPrimary,
-                        focusedLabelColor = AccentGreen,
-                        unfocusedLabelColor = TextSecondary
+                        focusedBorderColor = ColorTokens.Primary500,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        focusedLabelColor = ColorTokens.Primary500,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
                     ),
                     singleLine = true
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(SpacingTokens.Medium))
+
+                // Account Selection
+                Text(
+                    text = "Account",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+
+                if (accounts.isEmpty()) {
+                    Text(
+                        text = "No accounts available. Add an account to continue.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                } else {
+                    val selectedAccount = accounts.firstOrNull { it.id == formState.accountId }
+                    AccountSelector(
+                        account = selectedAccount,
+                        accounts = accounts,
+                        onAccountSelected = { account: AccountEntity ->
+                            viewModel.updateFormState { it.copy(accountId = account.id) }
+                            isAccountError = false
+                        },
+                        isError = isAccountError && formState.accountId == null
+                    )
+                }
+
+                if (isAccountError && formState.accountId == null) {
+                    Text(
+                        text = "Please select an account",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(top = 6.dp, start = 4.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
                 // Frequency Selector
                 Text(
                     text = "Frequency",
                     style = MaterialTheme.typography.titleMedium,
-                    color = TextPrimary,
+                    color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
 
@@ -181,7 +237,7 @@ fun AddRecurringTransactionScreen(
                     }
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
                 // Start Date Picker
                 DatePickerField(
@@ -190,7 +246,7 @@ fun AddRecurringTransactionScreen(
                     onClick = { showStartDatePicker = true }
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
                 // End Date Option
                 Row(
@@ -205,13 +261,13 @@ fun AddRecurringTransactionScreen(
                             }
                         },
                         colors = CheckboxDefaults.colors(
-                            checkedColor = AccentGreen,
-                            uncheckedColor = TextSecondary
+                            checkedColor = ColorTokens.Primary500,
+                            uncheckedColor = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     )
                     Text(
                         text = "Set end date",
-                        color = TextPrimary,
+                        color = MaterialTheme.colorScheme.onBackground,
                         modifier = Modifier.clickable {
                             viewModel.updateFormState { 
                                 it.copy(
@@ -232,13 +288,13 @@ fun AddRecurringTransactionScreen(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(SpacingTokens.Large))
 
                 // Category Selection
                 Text(
                     text = "Category",
                     style = MaterialTheme.typography.titleMedium,
-                    color = TextPrimary
+                    color = MaterialTheme.colorScheme.onBackground
                 )
                 Spacer(modifier = Modifier.height(12.dp))
 
@@ -250,7 +306,7 @@ fun AddRecurringTransactionScreen(
                     Text(
                         text = "No ${if (formState.type == TransactionType.INCOME) "income" else "expense"} categories yet. Add one to continue.",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = TextSecondary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 } else {
                     LazyRow(
@@ -272,18 +328,22 @@ fun AddRecurringTransactionScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(SpacingTokens.Large))
             }
 
             // Save Button
             Surface(
-                color = DeepBackground,
+                color = MaterialTheme.colorScheme.surface,
                 shadowElevation = 8.dp,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Button(
                     onClick = {
                         val amountVal = formState.amount.toDoubleOrNull()
+                        if (formState.accountId == null) {
+                            isAccountError = true
+                            return@Button
+                        }
                         if (amountVal != null && amountVal > 0 && formState.description.isNotBlank()) {
                             viewModel.addRecurring(formState)
                             navController.popBackStack()
@@ -295,14 +355,15 @@ fun AddRecurringTransactionScreen(
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
+                        .padding(SpacingTokens.Medium)
                         .height(50.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = AccentGreen),
+                    colors = ButtonDefaults.buttonColors(containerColor = ColorTokens.Primary500),
                     enabled = formState.amount.isNotBlank() &&
                         formState.description.isNotBlank() &&
-                        formState.categoryId != null
+                        formState.categoryId != null &&
+                        formState.accountId != null
                 ) {
-                    Text("Save Recurring Transaction", color = Color.Black, fontSize = 16.sp)
+                    Text("Save Recurring Transaction", color = MaterialTheme.colorScheme.onPrimary, fontSize = 16.sp)
                 }
             }
         }
@@ -315,15 +376,15 @@ private fun RecurringCategoryChip(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    val background = if (isSelected) AccentGreen.copy(alpha = 0.2f) else SurfaceElevated
-    val borderColor = if (isSelected) AccentGreen else ColorBorder
-    val textColor = if (isSelected) AccentGreen else TextPrimary
+    val background = if (isSelected) ColorTokens.Primary500.copy(alpha = 0.2f) else ColorTokens.SurfaceLevel2
+    val borderColor = if (isSelected) ColorTokens.Primary500 else ColorBorder
+    val textColor = if (isSelected) ColorTokens.Primary500 else MaterialTheme.colorScheme.onBackground
 
     Column(
         modifier = Modifier
             .widthIn(min = 80.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .border(1.dp, borderColor, RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(SpacingTokens.Medium))
+            .border(1.dp, borderColor, RoundedCornerShape(SpacingTokens.Medium))
             .background(background)
             .clickable(onClick = onClick)
             .padding(horizontal = 12.dp, vertical = 10.dp),
@@ -332,7 +393,7 @@ private fun RecurringCategoryChip(
     ) {
         Box(
             modifier = Modifier
-                .size(32.dp)
+                .size(SpacingTokens.ExtraLarge)
                 .clip(CircleShape)
                 .background(Color(category.color).copy(alpha = 0.2f)),
             contentAlignment = Alignment.Center
@@ -359,21 +420,21 @@ fun RecurringAmountInputField(
     isError: Boolean
 ) {
     Surface(
-        color = SurfaceElevated,
-        shape = RoundedCornerShape(16.dp),
+        color = ColorTokens.SurfaceLevel2,
+        shape = RoundedCornerShape(SpacingTokens.Medium),
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 16.dp),
+                .padding(horizontal = 20.dp, vertical = SpacingTokens.Medium),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "₱",
+                text = CurrencyFormatter.SYMBOL,
                 style = TextStyle(
                     fontSize = 32.sp,
-                    color = AccentGreen
+                    color = ColorTokens.Primary500
                 ),
                 modifier = Modifier.padding(end = 12.dp)
             )
@@ -384,7 +445,7 @@ fun RecurringAmountInputField(
                 modifier = Modifier.weight(1f),
                 textStyle = TextStyle(
                     fontSize = 32.sp,
-                    color = TextPrimary,
+                    color = MaterialTheme.colorScheme.onBackground,
                     textAlign = TextAlign.Start
                 ),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
@@ -395,7 +456,7 @@ fun RecurringAmountInputField(
                                 text = "0.00",
                                 style = TextStyle(
                                     fontSize = 32.sp,
-                                    color = TextSecondary
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             )
                         }
@@ -411,7 +472,7 @@ fun RecurringAmountInputField(
             text = "Please enter a valid amount greater than 0",
             color = MaterialTheme.colorScheme.error,
             style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+            modifier = Modifier.padding(start = SpacingTokens.Medium, top = 4.dp)
         )
     }
 }
@@ -443,10 +504,10 @@ fun FrequencySelector(
                 onClick = { onFrequencySelected(frequency) },
                 label = { Text(label) },
                 colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = AccentGreen,
+                    selectedContainerColor = ColorTokens.Primary500,
                     selectedLabelColor = Color.Black,
-                    containerColor = SurfaceElevated,
-                    labelColor = TextPrimary
+                    containerColor = ColorTokens.SurfaceLevel2,
+                    labelColor = MaterialTheme.colorScheme.onBackground
                 ),
                 border = if (isSelected) null else FilterChipDefaults.filterChipBorder(
                     enabled = true,
@@ -468,7 +529,7 @@ fun DatePickerField(
     val dateString = dateFormat.format(Date(date))
 
     Surface(
-        color = SurfaceElevated,
+        color = ColorTokens.SurfaceLevel2,
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier
             .fillMaxWidth()
@@ -477,13 +538,13 @@ fun DatePickerField(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 14.dp),
+                .padding(horizontal = SpacingTokens.Medium, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 imageVector = Icons.Default.CalendarToday,
                 contentDescription = null,
-                tint = AccentGreen,
+                tint = ColorTokens.Primary500,
                 modifier = Modifier.size(20.dp)
             )
             Spacer(modifier = Modifier.width(12.dp))
@@ -491,18 +552,18 @@ fun DatePickerField(
                 Text(
                     text = label,
                     style = MaterialTheme.typography.bodySmall,
-                    color = TextTertiary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
                 )
                 Text(
                     text = dateString,
                     style = MaterialTheme.typography.bodyLarge,
-                    color = TextPrimary
+                    color = MaterialTheme.colorScheme.onBackground
                 )
             }
             Text(
                 text = "Change",
                 style = MaterialTheme.typography.bodySmall,
-                color = AccentGreen
+                color = ColorTokens.Primary500
             )
         }
     }
@@ -513,8 +574,8 @@ fun TypeButton(text: String, isSelected: Boolean, onClick: () -> Unit) {
     Button(
         onClick = onClick,
         colors = ButtonDefaults.buttonColors(
-            containerColor = if (isSelected) AccentGreen else SurfaceElevated,
-            contentColor = if (isSelected) Color.Black else TextPrimary
+            containerColor = if (isSelected) ColorTokens.Primary500 else ColorTokens.SurfaceLevel2,
+            contentColor = if (isSelected) Color.Black else MaterialTheme.colorScheme.onBackground
         ),
         modifier = Modifier.width(150.dp),
         shape = RoundedCornerShape(12.dp)
@@ -538,16 +599,16 @@ fun DatePickerDialog(
 
     Dialog(onDismissRequest = onDismiss) {
         Surface(
-            shape = RoundedCornerShape(16.dp),
-            color = SurfaceElevated,
+            shape = RoundedCornerShape(SpacingTokens.Medium),
+            color = ColorTokens.SurfaceLevel2,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
+            Column(modifier = Modifier.padding(SpacingTokens.Medium)) {
                 Text(
                     text = "Select Date",
                     style = MaterialTheme.typography.titleLarge,
-                    color = TextPrimary,
-                    modifier = Modifier.padding(bottom = 16.dp)
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.padding(bottom = SpacingTokens.Medium)
                 )
 
                 // Simple date picker using dropdowns
@@ -632,7 +693,7 @@ fun DatePickerDialog(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
                 // Quick date buttons
                 Row(
@@ -645,7 +706,7 @@ fun DatePickerDialog(
                         month = today.get(Calendar.MONTH)
                         day = today.get(Calendar.DAY_OF_MONTH)
                     }) {
-                        Text("Today", color = AccentGreen)
+                        Text("Today", color = ColorTokens.Primary500)
                     }
                     TextButton(onClick = {
                         val tomorrow = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, 1) }
@@ -653,11 +714,11 @@ fun DatePickerDialog(
                         month = tomorrow.get(Calendar.MONTH)
                         day = tomorrow.get(Calendar.DAY_OF_MONTH)
                     }) {
-                        Text("Tomorrow", color = AccentGreen)
+                        Text("Tomorrow", color = ColorTokens.Primary500)
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
                 // Action buttons
                 Row(
@@ -665,7 +726,7 @@ fun DatePickerDialog(
                     horizontalArrangement = Arrangement.End
                 ) {
                     TextButton(onClick = onDismiss) {
-                        Text("Cancel", color = TextSecondary)
+                        Text("Cancel", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     Button(
@@ -675,7 +736,7 @@ fun DatePickerDialog(
                             newCalendar.set(Calendar.MILLISECOND, 0)
                             onDateSelected(newCalendar.timeInMillis)
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = AccentGreen)
+                        colors = ButtonDefaults.buttonColors(containerColor = ColorTokens.Primary500)
                     ) {
                         Text("OK", color = Color.Black)
                     }
@@ -684,3 +745,6 @@ fun DatePickerDialog(
         }
     }
 }
+
+
+

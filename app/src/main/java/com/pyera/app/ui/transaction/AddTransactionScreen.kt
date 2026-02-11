@@ -1,10 +1,15 @@
 package com.pyera.app.ui.transaction
 
+import com.pyera.app.ui.components.PyeraCard
+import com.pyera.app.ui.theme.tokens.ColorTokens
+import com.pyera.app.ui.theme.tokens.SpacingTokens
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -17,6 +22,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountBalance
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Close
@@ -47,17 +54,16 @@ import com.pyera.app.data.local.entity.TransactionEntity
 import com.pyera.app.data.local.entity.formattedBalance
 import com.pyera.app.ui.dashboard.TemplateSelectorRow
 import com.pyera.app.ui.navigation.Screen
-import com.pyera.app.ui.theme.AccentGreen
-import com.pyera.app.ui.theme.DeepBackground
-import com.pyera.app.ui.theme.SurfaceDark
-import com.pyera.app.ui.theme.SurfaceElevated
-import com.pyera.app.ui.theme.TextPrimary
-import com.pyera.app.ui.theme.TextSecondary
+import com.pyera.app.ui.templates.TemplatesViewModel
+import com.pyera.app.ui.util.CurrencyFormatter
+import com.pyera.app.ui.util.pyeraBackground
+import com.pyera.app.util.ValidationUtils
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
+@Suppress("DEPRECATION")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddTransactionScreen(
@@ -65,8 +71,11 @@ fun AddTransactionScreen(
     viewModel: TransactionViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val templatesViewModel: TemplatesViewModel = hiltViewModel()
+    val templatesState by templatesViewModel.uiState.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     val context = androidx.compose.ui.platform.LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
     
     // Form state - using rememberSaveable to survive configuration changes
     var amount by rememberSaveable { mutableStateOf("") }
@@ -81,9 +90,9 @@ fun AddTransactionScreen(
     var scannedReceiptUriString by rememberSaveable { mutableStateOf<String?>(null) }
     val scannedReceiptUri = scannedReceiptUriString?.let { android.net.Uri.parse(it) }
     var showDatePicker by rememberSaveable { mutableStateOf(false) }
-    var showAccountPicker by rememberSaveable { mutableStateOf(false) }
     var isAmountError by rememberSaveable { mutableStateOf(false) }
     var isAccountError by rememberSaveable { mutableStateOf(false) }
+    var selectedTab by rememberSaveable { mutableStateOf(0) }
     var saveSuccess by rememberSaveable { mutableStateOf(false) }
     var showSaveAsRule by rememberSaveable { mutableStateOf(false) }
     var ruleCreated by rememberSaveable { mutableStateOf(false) }
@@ -92,14 +101,40 @@ fun AddTransactionScreen(
     
     // Update selected account when default account changes
     LaunchedEffect(state.defaultAccount) {
-        if (selectedAccount == null) {
-            selectedAccount = state.defaultAccount
+        if (selectedAccountId == null) {
+            state.defaultAccount?.let { defaultAccount ->
+                selectedAccountId = defaultAccount.id
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(SpacingTokens.Medium)
+            ) {
+                NaturalLanguageTransactionInput(
+                    onParsed = { parsed ->
+                        parsed.amount?.let { amount = String.format(Locale.getDefault(), "%.2f", it) }
+                        note = parsed.description
+                        selectedType = parsed.type
+                        parsed.categoryId?.let { selectedCategoryId = it.toInt() }
+                        parsed.date?.let { selectedDate = it }
+                        selectedTab = 0
+                        scope.launch {
+                            snackbarHostState.showSnackbar("Parsed. Review and save the transaction.")
+                        }
+                    },
+                    onError = { error ->
+                        scope.launch { snackbarHostState.showSnackbar(error) }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         }
     }
 
     // Show save as template dialog after successful save
-    if (saveSuccess && lastSavedTransaction != null) {
-        LaunchedEffect(Unit) {
+    LaunchedEffect(saveSuccess, lastSavedTransaction) {
+        if (saveSuccess && lastSavedTransaction != null) {
             showSaveAsTemplateDialog = true
             saveSuccess = false // Reset to prevent re-triggering
         }
@@ -108,7 +143,6 @@ fun AddTransactionScreen(
     // Save as Template Dialog
     if (showSaveAsTemplateDialog && lastSavedTransaction != null) {
         SaveAsTemplateDialog(
-            transaction = lastSavedTransaction!!,
             onDismiss = {
                 showSaveAsTemplateDialog = false
                 lastSavedTransaction = null
@@ -128,7 +162,7 @@ fun AddTransactionScreen(
 
     val scanLauncher = rememberReceiptPicker { uri ->
         isScanning = true
-        scannedReceiptUri = uri
+        scannedReceiptUriString = uri.toString()
         scope.launch {
             val data = viewModel.processReceipt(uri)
             if (data.totalAmount != null) {
@@ -172,43 +206,59 @@ fun AddTransactionScreen(
                         Icon(
                             Icons.Default.PhotoCamera, 
                             contentDescription = "Scan Receipt", 
-                            tint = AccentGreen
+                            tint = ColorTokens.Primary500
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = DeepBackground,
-                    titleContentColor = TextPrimary,
-                    navigationIconContentColor = TextPrimary
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
         },
-        containerColor = DeepBackground
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        containerColor = Color.Transparent
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .pyeraBackground()
                 .padding(padding)
         ) {
-            // Scrollable content
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .verticalScroll(rememberScrollState())
-                    .padding(16.dp)
+            val tabs = listOf("Form", "Natural Language")
+            TabRow(
+                selectedTabIndex = selectedTab,
+                containerColor = MaterialTheme.colorScheme.surface
             ) {
+                tabs.forEachIndexed { index, title ->
+                    Tab(
+                        selected = selectedTab == index,
+                        onClick = { selectedTab = index },
+                        text = { Text(title) }
+                    )
+                }
+            }
+
+            if (selectedTab == 0) {
+                // Scrollable content
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .verticalScroll(rememberScrollState())
+                        .padding(SpacingTokens.Medium)
+                ) {
                 // Scanned Receipt Preview
                 AnimatedVisibility(
                     visible = scannedReceiptUri != null,
                     enter = expandVertically() + fadeIn(),
                     exit = shrinkVertically() + fadeOut()
                 ) {
-                    scannedReceiptUri?.let { uri ->
+                    scannedReceiptUri?.let {
                         ReceiptPreviewCard(
-                            uri = uri,
                             onClear = { scannedReceiptUriString = null }
                         )
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(SpacingTokens.Medium))
                     }
                 }
 
@@ -216,25 +266,32 @@ fun AddTransactionScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 16.dp),
+                        .padding(bottom = SpacingTokens.Medium),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     TypeButton(
                         text = "Expense",
                         isSelected = selectedType == "EXPENSE",
-                        onClick = { selectedType = "EXPENSE"; selectedCategory = null }
+                        onClick = {
+                            selectedType = "EXPENSE"
+                            selectedCategoryId = null
+                            showSaveAsRule = false
+                            ruleCreated = false
+                        }
                     )
                     TypeButton(
                         text = "Income",
                         isSelected = selectedType == "INCOME",
-                        onClick = { selectedType = "INCOME"; selectedCategory = null }
+                        onClick = {
+                            selectedType = "INCOME"
+                            selectedCategoryId = null
+                            showSaveAsRule = false
+                            ruleCreated = false
+                        }
                     )
                 }
 
                 // Template Selector - shows matching templates for quick entry
-                val templatesViewModel: com.pyera.app.ui.templates.TemplatesViewModel = hiltViewModel()
-                val templatesState by templatesViewModel.uiState.collectAsStateWithLifecycle()
-                
                 TemplateSelectorRow(
                     templates = templatesState.templates,
                     selectedType = selectedType,
@@ -250,11 +307,11 @@ fun AddTransactionScreen(
                             selectedAccountId = accId
                         }
                         // Mark template as used
-                        templatesViewModel.useTemplate(template)
+                        templatesViewModel.useTemplate(template.id)
                     }
                 )
                 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
                 // Amount Input with Currency Symbol
                 AmountInputField(
@@ -268,7 +325,7 @@ fun AddTransactionScreen(
                     isError = isAmountError
                 )
                 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
                 // Date Picker Field
                 DatePickerField(
@@ -276,7 +333,7 @@ fun AddTransactionScreen(
                     onClick = { showDatePicker = true }
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
                 // Note Input with Character Counter
                 NoteInputField(
@@ -284,13 +341,13 @@ fun AddTransactionScreen(
                     onNoteChange = { note = it }
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(SpacingTokens.Large))
 
                 // Account Section
                 Text(
                     text = "Account",
                     style = MaterialTheme.typography.titleMedium, 
-                    color = TextPrimary
+                    color = MaterialTheme.colorScheme.onBackground
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 
@@ -298,17 +355,20 @@ fun AddTransactionScreen(
                 AccountSelector(
                     account = selectedAccount,
                     accounts = state.accounts,
-                    onAccountSelected = { selectedAccount = it },
+                    onAccountSelected = { account ->
+                        selectedAccountId = account.id
+                        isAccountError = false
+                    },
                     isError = isAccountError
                 )
                 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(SpacingTokens.Large))
                 
                 // Category Section
                 Text(
                     text = "Category",
                     style = MaterialTheme.typography.titleMedium, 
-                    color = TextPrimary
+                    color = MaterialTheme.colorScheme.onBackground
                 )
                 Spacer(modifier = Modifier.height(12.dp))
 
@@ -341,67 +401,65 @@ fun AddTransactionScreen(
                     exit = shrinkVertically() + fadeOut()
                 ) {
                     Column {
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(SpacingTokens.Medium))
                         
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    scope.launch {
-                                        selectedCategory?.let { category ->
-                                            val result = viewModel.createRuleFromTransaction(
-                                                description = note,
-                                                categoryId = category.id
-                                            )
-                                            result.fold(
-                                                onSuccess = {
-                                                    ruleCreated = true
-                                                    android.widget.Toast.makeText(
-                                                        context,
-                                                        "Rule saved! Future transactions matching \"$note\" will be categorized as ${category.name}",
-                                                        android.widget.Toast.LENGTH_LONG
-                                                    ).show()
-                                                },
-                                                onFailure = { e ->
-                                                    android.widget.Toast.makeText(
-                                                        context,
-                                                        "Failed to save rule: ${e.message}",
-                                                        android.widget.Toast.LENGTH_SHORT
-                                                    ).show()
-                                                }
-                                            )
-                                        }
+                        PyeraCard(
+                            modifier = Modifier.fillMaxWidth(),
+                            cornerRadius = 12.dp,
+                            containerColor = ColorTokens.SurfaceLevel1,
+                            borderWidth = 0.dp,
+                            onClick = {
+                                scope.launch {
+                                    selectedCategory?.let { category ->
+                                        val result = viewModel.createRuleFromTransaction(
+                                            description = note,
+                                            categoryId = category.id
+                                        )
+                                        result.fold(
+                                            onSuccess = {
+                                                ruleCreated = true
+                                                android.widget.Toast.makeText(
+                                                    context,
+                                                    "Rule saved! Future transactions matching \"$note\" will be categorized as ${category.name}",
+                                                    android.widget.Toast.LENGTH_LONG
+                                                ).show()
+                                            },
+                                            onFailure = { e ->
+                                                android.widget.Toast.makeText(
+                                                    context,
+                                                    "Failed to save rule: ${e.message}",
+                                                    android.widget.Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
+                                        )
                                     }
-                                },
-                            colors = CardDefaults.cardColors(
-                                containerColor = SurfaceDark
-                            ),
-                            shape = RoundedCornerShape(12.dp)
+                                }
+                            }
                         ) {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(16.dp),
+                                    .padding(SpacingTokens.Medium),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Save,
                                     contentDescription = null,
-                                    tint = AccentGreen,
-                                    modifier = Modifier.size(24.dp)
+                                    tint = ColorTokens.Primary500,
+                                    modifier = Modifier.size(SpacingTokens.Large)
                                 )
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
                                         text = "Save as Rule",
                                         style = MaterialTheme.typography.bodyMedium,
-                                        color = AccentGreen,
+                                        color = ColorTokens.Primary500,
                                         fontWeight = FontWeight.Medium
                                     )
                                     Text(
                                         text = "Auto-categorize future transactions like this",
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = TextSecondary
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
                             }
@@ -409,36 +467,45 @@ fun AddTransactionScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(SpacingTokens.Large))
             }
 
             // Sticky Bottom Actions
             Surface(
-                color = DeepBackground,
+                color = MaterialTheme.colorScheme.surface,
                 shadowElevation = 8.dp,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
+                        .padding(SpacingTokens.Medium)
                 ) {
                     // Save Button
                     Button(
                         onClick = {
                             val amountVal = amount.toDoubleOrNull()
                             val accountId = selectedAccount?.id
+                            val descriptionResult = ValidationUtils.validateTransactionDescription(note)
+                            val categoryResult = ValidationUtils.validateTransactionCategory(selectedCategory?.id?.toLong())
+                            val amountResult = ValidationUtils.validateTransactionAmount(amount)
                             
                             when {
-                                amountVal == null || amountVal <= 0 -> {
+                                amountResult is ValidationUtils.ValidationResult.Error -> {
                                     isAmountError = true
+                                    android.widget.Toast
+                                        .makeText(context, amountResult.message, android.widget.Toast.LENGTH_SHORT)
+                                        .show()
                                 }
                                 accountId == null -> {
                                     isAccountError = true
                                     android.widget.Toast.makeText(context, "Please select an account", android.widget.Toast.LENGTH_SHORT).show()
                                 }
-                                selectedCategory == null -> {
-                                    android.widget.Toast.makeText(context, "Please select a category", android.widget.Toast.LENGTH_SHORT).show()
+                                categoryResult is ValidationUtils.ValidationResult.Error -> {
+                                    android.widget.Toast.makeText(context, categoryResult.message, android.widget.Toast.LENGTH_SHORT).show()
+                                }
+                                descriptionResult is ValidationUtils.ValidationResult.Error -> {
+                                    android.widget.Toast.makeText(context, descriptionResult.message, android.widget.Toast.LENGTH_SHORT).show()
                                 }
                                 else -> {
                                     val transaction = TransactionEntity(
@@ -446,7 +513,7 @@ fun AddTransactionScreen(
                                         note = note,
                                         date = selectedDate,
                                         type = selectedType,
-                                        categoryId = selectedCategory?.id,
+                                        categoryId = selectedCategory.id,
                                         accountId = accountId,
                                         userId = state.accounts.find { it.id == accountId }?.userId ?: ""
                                     )
@@ -459,30 +526,41 @@ fun AddTransactionScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(50.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = AccentGreen),
+                        colors = ButtonDefaults.buttonColors(containerColor = ColorTokens.Primary500),
                         enabled = selectedCategory != null && amount.isNotBlank() && selectedAccount != null
                     ) {
-                        Text("Save Transaction", color = DeepBackground, fontSize = 16.sp)
+                        Text("Save Transaction", color = MaterialTheme.colorScheme.onPrimary, fontSize = 16.sp)
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))
 
                     // Save & Add Another Button
+                    val isFormValid = selectedCategory != null && amount.isNotBlank() && selectedAccount != null
+
                     OutlinedButton(
                         onClick = {
                             val amountVal = amount.toDoubleOrNull()
                             val accountId = selectedAccount?.id
+                            val descriptionResult = ValidationUtils.validateTransactionDescription(note)
+                            val categoryResult = ValidationUtils.validateTransactionCategory(selectedCategory?.id?.toLong())
+                            val amountResult = ValidationUtils.validateTransactionAmount(amount)
                             
                             when {
-                                amountVal == null || amountVal <= 0 -> {
+                                amountResult is ValidationUtils.ValidationResult.Error -> {
                                     isAmountError = true
+                                    android.widget.Toast
+                                        .makeText(context, amountResult.message, android.widget.Toast.LENGTH_SHORT)
+                                        .show()
                                 }
                                 accountId == null -> {
                                     isAccountError = true
                                     android.widget.Toast.makeText(context, "Please select an account", android.widget.Toast.LENGTH_SHORT).show()
                                 }
-                                selectedCategory == null -> {
-                                    android.widget.Toast.makeText(context, "Please select a category", android.widget.Toast.LENGTH_SHORT).show()
+                                categoryResult is ValidationUtils.ValidationResult.Error -> {
+                                    android.widget.Toast.makeText(context, categoryResult.message, android.widget.Toast.LENGTH_SHORT).show()
+                                }
+                                descriptionResult is ValidationUtils.ValidationResult.Error -> {
+                                    android.widget.Toast.makeText(context, descriptionResult.message, android.widget.Toast.LENGTH_SHORT).show()
                                 }
                                 else -> {
                                     viewModel.addTransaction(
@@ -491,7 +569,7 @@ fun AddTransactionScreen(
                                             note = note,
                                             date = selectedDate,
                                             type = selectedType,
-                                            categoryId = selectedCategory?.id,
+                                            categoryId = selectedCategory.id,
                                             accountId = accountId,
                                             userId = state.accounts.find { it.id == accountId }?.userId ?: ""
                                         )
@@ -513,14 +591,13 @@ fun AddTransactionScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(50.dp),
-                        enabled = selectedCategory != null && amount.isNotBlank() && selectedAccount != null,
+                        enabled = isFormValid,
                         colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = AccentGreen
+                            contentColor = ColorTokens.Primary500
                         ),
-                        border = ButtonDefaults.outlinedButtonBorder.copy(
-                            brush = androidx.compose.ui.graphics.SolidColor(
-                                if (selectedCategory != null && amount.isNotBlank() && selectedAccount != null) AccentGreen else TextSecondary
-                            )
+                        border = BorderStroke(
+                            width = 1.dp,
+                            color = if (isFormValid) ColorTokens.Primary500 else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     ) {
                         Text("Save & Add Another", fontSize = 16.sp)
@@ -534,10 +611,10 @@ fun AddTransactionScreen(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(TextPrimary.copy(alpha = 0.7f)),
+                    .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator(color = AccentGreen)
+                CircularProgressIndicator(color = ColorTokens.Primary500)
             }
         }
     }
@@ -550,21 +627,21 @@ fun AmountInputField(
     isError: Boolean
 ) {
     Surface(
-        color = SurfaceElevated,
-        shape = RoundedCornerShape(16.dp),
+        color = ColorTokens.SurfaceLevel2,
+        shape = RoundedCornerShape(SpacingTokens.Medium),
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 16.dp),
+                .padding(horizontal = 20.dp, vertical = SpacingTokens.Medium),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "₱",
+                text = CurrencyFormatter.SYMBOL,
                 style = TextStyle(
                     fontSize = 32.sp,
-                    color = AccentGreen
+                    color = ColorTokens.Primary500
                 ),
                 modifier = Modifier.padding(end = 12.dp)
             )
@@ -575,7 +652,7 @@ fun AmountInputField(
                 modifier = Modifier.weight(1f),
                 textStyle = TextStyle(
                     fontSize = 32.sp,
-                    color = TextPrimary,
+                    color = MaterialTheme.colorScheme.onBackground,
                     textAlign = TextAlign.Start
                 ),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -586,7 +663,7 @@ fun AmountInputField(
                                 text = "0.00",
                                 style = TextStyle(
                                     fontSize = 32.sp,
-                                    color = TextSecondary
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             )
                         }
@@ -602,7 +679,7 @@ fun AmountInputField(
             text = "Please enter a valid amount greater than 0",
             color = MaterialTheme.colorScheme.error,
             style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+            modifier = Modifier.padding(start = SpacingTokens.Medium, top = 4.dp)
         )
     }
 }
@@ -616,7 +693,7 @@ fun DatePickerField(
     val dateString = dateFormat.format(Date(date))
 
     Surface(
-        color = SurfaceElevated,
+        color = ColorTokens.SurfaceLevel2,
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier
             .fillMaxWidth()
@@ -625,26 +702,26 @@ fun DatePickerField(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 14.dp),
+                .padding(horizontal = SpacingTokens.Medium, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 imageVector = Icons.Default.CalendarToday,
                 contentDescription = null,
-                tint = AccentGreen,
+                tint = ColorTokens.Primary500,
                 modifier = Modifier.size(20.dp)
             )
             Spacer(modifier = Modifier.width(12.dp))
             Text(
                 text = dateString,
                 style = MaterialTheme.typography.bodyLarge,
-                color = TextPrimary,
+                color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.weight(1f)
             )
             Text(
                 text = "Change",
                 style = MaterialTheme.typography.bodySmall,
-                color = AccentGreen
+                color = ColorTokens.Primary500
             )
         }
     }
@@ -658,16 +735,16 @@ fun NoteInputField(
     Column {
         OutlinedTextField(
             value = note,
-            onValueChange = { if (it.length <= 200) onNoteChange(it) },
+            onValueChange = { if (it.length <= 500) onNoteChange(it) },
             label = { Text("Note (Optional)") },
             modifier = Modifier.fillMaxWidth(),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = AccentGreen,
-                unfocusedBorderColor = TextSecondary,
-                focusedTextColor = TextPrimary,
-                unfocusedTextColor = TextPrimary,
-                focusedLabelColor = AccentGreen,
-                unfocusedLabelColor = TextSecondary
+                focusedBorderColor = ColorTokens.Primary500,
+                unfocusedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                focusedLabelColor = ColorTokens.Primary500,
+                unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
             ),
             maxLines = 3,
             minLines = 2
@@ -675,9 +752,9 @@ fun NoteInputField(
         
         // Character counter
         Text(
-            text = "${note.length}/200",
+            text = "${note.length}/500",
             style = MaterialTheme.typography.bodySmall,
-            color = if (note.length >= 200) MaterialTheme.colorScheme.error else TextSecondary,
+            color = if (note.length >= 500) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier
                 .align(Alignment.End)
                 .padding(top = 4.dp, end = 8.dp)
@@ -687,11 +764,10 @@ fun NoteInputField(
 
 @Composable
 fun ReceiptPreviewCard(
-    uri: android.net.Uri,
     onClear: () -> Unit
 ) {
     Surface(
-        color = SurfaceElevated,
+        color = ColorTokens.SurfaceLevel2,
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -706,13 +782,13 @@ fun ReceiptPreviewCard(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(RoundedCornerShape(8.dp))
-                    .background(AccentGreen.copy(alpha = 0.2f)),
+                    .background(ColorTokens.Primary500.copy(alpha = 0.2f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.PhotoCamera,
                     contentDescription = null,
-                    tint = AccentGreen
+                    tint = ColorTokens.Primary500
                 )
             }
             
@@ -722,12 +798,12 @@ fun ReceiptPreviewCard(
                 Text(
                     text = "Receipt Scanned",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = TextPrimary
+                    color = MaterialTheme.colorScheme.onBackground
                 )
                 Text(
                     text = "Amount auto-filled",
                     style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             
@@ -735,7 +811,7 @@ fun ReceiptPreviewCard(
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = "Clear receipt",
-                    tint = TextSecondary
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -757,16 +833,16 @@ fun DatePickerDialog(
 
     Dialog(onDismissRequest = onDismiss) {
         Surface(
-            shape = RoundedCornerShape(16.dp),
-            color = SurfaceElevated,
+            shape = RoundedCornerShape(SpacingTokens.Medium),
+            color = ColorTokens.SurfaceLevel2,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
+            Column(modifier = Modifier.padding(SpacingTokens.Medium)) {
                 Text(
                     text = "Select Date",
                     style = MaterialTheme.typography.titleLarge,
-                    color = TextPrimary,
-                    modifier = Modifier.padding(bottom = 16.dp)
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.padding(bottom = SpacingTokens.Medium)
                 )
                 
                 // Simple date picker using dropdowns
@@ -851,7 +927,7 @@ fun DatePickerDialog(
                     }
                 }
                 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(SpacingTokens.Medium))
                 
                 // Quick date buttons
                 Row(
@@ -864,7 +940,7 @@ fun DatePickerDialog(
                         month = today.get(Calendar.MONTH)
                         day = today.get(Calendar.DAY_OF_MONTH)
                     }) {
-                        Text("Today", color = AccentGreen)
+                        Text("Today", color = ColorTokens.Primary500)
                     }
                     TextButton(onClick = {
                         val yesterday = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, -1) }
@@ -872,11 +948,11 @@ fun DatePickerDialog(
                         month = yesterday.get(Calendar.MONTH)
                         day = yesterday.get(Calendar.DAY_OF_MONTH)
                     }) {
-                        Text("Yesterday", color = AccentGreen)
+                        Text("Yesterday", color = ColorTokens.Primary500)
                     }
                 }
                 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(SpacingTokens.Medium))
                 
                 // Action buttons
                 Row(
@@ -884,7 +960,7 @@ fun DatePickerDialog(
                     horizontalArrangement = Arrangement.End
                 ) {
                     TextButton(onClick = onDismiss) {
-                        Text("Cancel", color = TextSecondary)
+                        Text("Cancel", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     Button(
@@ -894,9 +970,9 @@ fun DatePickerDialog(
                             newCalendar.set(Calendar.MILLISECOND, 0)
                             onDateSelected(newCalendar.timeInMillis)
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = AccentGreen)
+                        colors = ButtonDefaults.buttonColors(containerColor = ColorTokens.Primary500)
                     ) {
-                        Text("OK", color = DeepBackground)
+                        Text("OK", color = MaterialTheme.colorScheme.onPrimary)
                     }
                 }
             }
@@ -909,8 +985,8 @@ fun TypeButton(text: String, isSelected: Boolean, onClick: () -> Unit) {
     Button(
         onClick = onClick,
         colors = ButtonDefaults.buttonColors(
-            containerColor = if (isSelected) AccentGreen else SurfaceElevated,
-            contentColor = if (isSelected) DeepBackground else TextPrimary
+            containerColor = if (isSelected) ColorTokens.Primary500 else ColorTokens.SurfaceLevel2,
+            contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground
         ),
         modifier = Modifier.width(150.dp),
         shape = RoundedCornerShape(12.dp)
@@ -928,11 +1004,11 @@ fun CategoryItem(category: CategoryEntity, isSelected: Boolean, onClick: () -> U
             .clickable { onClick() }
             .border(
                 width = if (isSelected) 2.dp else 0.dp,
-                color = if (isSelected) AccentGreen else Color.Transparent,
+                color = if (isSelected) ColorTokens.Primary500 else Color.Transparent,
                 shape = RoundedCornerShape(12.dp)
             )
             .background(
-                if (isSelected) AccentGreen.copy(alpha = 0.1f) else SurfaceElevated,
+                if (isSelected) ColorTokens.Primary500.copy(alpha = 0.1f) else ColorTokens.SurfaceLevel2,
                 shape = RoundedCornerShape(12.dp)
             )
             .padding(12.dp)
@@ -946,7 +1022,7 @@ fun CategoryItem(category: CategoryEntity, isSelected: Boolean, onClick: () -> U
         ) {
             Text(
                 category.name.take(1).uppercase(), 
-                color = TextPrimary,
+                color = MaterialTheme.colorScheme.onBackground,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
@@ -955,7 +1031,7 @@ fun CategoryItem(category: CategoryEntity, isSelected: Boolean, onClick: () -> U
         Text(
             text = category.name,
             style = MaterialTheme.typography.bodySmall,
-            color = if (isSelected) AccentGreen else TextPrimary,
+            color = if (isSelected) ColorTokens.Primary500 else MaterialTheme.colorScheme.onBackground,
             maxLines = 1,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
         )
@@ -975,7 +1051,7 @@ fun AccountSelector(
     
     Box {
         Surface(
-            color = if (isError) ColorError.copy(alpha = 0.1f) else SurfaceElevated,
+            color = if (isError) ColorTokens.Error500.copy(alpha = 0.1f) else ColorTokens.SurfaceLevel2,
             shape = RoundedCornerShape(12.dp),
             modifier = Modifier
                 .fillMaxWidth()
@@ -984,7 +1060,7 @@ fun AccountSelector(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(SpacingTokens.Medium),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 if (account != null) {
@@ -1007,13 +1083,13 @@ fun AccountSelector(
                         Text(
                             text = account.name,
                             style = MaterialTheme.typography.bodyLarge,
-                            color = TextPrimary,
+                            color = MaterialTheme.colorScheme.onBackground,
                             fontWeight = FontWeight.Medium
                         )
                         Text(
                             text = account.formattedBalance(),
                             style = MaterialTheme.typography.bodySmall,
-                            color = TextSecondary
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 } else {
@@ -1021,13 +1097,13 @@ fun AccountSelector(
                         modifier = Modifier
                             .size(40.dp)
                             .clip(CircleShape)
-                            .background(SurfaceDark),
+                            .background(ColorTokens.SurfaceLevel1),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Default.AccountBalance,
                             contentDescription = null,
-                            tint = TextSecondary
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     
@@ -1036,7 +1112,7 @@ fun AccountSelector(
                     Text(
                         text = "Select Account",
                         style = MaterialTheme.typography.bodyLarge,
-                        color = if (isError) ColorError else TextSecondary,
+                        color = if (isError) ColorTokens.Error500 else MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -1044,7 +1120,7 @@ fun AccountSelector(
                 Icon(
                     imageVector = Icons.Default.ArrowDropDown,
                     contentDescription = "Select",
-                    tint = if (isError) ColorError else TextSecondary
+                    tint = if (isError) ColorTokens.Error500 else MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -1062,7 +1138,7 @@ fun AccountSelector(
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .size(32.dp)
+                                    .size(SpacingTokens.ExtraLarge)
                                     .clip(CircleShape)
                                     .background(Color(acc.color)),
                                 contentAlignment = Alignment.Center
@@ -1077,12 +1153,12 @@ fun AccountSelector(
                                 Text(
                                     text = acc.name,
                                     style = MaterialTheme.typography.bodyMedium,
-                                    color = TextPrimary
+                                    color = MaterialTheme.colorScheme.onBackground
                                 )
                                 Text(
                                     text = acc.formattedBalance(),
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = TextSecondary
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
@@ -1099,7 +1175,6 @@ fun AccountSelector(
 
 @Composable
 fun SaveAsTemplateDialog(
-    transaction: TransactionEntity,
     onDismiss: () -> Unit,
     onSave: (String) -> Unit
 ) {
@@ -1107,14 +1182,14 @@ fun SaveAsTemplateDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Save as Template", color = TextPrimary) },
+        title = { Text("Save as Template", color = MaterialTheme.colorScheme.onBackground) },
         text = {
             Column {
                 Text(
                     text = "Create a template from this transaction for quick future entries.",
-                    color = TextSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(bottom = 16.dp)
+                    modifier = Modifier.padding(bottom = SpacingTokens.Medium)
                 )
                 OutlinedTextField(
                     value = templateName,
@@ -1123,12 +1198,12 @@ fun SaveAsTemplateDialog(
                     placeholder = { Text("e.g., Morning Coffee") },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = AccentGreen,
-                        unfocusedBorderColor = TextSecondary,
-                        focusedTextColor = TextPrimary,
-                        unfocusedTextColor = TextPrimary,
-                        focusedLabelColor = AccentGreen,
-                        unfocusedLabelColor = TextSecondary
+                        focusedBorderColor = ColorTokens.Primary500,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        focusedLabelColor = ColorTokens.Primary500,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
                     ),
                     singleLine = true
                 )
@@ -1137,17 +1212,21 @@ fun SaveAsTemplateDialog(
         confirmButton = {
             Button(
                 onClick = { onSave(templateName) },
-                colors = ButtonDefaults.buttonColors(containerColor = AccentGreen),
+                colors = ButtonDefaults.buttonColors(containerColor = ColorTokens.Primary500),
                 enabled = templateName.isNotBlank()
             ) {
-                Text("Save", color = DeepBackground)
+                Text("Save", color = MaterialTheme.colorScheme.onPrimary)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Skip", color = TextSecondary)
+                Text("Skip", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         },
-        containerColor = SurfaceElevated
+        containerColor = ColorTokens.SurfaceLevel2
     )
 }
+
+
+
+

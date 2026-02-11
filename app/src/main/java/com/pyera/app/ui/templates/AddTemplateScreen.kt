@@ -1,5 +1,9 @@
 package com.pyera.app.ui.templates
 
+import com.pyera.app.ui.components.PyeraCard
+import com.pyera.app.ui.theme.tokens.ColorTokens
+import com.pyera.app.ui.theme.tokens.SpacingTokens
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -51,7 +55,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -64,16 +68,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pyera.app.data.local.entity.AccountEntity
 import com.pyera.app.data.local.entity.CategoryEntity
-import com.pyera.app.ui.theme.AccentGreen
-import com.pyera.app.ui.theme.ColorError
-import com.pyera.app.ui.theme.DarkGreen
-import com.pyera.app.ui.theme.NeonYellow
-import com.pyera.app.ui.theme.SurfaceElevated
-import com.pyera.app.ui.theme.TextPrimary
+import com.pyera.app.ui.util.pyeraBackground
 import androidx.compose.ui.res.stringResource
 import com.pyera.app.R
-import com.pyera.app.ui.theme.TextSecondary
+import com.pyera.app.ui.util.CurrencyFormatter
 
+@Suppress("DEPRECATION")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddTemplateScreen(
@@ -110,7 +110,7 @@ fun AddTemplateScreen(
                     Text(
                         text = stringResource(R.string.add_template_title),
                         style = MaterialTheme.typography.titleLarge,
-                        color = TextPrimary,
+                        color = MaterialTheme.colorScheme.onBackground,
                         fontWeight = FontWeight.Bold
                     )
                 },
@@ -119,61 +119,62 @@ fun AddTemplateScreen(
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
                             contentDescription = stringResource(R.string.add_template_back_content_desc),
-                            tint = TextPrimary
+                            tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = DarkGreen
+                    containerColor = MaterialTheme.colorScheme.surface
                 )
             )
         },
-        containerColor = DarkGreen
+        containerColor = androidx.compose.ui.graphics.Color.Transparent
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .pyeraBackground()
                 .padding(paddingValues)
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = SpacingTokens.Medium)
                 .verticalScroll(rememberScrollState())
         ) {
             // Template Preview Card
             Text(
                 text = stringResource(R.string.add_template_preview_section),
                 style = MaterialTheme.typography.bodyMedium,
-                color = TextSecondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             TemplatePreviewCard(formState)
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Large))
 
             // Template Name
             OutlinedTextField(
                 value = formState.name,
                 onValueChange = viewModel::onNameChange,
-                label = { Text(stringResource(R.string.add_template_name_label), color = TextSecondary) },
-                placeholder = { Text(stringResource(R.string.add_template_name_placeholder), color = TextSecondary.copy(alpha = 0.5f)) },
+                label = { Text(stringResource(R.string.add_template_name_label), color = MaterialTheme.colorScheme.onSurfaceVariant) },
+                placeholder = { Text(stringResource(R.string.add_template_name_placeholder), color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = SurfaceElevated,
-                    unfocusedContainerColor = SurfaceElevated,
-                    focusedBorderColor = NeonYellow,
+                    focusedContainerColor = ColorTokens.SurfaceLevel2,
+                    unfocusedContainerColor = ColorTokens.SurfaceLevel2,
+                    focusedBorderColor = ColorTokens.Primary500,
                     unfocusedBorderColor = Color.Transparent,
-                    focusedTextColor = TextPrimary,
-                    unfocusedTextColor = TextPrimary
+                    focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground
                 )
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
             // Type Selector
             Text(
                 text = stringResource(R.string.add_template_transaction_type_label),
                 style = MaterialTheme.typography.bodyMedium,
-                color = TextSecondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             Row(
@@ -183,26 +184,26 @@ fun AddTemplateScreen(
                 TypeChip(
                     label = stringResource(R.string.add_template_type_expense),
                     selected = formState.type == "EXPENSE",
-                    color = ColorError,
+                    color = ColorTokens.Error500,
                     onClick = { viewModel.onTypeChange("EXPENSE") },
                     modifier = Modifier.weight(1f)
                 )
                 TypeChip(
                     label = stringResource(R.string.add_template_type_income),
                     selected = formState.type == "INCOME",
-                    color = AccentGreen,
+                    color = ColorTokens.Primary500,
                     onClick = { viewModel.onTypeChange("INCOME") },
                     modifier = Modifier.weight(1f)
                 )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
             // Amount Section
             Text(
                 text = stringResource(R.string.add_template_amount_label),
                 style = MaterialTheme.typography.bodyMedium,
-                color = TextSecondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
@@ -214,103 +215,101 @@ fun AddTemplateScreen(
                     value = formState.amount,
                     onValueChange = viewModel::onAmountChange,
                     enabled = !formState.hasVariableAmount,
-                    label = { Text(stringResource(R.string.add_template_amount_field_label), color = TextSecondary) },
-                    placeholder = { Text(stringResource(R.string.add_template_amount_placeholder), color = TextSecondary.copy(alpha = 0.5f)) },
+                    label = { Text(stringResource(R.string.add_template_amount_field_label), color = MaterialTheme.colorScheme.onSurfaceVariant) },
+                    placeholder = { Text(stringResource(R.string.add_template_amount_placeholder), color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     modifier = Modifier.weight(1f),
                     singleLine = true,
                     shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = SurfaceElevated,
-                        unfocusedContainerColor = SurfaceElevated,
-                        focusedBorderColor = NeonYellow,
+                        focusedContainerColor = ColorTokens.SurfaceLevel2,
+                        unfocusedContainerColor = ColorTokens.SurfaceLevel2,
+                        focusedBorderColor = ColorTokens.Primary500,
                         unfocusedBorderColor = Color.Transparent,
-                        focusedTextColor = TextPrimary,
-                        unfocusedTextColor = TextPrimary,
-                        disabledContainerColor = SurfaceElevated.copy(alpha = 0.5f),
-                        disabledTextColor = TextSecondary
+                        focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        disabledContainerColor = ColorTokens.SurfaceLevel2.copy(alpha = 0.5f),
+                        disabledTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 )
 
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(SpacingTokens.Medium))
 
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = stringResource(R.string.add_template_variable_switch),
                         style = MaterialTheme.typography.labelSmall,
-                        color = TextSecondary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Switch(
                         checked = formState.hasVariableAmount,
                         onCheckedChange = viewModel::onVariableAmountToggle,
                         colors = androidx.compose.material3.SwitchDefaults.colors(
-                            checkedThumbColor = NeonYellow,
-                            checkedTrackColor = NeonYellow.copy(alpha = 0.5f)
+                            checkedThumbColor = ColorTokens.Primary500,
+                            checkedTrackColor = ColorTokens.Primary500.copy(alpha = 0.5f)
                         )
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
             // Description
             OutlinedTextField(
                 value = formState.description,
                 onValueChange = viewModel::onDescriptionChange,
-                label = { Text(stringResource(R.string.add_template_description_label), color = TextSecondary) },
-                placeholder = { Text(stringResource(R.string.add_template_description_placeholder), color = TextSecondary.copy(alpha = 0.5f)) },
+                label = { Text(stringResource(R.string.add_template_description_label), color = MaterialTheme.colorScheme.onSurfaceVariant) },
+                placeholder = { Text(stringResource(R.string.add_template_description_placeholder), color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = SurfaceElevated,
-                    unfocusedContainerColor = SurfaceElevated,
-                    focusedBorderColor = NeonYellow,
+                    focusedContainerColor = ColorTokens.SurfaceLevel2,
+                    unfocusedContainerColor = ColorTokens.SurfaceLevel2,
+                    focusedBorderColor = ColorTokens.Primary500,
                     unfocusedBorderColor = Color.Transparent,
-                    focusedTextColor = TextPrimary,
-                    unfocusedTextColor = TextPrimary
+                    focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground
                 )
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
             // Category Selector
             Text(
                 text = stringResource(R.string.add_template_category_label),
                 style = MaterialTheme.typography.bodyMedium,
-                color = TextSecondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             CategorySelector(
                 selectedCategoryId = formState.categoryId,
                 categories = categories.filter { it.type == formState.type },
-                onCategorySelected = viewModel::onCategoryChange,
                 onClick = { showCategoryPicker = true }
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
             // Account Selector
             Text(
                 text = stringResource(R.string.add_template_account_label),
                 style = MaterialTheme.typography.bodyMedium,
-                color = TextSecondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             AccountSelector(
                 selectedAccountId = formState.accountId,
                 accounts = accounts,
-                onAccountSelected = viewModel::onAccountChange,
                 onClick = { showAccountPicker = true }
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
             // Icon Picker
             Text(
                 text = stringResource(R.string.add_template_icon_label),
                 style = MaterialTheme.typography.bodyMedium,
-                color = TextSecondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             IconSelector(
@@ -318,18 +317,18 @@ fun AddTemplateScreen(
                 onIconClick = { showIconPicker = true }
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.ExtraLarge))
 
             // Error message
             if (formState.error != null) {
                 Text(
                     text = formState.error!!,
-                    color = ColorError,
+                    color = ColorTokens.Error500,
                     style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(SpacingTokens.Medium))
             }
 
             // Save Button
@@ -339,8 +338,8 @@ fun AddTemplateScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = NeonYellow,
-                    contentColor = DarkGreen
+                    containerColor = ColorTokens.Primary500,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
                 )
             ) {
                 if (formState.isLoading) {
@@ -350,7 +349,7 @@ fun AddTemplateScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.ExtraLarge))
         }
     }
 
@@ -395,19 +394,18 @@ fun AddTemplateScreen(
 
 @Composable
 private fun TemplatePreviewCard(formState: TemplateFormState) {
-    Card(
+    PyeraCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = androidx.compose.material3.CardDefaults.cardColors(
-            containerColor = SurfaceElevated
-        )
+        cornerRadius = SpacingTokens.Medium,
+        containerColor = ColorTokens.SurfaceLevel2,
+        borderWidth = 0.dp
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(24.dp),
+                .padding(SpacingTokens.Large),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Icon
@@ -415,7 +413,7 @@ private fun TemplatePreviewCard(formState: TemplateFormState) {
                 modifier = Modifier
                     .size(64.dp)
                     .clip(CircleShape)
-                    .background(NeonYellow.copy(alpha = 0.2f)),
+                    .background(ColorTokens.Primary500.copy(alpha = 0.2f)),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -430,7 +428,7 @@ private fun TemplatePreviewCard(formState: TemplateFormState) {
             Text(
                 text = formState.name.ifEmpty { stringResource(R.string.add_template_preview_default_name) },
                 style = MaterialTheme.typography.titleLarge,
-                color = if (formState.name.isEmpty()) TextSecondary else TextPrimary,
+                color = if (formState.name.isEmpty()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.Bold
             )
 
@@ -439,16 +437,16 @@ private fun TemplatePreviewCard(formState: TemplateFormState) {
             // Amount
             val amountText = when {
                 formState.hasVariableAmount -> stringResource(R.string.add_template_preview_variable_amount)
-                formState.amount.isNotEmpty() -> "₱${formState.amount}"
+                formState.amount.isNotEmpty() -> "${CurrencyFormatter.SYMBOL}${formState.amount}"
                 else -> stringResource(R.string.add_template_preview_no_amount)
             }
             Text(
                 text = amountText,
                 style = MaterialTheme.typography.titleMedium,
                 color = when {
-                    formState.type == "INCOME" -> AccentGreen
-                    formState.hasVariableAmount || formState.amount.isEmpty() -> TextSecondary
-                    else -> TextPrimary
+                    formState.type == "INCOME" -> ColorTokens.Primary500
+                    formState.hasVariableAmount || formState.amount.isEmpty() -> MaterialTheme.colorScheme.onSurfaceVariant
+                    else -> MaterialTheme.colorScheme.onBackground
                 }
             )
         }
@@ -476,22 +474,22 @@ private fun TypeChip(
         colors = FilterChipDefaults.filterChipColors(
             selectedContainerColor = color.copy(alpha = 0.2f),
             selectedLabelColor = color,
-            containerColor = SurfaceElevated,
-            labelColor = TextSecondary
+            containerColor = ColorTokens.SurfaceLevel2,
+            labelColor = MaterialTheme.colorScheme.onSurfaceVariant
         ),
         border = if (selected) null else FilterChipDefaults.filterChipBorder(
             enabled = true,
             selected = false,
-            borderColor = TextSecondary.copy(alpha = 0.3f)
+            borderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
         )
     )
 }
 
 @Composable
+@Suppress("DEPRECATION")
 private fun CategorySelector(
     selectedCategoryId: Int?,
     categories: List<CategoryEntity>,
-    onCategorySelected: (Int?) -> Unit,
     onClick: () -> Unit
 ) {
     val selectedCategory = categories.find { it.id == selectedCategoryId }
@@ -500,9 +498,9 @@ private fun CategorySelector(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
-            .background(SurfaceElevated)
+            .background(ColorTokens.SurfaceLevel2)
             .clickable(onClick = onClick)
-            .padding(16.dp)
+            .padding(SpacingTokens.Medium)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -511,13 +509,13 @@ private fun CategorySelector(
             if (selectedCategory != null) {
                 Box(
                     modifier = Modifier
-                        .size(32.dp)
+                        .size(SpacingTokens.ExtraLarge)
                         .clip(CircleShape)
                         .background(Color(selectedCategory.color)),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = selectedCategory.icon ?: "📁",
+                        text = selectedCategory.icon,
                         fontSize = 16.sp
                     )
                 }
@@ -525,14 +523,14 @@ private fun CategorySelector(
                 Text(
                     text = selectedCategory.name,
                     style = MaterialTheme.typography.bodyLarge,
-                    color = TextPrimary,
+                    color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.weight(1f)
                 )
             } else {
                 Text(
                     text = stringResource(R.string.add_template_category_placeholder),
                     style = MaterialTheme.typography.bodyLarge,
-                    color = TextSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -540,7 +538,7 @@ private fun CategorySelector(
             Icon(
                 imageVector = Icons.Default.ArrowBack,
                 contentDescription = stringResource(R.string.add_template_select_category_content_desc),
-                tint = TextSecondary,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(20.dp)
             )
         }
@@ -548,10 +546,10 @@ private fun CategorySelector(
 }
 
 @Composable
+@Suppress("DEPRECATION")
 private fun AccountSelector(
     selectedAccountId: Long?,
     accounts: List<AccountEntity>,
-    onAccountSelected: (Long?) -> Unit,
     onClick: () -> Unit
 ) {
     val selectedAccount = accounts.find { it.id == selectedAccountId }
@@ -560,9 +558,9 @@ private fun AccountSelector(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
-            .background(SurfaceElevated)
+            .background(ColorTokens.SurfaceLevel2)
             .clickable(onClick = onClick)
-            .padding(16.dp)
+            .padding(SpacingTokens.Medium)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -571,7 +569,7 @@ private fun AccountSelector(
             if (selectedAccount != null) {
                 Box(
                     modifier = Modifier
-                        .size(32.dp)
+                        .size(SpacingTokens.ExtraLarge)
                         .clip(CircleShape)
                         .background(Color(selectedAccount.color)),
                     contentAlignment = Alignment.Center
@@ -585,14 +583,14 @@ private fun AccountSelector(
                 Text(
                     text = selectedAccount.name,
                     style = MaterialTheme.typography.bodyLarge,
-                    color = TextPrimary,
+                    color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.weight(1f)
                 )
             } else {
                 Text(
                     text = stringResource(R.string.add_template_account_placeholder),
                     style = MaterialTheme.typography.bodyLarge,
-                    color = TextSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -600,7 +598,7 @@ private fun AccountSelector(
             Icon(
                 imageVector = Icons.Default.ArrowBack,
                 contentDescription = stringResource(R.string.add_template_select_category_content_desc),
-                tint = TextSecondary,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(20.dp)
             )
         }
@@ -612,24 +610,25 @@ private fun IconSelector(
     selectedIcon: String?,
     onIconClick: () -> Unit
 ) {
+    val contentDesc = stringResource(R.string.add_template_select_icon_content_desc)
     Box(
         modifier = Modifier
             .size(64.dp)
             .clip(CircleShape)
-            .background(SurfaceElevated)
+            .background(ColorTokens.SurfaceLevel2)
             .border(
                 width = 2.dp,
-                color = if (selectedIcon != null) NeonYellow else TextSecondary.copy(alpha = 0.3f),
+                color = if (selectedIcon != null) ColorTokens.Primary500 else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
                 shape = CircleShape
             )
             .clickable(onClick = onIconClick)
-            .semantics { contentDescription = stringResource(R.string.add_template_select_icon_content_desc) },
+            .semantics { contentDescription = contentDesc },
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = selectedIcon ?: "+",
             fontSize = if (selectedIcon != null) 28.sp else 24.sp,
-            color = if (selectedIcon != null) TextPrimary else TextSecondary
+            color = if (selectedIcon != null) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -652,24 +651,23 @@ private fun IconPickerDialog(
     )
 
     Dialog(onDismissRequest = onDismiss) {
-        Card(
+        PyeraCard(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            shape = RoundedCornerShape(16.dp),
-            colors = androidx.compose.material3.CardDefaults.cardColors(
-                containerColor = SurfaceElevated
-            )
+                .padding(SpacingTokens.Medium),
+            cornerRadius = SpacingTokens.Medium,
+            containerColor = ColorTokens.SurfaceLevel2,
+            borderWidth = 0.dp
         ) {
             Column(
-                modifier = Modifier.padding(16.dp)
+                modifier = Modifier.padding(SpacingTokens.Medium)
             ) {
                 Text(
                     text = stringResource(R.string.add_template_choose_icon_dialog_title),
                     style = MaterialTheme.typography.titleLarge,
-                    color = TextPrimary,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 16.dp)
+                    modifier = Modifier.padding(bottom = SpacingTokens.Medium)
                 )
 
                 FlowRow(
@@ -684,12 +682,12 @@ private fun IconPickerDialog(
                                 .size(48.dp)
                                 .clip(CircleShape)
                                 .background(
-                                    if (isSelected) NeonYellow.copy(alpha = 0.3f)
-                                    else SurfaceElevated
+                                    if (isSelected) ColorTokens.Primary500.copy(alpha = 0.3f)
+                                    else ColorTokens.SurfaceLevel2
                                 )
                                 .border(
                                     width = if (isSelected) 2.dp else 1.dp,
-                                    color = if (isSelected) NeonYellow else TextSecondary.copy(alpha = 0.3f),
+                                    color = if (isSelected) ColorTokens.Primary500 else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
                                     shape = CircleShape
                                 )
                                 .clickable { onIconSelected(icon) },
@@ -703,13 +701,13 @@ private fun IconPickerDialog(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
                 TextButton(
                     onClick = onDismiss,
                     modifier = Modifier.align(Alignment.End)
                 ) {
-                    Text(stringResource(R.string.add_template_cancel_button), color = TextSecondary)
+                    Text(stringResource(R.string.add_template_cancel_button), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
@@ -724,24 +722,23 @@ private fun CategoryPickerDialog(
     onDismiss: () -> Unit
 ) {
     Dialog(onDismissRequest = onDismiss) {
-        Card(
+        PyeraCard(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            shape = RoundedCornerShape(16.dp),
-            colors = androidx.compose.material3.CardDefaults.cardColors(
-                containerColor = SurfaceElevated
-            )
+                .padding(SpacingTokens.Medium),
+            cornerRadius = SpacingTokens.Medium,
+            containerColor = ColorTokens.SurfaceLevel2,
+            borderWidth = 0.dp
         ) {
             Column(
-                modifier = Modifier.padding(16.dp)
+                modifier = Modifier.padding(SpacingTokens.Medium)
             ) {
                 Text(
                     text = stringResource(R.string.add_template_select_category_dialog_title),
                     style = MaterialTheme.typography.titleLarge,
-                    color = TextPrimary,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 16.dp)
+                    modifier = Modifier.padding(bottom = SpacingTokens.Medium)
                 )
 
                 // None option
@@ -757,7 +754,7 @@ private fun CategoryPickerDialog(
                 // Category list
                 categories.forEach { category ->
                     CategoryOption(
-                        icon = category.icon ?: "📁",
+                        icon = category.icon,
                         name = category.name,
                         color = androidx.compose.ui.graphics.Color(category.color),
                         isSelected = category.id == selectedCategoryId,
@@ -772,7 +769,7 @@ private fun CategoryPickerDialog(
                     onClick = onDismiss,
                     modifier = Modifier.align(Alignment.End)
                 ) {
-                    Text(stringResource(R.string.add_template_cancel_button), color = TextSecondary)
+                    Text(stringResource(R.string.add_template_cancel_button), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
@@ -792,7 +789,7 @@ private fun CategoryOption(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(8.dp))
-            .background(if (isSelected) NeonYellow.copy(alpha = 0.2f) else Color.Transparent)
+            .background(if (isSelected) ColorTokens.Primary500.copy(alpha = 0.2f) else Color.Transparent)
             .clickable(onClick = onClick)
             .padding(12.dp)
     ) {
@@ -800,7 +797,7 @@ private fun CategoryOption(
             modifier = Modifier
                 .size(36.dp)
                 .clip(CircleShape)
-                .background(color ?: SurfaceElevated),
+                .background(color ?: ColorTokens.SurfaceLevel2),
             contentAlignment = Alignment.Center
         ) {
             Text(text = icon, fontSize = 18.sp)
@@ -809,14 +806,14 @@ private fun CategoryOption(
         Text(
             text = name,
             style = MaterialTheme.typography.bodyLarge,
-            color = TextPrimary,
+            color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier.weight(1f)
         )
         if (isSelected) {
             Icon(
                 imageVector = Icons.Default.Check,
                 contentDescription = stringResource(R.string.add_template_selected_content_desc),
-                tint = NeonYellow
+                tint = ColorTokens.Primary500
             )
         }
     }
@@ -830,24 +827,23 @@ private fun AccountPickerDialog(
     onDismiss: () -> Unit
 ) {
     Dialog(onDismissRequest = onDismiss) {
-        Card(
+        PyeraCard(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            shape = RoundedCornerShape(16.dp),
-            colors = androidx.compose.material3.CardDefaults.cardColors(
-                containerColor = SurfaceElevated
-            )
+                .padding(SpacingTokens.Medium),
+            cornerRadius = SpacingTokens.Medium,
+            containerColor = ColorTokens.SurfaceLevel2,
+            borderWidth = 0.dp
         ) {
             Column(
-                modifier = Modifier.padding(16.dp)
+                modifier = Modifier.padding(SpacingTokens.Medium)
             ) {
                 Text(
                     text = stringResource(R.string.add_template_select_account_dialog_title),
                     style = MaterialTheme.typography.titleLarge,
-                    color = TextPrimary,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 16.dp)
+                    modifier = Modifier.padding(bottom = SpacingTokens.Medium)
                 )
 
                 // None option
@@ -878,7 +874,7 @@ private fun AccountPickerDialog(
                     onClick = onDismiss,
                     modifier = Modifier.align(Alignment.End)
                 ) {
-                    Text(stringResource(R.string.add_template_cancel_button), color = TextSecondary)
+                    Text(stringResource(R.string.add_template_cancel_button), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
@@ -898,7 +894,7 @@ private fun AccountOption(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(8.dp))
-            .background(if (isSelected) NeonYellow.copy(alpha = 0.2f) else Color.Transparent)
+            .background(if (isSelected) ColorTokens.Primary500.copy(alpha = 0.2f) else Color.Transparent)
             .clickable(onClick = onClick)
             .padding(12.dp)
     ) {
@@ -906,7 +902,7 @@ private fun AccountOption(
             modifier = Modifier
                 .size(36.dp)
                 .clip(CircleShape)
-                .background(color ?: SurfaceElevated),
+                .background(color ?: ColorTokens.SurfaceLevel2),
             contentAlignment = Alignment.Center
         ) {
             Text(text = icon, fontSize = 18.sp)
@@ -915,15 +911,19 @@ private fun AccountOption(
         Text(
             text = name,
             style = MaterialTheme.typography.bodyLarge,
-            color = TextPrimary,
+            color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier.weight(1f)
         )
         if (isSelected) {
             Icon(
                 imageVector = Icons.Default.Check,
                 contentDescription = stringResource(R.string.add_template_selected_content_desc),
-                tint = NeonYellow
+                tint = ColorTokens.Primary500
             )
         }
     }
 }
+
+
+
+

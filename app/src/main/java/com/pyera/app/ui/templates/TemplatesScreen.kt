@@ -1,5 +1,9 @@
 package com.pyera.app.ui.templates
 
+import com.pyera.app.ui.components.PyeraCard
+import com.pyera.app.ui.theme.tokens.ColorTokens
+import com.pyera.app.ui.theme.tokens.SpacingTokens
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -31,8 +35,6 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -59,6 +61,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -69,15 +72,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pyera.app.data.local.entity.TransactionTemplateEntity
 import com.pyera.app.ui.components.EmptyState
-import com.pyera.app.ui.theme.AccentGreen
-import com.pyera.app.ui.theme.ColorError
-import com.pyera.app.ui.theme.DarkGreen
-import com.pyera.app.ui.theme.NeonYellow
-import com.pyera.app.ui.theme.SurfaceElevated
-import com.pyera.app.ui.theme.TextPrimary
+import com.pyera.app.ui.util.pyeraBackground
 import androidx.compose.ui.res.stringResource
 import com.pyera.app.R
-import com.pyera.app.ui.theme.TextSecondary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -110,7 +107,7 @@ fun TemplatesScreen(
                     Text(
                         text = stringResource(R.string.templates_title),
                         style = MaterialTheme.typography.titleLarge,
-                        color = TextPrimary,
+                        color = MaterialTheme.colorScheme.onBackground,
                         fontWeight = FontWeight.Bold
                     )
                 },
@@ -119,55 +116,56 @@ fun TemplatesScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.templates_navigate_back_content_desc),
-                            tint = TextPrimary
+                            tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = DarkGreen
+                    containerColor = MaterialTheme.colorScheme.surface
                 )
             )
         },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onAddTemplate,
-                containerColor = NeonYellow,
-                contentColor = DarkGreen
+                containerColor = ColorTokens.Primary500,
+                contentColor = MaterialTheme.colorScheme.onPrimary
             ) {
                 Icon(Icons.Default.Add, contentDescription = stringResource(R.string.templates_add_content_desc))
             }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = DarkGreen
+        containerColor = androidx.compose.ui.graphics.Color.Transparent
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .pyeraBackground()
                 .padding(paddingValues)
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = SpacingTokens.Medium)
         ) {
             // Search bar
             OutlinedTextField(
                 value = uiState.searchQuery,
                 onValueChange = viewModel::searchTemplates,
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text(stringResource(R.string.templates_search_placeholder), color = TextSecondary) },
+                placeholder = { Text(stringResource(R.string.templates_search_placeholder), color = MaterialTheme.colorScheme.onSurfaceVariant) },
                 leadingIcon = {
-                    Icon(Icons.Default.Search, contentDescription = stringResource(R.string.templates_search_content_desc), tint = TextSecondary)
+                    Icon(Icons.Default.Search, contentDescription = stringResource(R.string.templates_search_content_desc), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 },
                 singleLine = true,
                 shape = RoundedCornerShape(12.dp),
                 colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = SurfaceElevated,
-                    unfocusedContainerColor = SurfaceElevated,
-                    focusedBorderColor = NeonYellow,
+                    focusedContainerColor = ColorTokens.SurfaceLevel2,
+                    unfocusedContainerColor = ColorTokens.SurfaceLevel2,
+                    focusedBorderColor = ColorTokens.Primary500,
                     unfocusedBorderColor = Color.Transparent,
-                    focusedTextColor = TextPrimary,
-                    unfocusedTextColor = TextPrimary
+                    focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground
                 )
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
             // Templates grid
             val filteredTemplates = uiState.templates.filter {
@@ -177,13 +175,13 @@ fun TemplatesScreen(
 
             if (filteredTemplates.isEmpty() && !uiState.isLoading) {
                 EmptyState(
+                    icon = if (uiState.searchQuery.isEmpty()) Icons.Default.Edit else Icons.Default.Search,
                     title = if (uiState.searchQuery.isEmpty()) stringResource(R.string.templates_empty_title) else stringResource(R.string.templates_no_results),
-                    message = if (uiState.searchQuery.isEmpty()) {
+                    subtitle = if (uiState.searchQuery.isEmpty()) {
                         stringResource(R.string.templates_empty_message)
                     } else {
                         stringResource(R.string.templates_no_results_message)
-                    },
-                    icon = if (uiState.searchQuery.isEmpty()) "📝" else "🔍"
+                    }
                 )
             } else {
                 LazyVerticalGrid(
@@ -200,7 +198,7 @@ fun TemplatesScreen(
                                 onUseTemplate?.invoke(template.id)
                             },
                             onEdit = { onEditTemplate(template) },
-                            onDelete = { templateToDelete = template },
+                            onDelete = { templateToDeleteId = template.id },
                             onToggleActive = { isActive ->
                                 viewModel.toggleTemplateActive(template.id, isActive)
                             }
@@ -214,30 +212,30 @@ fun TemplatesScreen(
     // Delete confirmation dialog
     if (templateToDelete != null) {
         AlertDialog(
-            onDismissRequest = { templateToDelete = null },
-            title = { Text(stringResource(R.string.templates_delete_dialog_title), color = TextPrimary) },
+            onDismissRequest = { templateToDeleteId = null },
+            title = { Text(stringResource(R.string.templates_delete_dialog_title), color = MaterialTheme.colorScheme.onBackground) },
             text = {
                 Text(
                     "Are you sure you want to delete \"${templateToDelete!!.name}\"? This action cannot be undone.",
-                    color = TextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             },
             confirmButton = {
                 TextButton(
                     onClick = {
                         viewModel.deleteTemplate(templateToDelete!!.id)
-                        templateToDelete = null
+                        templateToDeleteId = null
                     }
                 ) {
-                    Text(stringResource(R.string.templates_delete_button), color = ColorError)
+                    Text(stringResource(R.string.templates_delete_button), color = ColorTokens.Error500)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { templateToDelete = null }) {
-                    Text(stringResource(R.string.templates_cancel_button), color = TextSecondary)
+                TextButton(onClick = { templateToDeleteId = null }) {
+                    Text(stringResource(R.string.templates_cancel_button), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             },
-            containerColor = SurfaceElevated
+            containerColor = ColorTokens.SurfaceLevel2
         )
     }
 }
@@ -252,16 +250,15 @@ private fun TemplateCard(
 ) {
     var showMenu by rememberSaveable { mutableStateOf(false) }
 
-    Card(
+    PyeraCard(
         modifier = Modifier
             .fillMaxWidth()
             .aspectRatio(1f)
             .clickable(enabled = template.isActive, onClick = onClick),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (template.isActive) SurfaceElevated else SurfaceElevated.copy(alpha = 0.5f)
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = if (template.isActive) 4.dp else 0.dp)
+        cornerRadius = SpacingTokens.Medium,
+        containerColor = if (template.isActive) ColorTokens.SurfaceLevel2 else ColorTokens.SurfaceLevel2.copy(alpha = 0.5f),
+        borderWidth = 0.dp,
+        elevation = if (template.isActive) 4.dp else 0.dp
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             Column(
@@ -282,7 +279,7 @@ private fun TemplateCard(
                 Text(
                     text = template.name,
                     style = MaterialTheme.typography.titleSmall,
-                    color = if (template.isActive) TextPrimary else TextSecondary,
+                    color = if (template.isActive) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.SemiBold,
                     textAlign = TextAlign.Center,
                     maxLines = 1,
@@ -294,7 +291,7 @@ private fun TemplateCard(
                 Text(
                     text = template.getAmountDisplay(),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = if (template.type == "INCOME") AccentGreen else TextSecondary,
+                    color = if (template.type == "INCOME") ColorTokens.Primary500 else MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                     maxLines = 1,
                     modifier = Modifier.padding(top = 4.dp)
@@ -304,7 +301,7 @@ private fun TemplateCard(
                 Text(
                     text = template.type,
                     style = MaterialTheme.typography.labelSmall,
-                    color = TextSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 4.dp)
                 )
             }
@@ -317,12 +314,12 @@ private fun TemplateCard(
             ) {
                 IconButton(
                     onClick = { showMenu = true },
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier.size(SpacingTokens.ExtraLarge)
                 ) {
                     Icon(
                         Icons.Default.MoreVert,
                         contentDescription = stringResource(R.string.templates_more_options_content_desc),
-                        tint = TextSecondary,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -330,12 +327,12 @@ private fun TemplateCard(
                 DropdownMenu(
                     expanded = showMenu,
                     onDismissRequest = { showMenu = false },
-                    containerColor = SurfaceElevated
+                    containerColor = ColorTokens.SurfaceLevel2
                 ) {
                     DropdownMenuItem(
-                        text = { Text(stringResource(R.string.templates_edit_menu), color = TextPrimary) },
+                        text = { Text(stringResource(R.string.templates_edit_menu), color = MaterialTheme.colorScheme.onBackground) },
                         leadingIcon = {
-                            Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.templates_edit_menu), tint = TextSecondary)
+                            Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.templates_edit_menu), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                         },
                         onClick = {
                             showMenu = false
@@ -346,14 +343,14 @@ private fun TemplateCard(
                         text = {
                             Text(
                                 if (template.isActive) stringResource(R.string.templates_deactivate_menu) else stringResource(R.string.templates_activate_menu),
-                                color = TextPrimary
+                                color = MaterialTheme.colorScheme.onBackground
                             )
                         },
                         leadingIcon = {
                             Switch(
                                 checked = template.isActive,
                                 onCheckedChange = null,
-                                modifier = Modifier.size(32.dp)
+                                modifier = Modifier.size(SpacingTokens.ExtraLarge)
                             )
                         },
                         onClick = {
@@ -362,9 +359,9 @@ private fun TemplateCard(
                         }
                     )
                     DropdownMenuItem(
-                        text = { Text(stringResource(R.string.templates_delete_button), color = ColorError) },
+                        text = { Text(stringResource(R.string.templates_delete_button), color = ColorTokens.Error500) },
                         leadingIcon = {
-                            Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.templates_delete_button), tint = ColorError)
+                            Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.templates_delete_button), tint = ColorTokens.Error500)
                         },
                         onClick = {
                             showMenu = false
@@ -381,16 +378,20 @@ private fun TemplateCard(
                         .align(Alignment.BottomCenter)
                         .padding(bottom = 8.dp)
                         .clip(CircleShape)
-                        .background(TextSecondary.copy(alpha = 0.3f))
+                        .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f))
                         .padding(horizontal = 8.dp, vertical = 2.dp)
                 ) {
                     Text(
                         text = stringResource(R.string.templates_inactive_badge),
                         style = MaterialTheme.typography.labelSmall,
-                        color = TextSecondary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
         }
     }
 }
+
+
+
+

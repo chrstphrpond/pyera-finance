@@ -1,5 +1,9 @@
 package com.pyera.app.ui.security
 
+import com.pyera.app.ui.theme.tokens.ColorTokens
+import com.pyera.app.ui.theme.tokens.SpacingTokens
+
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -35,7 +39,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,12 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pyera.app.ui.components.PyeraButton
-import com.pyera.app.ui.theme.DarkGreen
-import com.pyera.app.ui.theme.NeonYellow
-import com.pyera.app.ui.theme.Spacing
-import com.pyera.app.ui.theme.SurfaceElevated
-import com.pyera.app.ui.theme.TextPrimary
-import com.pyera.app.ui.theme.TextSecondary
+import com.pyera.app.ui.util.pyeraBackground
 
 /**
  * Security Settings Screen - Main settings for app lock
@@ -71,26 +70,27 @@ fun SecuritySettingsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Security", color = TextPrimary) },
+                title = { Text("Security", color = MaterialTheme.colorScheme.onBackground) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint = TextPrimary
+                            tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = DarkGreen
+                    containerColor = MaterialTheme.colorScheme.surface
                 )
             )
         },
-        containerColor = DarkGreen
+        containerColor = androidx.compose.ui.graphics.Color.Transparent
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .pyeraBackground()
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
         ) {
@@ -152,8 +152,8 @@ fun SecuritySettingsScreen(
                     )
                     
                     HorizontalDivider(
-                        color = SurfaceElevated,
-                        modifier = Modifier.padding(horizontal = Spacing.CardPadding)
+                        color = ColorTokens.SurfaceLevel2,
+                        modifier = Modifier.padding(horizontal = SpacingTokens.MediumLarge)
                     )
                     
                     // Immediate Lock Button
@@ -161,7 +161,7 @@ fun SecuritySettingsScreen(
                         onClick = { viewModel.lockNow() },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(Spacing.CardPadding)
+                            .padding(SpacingTokens.MediumLarge)
                     ) {
                         Icon(
                             imageVector = Icons.Default.LockClock,
@@ -173,7 +173,7 @@ fun SecuritySettingsScreen(
                 }
             }
             
-            Spacer(modifier = Modifier.height(Spacing.XXXLarge))
+            Spacer(modifier = Modifier.height(SpacingTokens.ExtraLarge))
         }
     }
     
@@ -181,7 +181,7 @@ fun SecuritySettingsScreen(
     if (showTimeoutDialog) {
         AlertDialog(
             onDismissRequest = { showTimeoutDialog = false },
-            title = { Text("Lock Timeout", color = TextPrimary) },
+            title = { Text("Lock Timeout", color = MaterialTheme.colorScheme.onBackground) },
             text = {
                 Column {
                     uiState.timeoutOptions.forEach { option ->
@@ -195,7 +195,7 @@ fun SecuritySettingsScreen(
                                 }
                                 .padding(vertical = 12.dp),
                             color = if (option.millis == uiState.lockTimeout) 
-                                NeonYellow else TextPrimary,
+                                ColorTokens.Primary500 else MaterialTheme.colorScheme.onBackground,
                             style = MaterialTheme.typography.bodyLarge
                         )
                     }
@@ -204,10 +204,10 @@ fun SecuritySettingsScreen(
             confirmButton = {},
             dismissButton = {
                 TextButton(onClick = { showTimeoutDialog = false }) {
-                    Text("Cancel", color = TextSecondary)
+                    Text("Cancel", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             },
-            containerColor = SurfaceElevated
+            containerColor = ColorTokens.SurfaceLevel2
         )
     }
     
@@ -215,11 +215,11 @@ fun SecuritySettingsScreen(
     if (showDisableDialog) {
         AlertDialog(
             onDismissRequest = { showDisableDialog = false },
-            title = { Text("Disable App Lock?", color = TextPrimary) },
+            title = { Text("Disable App Lock?", color = MaterialTheme.colorScheme.onBackground) },
             text = { 
                 Text(
                     "This will remove your PIN and biometric settings. Are you sure?",
-                    color = TextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 ) 
             },
             confirmButton = {
@@ -234,10 +234,10 @@ fun SecuritySettingsScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showDisableDialog = false }) {
-                    Text("Cancel", color = TextSecondary)
+                    Text("Cancel", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             },
-            containerColor = SurfaceElevated
+            containerColor = ColorTokens.SurfaceLevel2
         )
     }
     
@@ -248,11 +248,11 @@ fun SecuritySettingsScreen(
                 showBiometricError = null
                 viewModel.clearErrors()
             },
-            title = { Text("Biometric Unavailable", color = TextPrimary) },
+            title = { Text("Biometric Unavailable", color = MaterialTheme.colorScheme.onBackground) },
             text = { 
                 Text(
                     uiState.biometricError ?: showBiometricError ?: "",
-                    color = TextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 ) 
             },
             confirmButton = {
@@ -262,10 +262,10 @@ fun SecuritySettingsScreen(
                         viewModel.clearErrors()
                     }
                 ) {
-                    Text("OK", color = NeonYellow)
+                    Text("OK", color = ColorTokens.Primary500)
                 }
             },
-            containerColor = SurfaceElevated
+            containerColor = ColorTokens.SurfaceLevel2
         )
     }
 }
@@ -276,20 +276,20 @@ private fun SecuritySettingsSection(
     content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit
 ) {
     Column(
-        modifier = Modifier.padding(vertical = Spacing.Small)
+        modifier = Modifier.padding(vertical = SpacingTokens.Small)
     ) {
         Text(
             text = title,
             style = MaterialTheme.typography.labelLarge,
-            color = NeonYellow,
-            modifier = Modifier.padding(horizontal = Spacing.ScreenPadding, vertical = Spacing.Small)
+            color = ColorTokens.Primary500,
+            modifier = Modifier.padding(horizontal = SpacingTokens.MediumLarge, vertical = SpacingTokens.Small)
         )
 
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = Spacing.ScreenPadding)
-                .background(SurfaceElevated, MaterialTheme.shapes.medium)
+                .padding(horizontal = SpacingTokens.MediumLarge)
+                .background(ColorTokens.SurfaceLevel2, MaterialTheme.shapes.medium)
         ) {
             content()
         }
@@ -307,31 +307,31 @@ private fun SecuritySettingsItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(Spacing.CardPadding),
+            .padding(SpacingTokens.MediumLarge),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(Spacing.Medium)
+            horizontalArrangement = Arrangement.spacedBy(SpacingTokens.MediumSmall)
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = TextSecondary
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Column {
                 Text(
                     text = title,
                     style = MaterialTheme.typography.bodyLarge,
-                    color = TextPrimary
+                    color = MaterialTheme.colorScheme.onBackground
                 )
                 if (subtitle != null) {
                     Text(
                         text = subtitle,
                         style = MaterialTheme.typography.bodySmall,
-                        color = TextSecondary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -340,7 +340,7 @@ private fun SecuritySettingsItem(
         Icon(
             imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
             contentDescription = null,
-            tint = TextSecondary
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -356,31 +356,31 @@ private fun SecurityToggleItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(Spacing.CardPadding),
+            .padding(SpacingTokens.MediumLarge),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(Spacing.Medium)
+            horizontalArrangement = Arrangement.spacedBy(SpacingTokens.MediumSmall)
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = TextSecondary
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Column {
                 Text(
                     text = title,
                     style = MaterialTheme.typography.bodyLarge,
-                    color = TextPrimary
+                    color = MaterialTheme.colorScheme.onBackground
                 )
                 if (subtitle != null) {
                     Text(
                         text = subtitle,
                         style = MaterialTheme.typography.bodySmall,
-                        color = TextSecondary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -390,13 +390,17 @@ private fun SecurityToggleItem(
             checked = checked,
             onCheckedChange = onCheckedChange,
             colors = SwitchDefaults.colors(
-                checkedThumbColor = NeonYellow,
-                checkedTrackColor = NeonYellow.copy(alpha = 0.5f),
-                uncheckedThumbColor = TextSecondary,
-                uncheckedTrackColor = SurfaceElevated
+                checkedThumbColor = ColorTokens.Primary500,
+                checkedTrackColor = ColorTokens.Primary500.copy(alpha = 0.5f),
+                uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                uncheckedTrackColor = ColorTokens.SurfaceLevel2
             )
         )
     }
 }
+
+
+
+
 
 

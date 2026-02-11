@@ -3,7 +3,7 @@ package com.pyera.app.ui.savings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pyera.app.data.local.entity.SavingsGoalEntity
-import com.pyera.app.data.repository.SavingsRepository
+import com.pyera.app.domain.repository.SavingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow

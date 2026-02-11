@@ -14,7 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Backspace
+import androidx.compose.material.icons.automirrored.filled.Backspace
 import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -25,7 +25,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -36,13 +35,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pyera.app.ui.components.PyeraButton
-import com.pyera.app.ui.theme.ColorBorder
-import com.pyera.app.ui.theme.DarkGreen
-import com.pyera.app.ui.theme.NeonYellow
-import com.pyera.app.ui.theme.Spacing
-import com.pyera.app.ui.theme.SurfaceElevated
-import com.pyera.app.ui.theme.TextPrimary
-import com.pyera.app.ui.theme.TextSecondary
+import com.pyera.app.ui.theme.tokens.ColorTokens
+import com.pyera.app.ui.theme.tokens.SpacingTokens
+import com.pyera.app.ui.util.pyeraBackground
 
 /**
  * Screen for setting up a new PIN
@@ -93,8 +88,8 @@ fun SetPinScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(DarkGreen)
-            .padding(Spacing.ScreenPadding),
+            .pyeraBackground()
+            .padding(SpacingTokens.MediumLarge),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(60.dp))
@@ -103,20 +98,20 @@ fun SetPinScreen(
         Text(
             text = title,
             style = MaterialTheme.typography.headlineMedium,
-            color = TextPrimary
+            color = MaterialTheme.colorScheme.onBackground
         )
         
-        Spacer(modifier = Modifier.height(Spacing.Small))
+        Spacer(modifier = Modifier.height(SpacingTokens.Small))
         
         // Subtitle
         Text(
             text = subtitle,
             style = MaterialTheme.typography.bodyMedium,
-            color = TextSecondary,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
         
-        Spacer(modifier = Modifier.height(Spacing.XLarge))
+        Spacer(modifier = Modifier.height(SpacingTokens.MediumLarge))
         
         when (step) {
             PinSetupStep.ENTER_PIN, PinSetupStep.CONFIRM_PIN -> {
@@ -129,7 +124,7 @@ fun SetPinScreen(
                 
                 // Error message
                 if (uiState.pinError != null) {
-                    Spacer(modifier = Modifier.height(Spacing.Small))
+                    Spacer(modifier = Modifier.height(SpacingTokens.Small))
                     Text(
                         text = uiState.pinError!!,
                         style = MaterialTheme.typography.bodyMedium,
@@ -176,7 +171,7 @@ fun SetPinScreen(
                     }
                 )
                 
-                Spacer(modifier = Modifier.height(Spacing.Medium))
+                Spacer(modifier = Modifier.height(SpacingTokens.MediumSmall))
                 
                 // Continue/Cancel buttons
                 if (currentPin.length >= 4) {
@@ -208,7 +203,7 @@ fun SetPinScreen(
                     }
                 }
                 
-                Spacer(modifier = Modifier.height(Spacing.Small))
+                Spacer(modifier = Modifier.height(SpacingTokens.Small))
                 
                 PyeraButton(
                     onClick = onCancel,
@@ -225,25 +220,25 @@ fun SetPinScreen(
                 Box(
                     modifier = Modifier
                         .size(120.dp)
-                        .background(SurfaceElevated, CircleShape),
+                        .background(ColorTokens.SurfaceLevel2, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.Fingerprint,
                         contentDescription = null,
                         modifier = Modifier.size(60.dp),
-                        tint = NeonYellow
+                        tint = ColorTokens.Primary500
                     )
                 }
                 
-                Spacer(modifier = Modifier.height(Spacing.XLarge))
+                Spacer(modifier = Modifier.height(SpacingTokens.MediumLarge))
                 
                 // Biometric toggle
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(SurfaceElevated, CircleShape)
-                        .padding(Spacing.Medium)
+                        .background(ColorTokens.SurfaceLevel2, CircleShape)
+                        .padding(SpacingTokens.MediumSmall)
                         .clickable { enableBiometric = !enableBiometric },
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
@@ -251,19 +246,19 @@ fun SetPinScreen(
                     Text(
                         text = "Use Biometric",
                         style = MaterialTheme.typography.bodyLarge,
-                        color = TextPrimary
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                     Switch(
                         checked = enableBiometric,
                         onCheckedChange = { enableBiometric = it },
                         colors = SwitchDefaults.colors(
-                            checkedThumbColor = NeonYellow,
-                            checkedTrackColor = NeonYellow.copy(alpha = 0.5f)
+                            checkedThumbColor = ColorTokens.Primary500,
+                            checkedTrackColor = ColorTokens.Primary500.copy(alpha = 0.5f)
                         )
                     )
                 }
                 
-                Spacer(modifier = Modifier.height(Spacing.XLarge))
+                Spacer(modifier = Modifier.height(SpacingTokens.MediumLarge))
                 
                 // Buttons
                 PyeraButton(
@@ -275,7 +270,7 @@ fun SetPinScreen(
                     Text("Complete Setup")
                 }
                 
-                Spacer(modifier = Modifier.height(Spacing.Small))
+                Spacer(modifier = Modifier.height(SpacingTokens.Small))
                 
                 PyeraButton(
                     onClick = onCancel,
@@ -288,7 +283,7 @@ fun SetPinScreen(
             }
         }
         
-        Spacer(modifier = Modifier.height(Spacing.Large))
+        Spacer(modifier = Modifier.height(SpacingTokens.Medium))
     }
 }
 
@@ -299,7 +294,7 @@ private fun PinSetupDots(
     error: Boolean
 ) {
     Row(
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
+        horizontalArrangement = Arrangement.spacedBy(SpacingTokens.Medium)
     ) {
         repeat(maxLength) { index ->
             Box(
@@ -308,8 +303,8 @@ private fun PinSetupDots(
                     .background(
                         color = when {
                             error -> MaterialTheme.colorScheme.error
-                            index < pinLength -> NeonYellow
-                            else -> SurfaceElevated
+                            index < pinLength -> ColorTokens.Primary500
+                            else -> ColorTokens.SurfaceLevel2
                         },
                         shape = CircleShape
                     )
@@ -324,7 +319,7 @@ private fun PinSetupPad(
     onBackspaceClick: () -> Unit
 ) {
     Column(
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(SpacingTokens.Medium)
     ) {
         // Rows 1-3 (1-9)
         for (row in 0..2) {
@@ -365,10 +360,10 @@ private fun PinSetupPad(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Default.Backspace,
+                    imageVector = Icons.AutoMirrored.Filled.Backspace,
                     contentDescription = "Backspace",
                     modifier = Modifier.size(28.dp),
-                    tint = TextPrimary
+                    tint = MaterialTheme.colorScheme.onBackground
                 )
             }
         }
@@ -383,14 +378,14 @@ private fun PinSetupButton(
     Box(
         modifier = Modifier
             .size(72.dp)
-            .background(SurfaceElevated, CircleShape)
+            .background(ColorTokens.SurfaceLevel2, CircleShape)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = text,
             style = MaterialTheme.typography.headlineMedium,
-            color = TextPrimary,
+            color = MaterialTheme.colorScheme.onBackground,
             fontSize = 28.sp
         )
     }
@@ -401,3 +396,6 @@ private enum class PinSetupStep {
     CONFIRM_PIN,
     ENABLE_BIOMETRIC
 }
+
+
+

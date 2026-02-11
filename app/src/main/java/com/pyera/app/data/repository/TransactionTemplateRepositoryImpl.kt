@@ -1,5 +1,7 @@
 package com.pyera.app.data.repository
 
+import com.pyera.app.domain.repository.*
+
 import com.pyera.app.data.local.dao.TransactionTemplateDao
 import com.pyera.app.data.local.entity.TransactionEntity
 import com.pyera.app.data.local.entity.TransactionTemplateEntity
@@ -81,6 +83,7 @@ class TransactionTemplateRepositoryImpl @Inject constructor(
                 categoryId = transaction.categoryId,
                 accountId = transaction.accountId,
                 icon = icon,
+                color = null,
                 displayOrder = templateDao.getTemplateCount(userId)
             )
             val id = templateDao.insertTemplate(template)

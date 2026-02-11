@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.pyera.app.ui.theme.tokens.SpacingTokens
 
 @Composable
 fun PyeraPrimaryButton(
@@ -36,7 +37,7 @@ fun PyeraPrimaryButton(
             .height(PyeraButtonTokens.height(ButtonSize.Large)),
         shape = PyeraButtonTokens.shape,
         colors = PyeraButtonTokens.colors(ButtonVariant.Primary),
-        contentPadding = PaddingValues(horizontal = 24.dp, vertical = 16.dp)
+        contentPadding = PaddingValues(horizontal = SpacingTokens.Large, vertical = SpacingTokens.Medium)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically
@@ -86,7 +87,7 @@ fun PyeraSecondaryButton(
             .height(PyeraButtonTokens.height(ButtonSize.Large)),
         shape = PyeraButtonTokens.shape,
         colors = PyeraButtonTokens.colors(ButtonVariant.Secondary),
-        contentPadding = PaddingValues(horizontal = 24.dp, vertical = 16.dp)
+        contentPadding = PaddingValues(horizontal = SpacingTokens.Large, vertical = SpacingTokens.Medium)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically

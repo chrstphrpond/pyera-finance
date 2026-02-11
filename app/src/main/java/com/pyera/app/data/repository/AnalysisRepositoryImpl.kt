@@ -1,8 +1,7 @@
 package com.pyera.app.data.repository
 
 import com.pyera.app.data.local.dao.TransactionDao
-import com.pyera.app.data.local.entity.CategoryEntity
-import com.pyera.app.data.local.entity.TransactionEntity
+import com.pyera.app.data.mapper.toDomain
 import com.pyera.app.domain.analysis.AnalysisPeriod
 import com.pyera.app.domain.analysis.BudgetAdherence
 import com.pyera.app.domain.analysis.CategoryInsight
@@ -17,6 +16,11 @@ import com.pyera.app.domain.analysis.SpendingHeatMapData
 import com.pyera.app.domain.analysis.SpendingInsights
 import com.pyera.app.domain.analysis.SpendingAnalyzer
 import com.pyera.app.domain.analysis.WeeklyPattern
+import com.pyera.app.domain.model.BudgetWithSpending
+import com.pyera.app.domain.model.Transaction
+import com.pyera.app.domain.repository.AnalysisRepository
+import com.pyera.app.domain.repository.BudgetRepository
+import com.pyera.app.domain.repository.CategoryRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -41,8 +45,9 @@ class AnalysisRepositoryImpl @Inject constructor(
     private val anomaliesCache = MutableStateFlow<List<SpendingAnomaly>>(emptyList())
     private val dismissedAnomalyIds = mutableSetOf<Long>()
 
-    override fun getAllTransactions(): Flow<List<TransactionEntity>> {
+    override fun getAllTransactions(): Flow<List<Transaction>> {
         return transactionDao.getAllTransactions()
+            .map { transactions -> transactions.map { it.toDomain() } }
     }
 
     override suspend fun getSpendingInsights(
@@ -65,6 +70,7 @@ class AnalysisRepositoryImpl @Inject constructor(
 
     override suspend fun getCategoryInsights(userId: String): List<CategoryInsight> {
         val categories = categoryRepository.getAllCategories().first()
+            .map { it.toDomain() }
         val budgetsWithSpending = getBudgetsWithSpending(userId)
         return spendingAnalyzer.getCategoryInsights(userId, categories, budgetsWithSpending)
     }
@@ -142,6 +148,7 @@ class AnalysisRepositoryImpl @Inject constructor(
         val currentRange = getDateRangeForPeriod(period)
         val previousRange = getPreviousPeriodRange(currentRange)
         val categories = categoryRepository.getAllCategories().first()
+            .map { it.toDomain() }
         
         return spendingAnalyzer.comparePeriods(currentRange, previousRange, categories)
     }
@@ -151,6 +158,7 @@ class AnalysisRepositoryImpl @Inject constructor(
         previousPeriod: DateRange
     ): PeriodComparison {
         val categories = categoryRepository.getAllCategories().first()
+            .map { it.toDomain() }
         return spendingAnalyzer.comparePeriods(currentPeriod, previousPeriod, categories)
     }
 
@@ -163,7 +171,6 @@ class AnalysisRepositoryImpl @Inject constructor(
 
     override suspend fun getCategoryBudgetStatus(categoryId: Int): BudgetAdherence? {
         // Get budget for specific category
-        val calendar = Calendar.getInstance()
         val endDate = System.currentTimeMillis()
         val startDate = endDate - (30L * 24 * 60 * 60 * 1000)
         
@@ -175,6 +182,7 @@ class AnalysisRepositoryImpl @Inject constructor(
         
         val budgets = budgetFlow.first()
             .filter { it.categoryId == categoryId }
+            .map { it.toDomain() }
         
         return if (budgets.isNotEmpty()) {
             spendingAnalyzer.calculateBudgetAdherence(budgets)
@@ -281,13 +289,13 @@ class AnalysisRepositoryImpl @Inject constructor(
 
     // ==================== Helper Methods ====================
 
-    private suspend fun getBudgetsWithSpending(userId: String): List<com.pyera.app.data.local.entity.BudgetWithSpending> {
-        val calendar = Calendar.getInstance()
+    private suspend fun getBudgetsWithSpending(userId: String): List<BudgetWithSpending> {
         val endDate = System.currentTimeMillis()
         val startDate = endDate - (30L * 24 * 60 * 60 * 1000)
         
         return budgetRepository.getBudgetsWithSpending(userId, startDate, endDate)
             .first()
+            .map { it.toDomain() }
     }
 
     private fun getDateRangeForPeriod(period: AnalysisPeriod): DateRange {

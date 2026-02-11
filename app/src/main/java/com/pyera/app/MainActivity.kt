@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -17,15 +18,19 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.animation.doOnEnd
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.pyera.app.data.biometric.BiometricAuthManager
 import com.pyera.app.data.local.LocalDataSeeder
-import com.pyera.app.data.repository.AuthRepository
+import com.pyera.app.data.preferences.ThemeMode
+import com.pyera.app.domain.repository.AuthRepository
 import com.pyera.app.data.security.AppLockManager
 import com.pyera.app.ui.auth.AuthState
 import com.pyera.app.ui.auth.LoginScreen
@@ -64,11 +69,13 @@ class MainActivity : ComponentActivity() {
 
         super.onCreate(savedInstanceState)
 
-        // Prevent screenshots and screen recording
-        window.setFlags(
-            WindowManager.LayoutParams.FLAG_SECURE,
-            WindowManager.LayoutParams.FLAG_SECURE
-        )
+        // Prevent screenshots and screen recordings in release builds
+        if (!BuildConfig.DEBUG) {
+            window.setFlags(
+                WindowManager.LayoutParams.FLAG_SECURE,
+                WindowManager.LayoutParams.FLAG_SECURE
+            )
+        }
 
         // Initialize Google Auth Client
         googleAuthHelper.initialize(this)
@@ -77,18 +84,23 @@ class MainActivity : ComponentActivity() {
         lifecycle.addObserver(appLockManager)
 
         setContent {
-            PyeraTheme {
+            PyeraTheme(themeMode = ThemeMode.SYSTEM) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+                    val navController = rememberNavController()
+                    
+                    // Handle screenshot protection based on current screen
+                    ScreenshotProtectionHandler(navController = navController)
+                    
                     PyeraAppNavigation(
+                        navController = navController,
                         dataSeeder = dataSeeder,
                         googleAuthHelper = googleAuthHelper,
                         biometricAuthManager = biometricAuthManager,
                         authRepository = authRepository,
-                        appLockManager = appLockManager,
-                        activity = this
+                        appLockManager = appLockManager
                     )
                 }
             }
@@ -114,17 +126,74 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+/**
+ * Routes that require screenshot protection (sensitive screens)
+ */
+private val SECURE_ROUTES = setOf(
+    "security/setup",      // SetPinScreen
+    "security/change-pin"  // ChangePinScreen
+)
+
+/**
+ * Composable that handles enabling/disabling screenshot protection
+ * based on the current navigation route
+ */
+@Composable
+private fun ScreenshotProtectionHandler(navController: NavController) {
+    if (!BuildConfig.DEBUG) {
+        return
+    }
+    val context = LocalContext.current
+    val activity = remember(context) {
+        context as? ComponentActivity
+    }
+    
+    // Track current route
+    var currentRoute by remember { mutableStateOf<String?>(null) }
+    
+    DisposableEffect(navController) {
+        val listener = NavController.OnDestinationChangedListener { _, destination, _ ->
+            currentRoute = destination.route
+        }
+        navController.addOnDestinationChangedListener(listener)
+        onDispose {
+            navController.removeOnDestinationChangedListener(listener)
+        }
+    }
+    
+    // Apply FLAG_SECURE based on current route
+    LaunchedEffect(currentRoute) {
+        activity?.window?.let { window ->
+            val shouldSecure = currentRoute in SECURE_ROUTES
+            if (shouldSecure) {
+                window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+            } else {
+                window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+            }
+        }
+    }
+}
+
+/**
+ * Extension to enable/disable screenshot protection for screens outside of navigation
+ */
+fun ComponentActivity.setScreenshotProtection(enabled: Boolean) {
+    if (enabled) {
+        window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+    } else {
+        window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+    }
+}
+
 @Composable
 fun PyeraAppNavigation(
+    navController: NavHostController,
     dataSeeder: LocalDataSeeder,
     googleAuthHelper: com.pyera.app.data.repository.GoogleAuthHelper,
     biometricAuthManager: BiometricAuthManager,
     authRepository: AuthRepository,
-    appLockManager: AppLockManager,
-    activity: ComponentActivity
+    appLockManager: AppLockManager
 ) {
-    val navController = rememberNavController()
-    
     // Determine start destination based on onboarding and auth state
     val isOnboardingCompleted = dataSeeder.isOnboardingCompleted()
     
@@ -138,6 +207,15 @@ fun PyeraAppNavigation(
     
     // Show lock screen if locked
     if (isLocked) {
+        // Enable screenshot protection on AppLockScreen
+        val context = LocalContext.current
+        DisposableEffect(Unit) {
+            (context as? ComponentActivity)?.setScreenshotProtection(true)
+            onDispose {
+                (context as? ComponentActivity)?.setScreenshotProtection(false)
+            }
+        }
+        
         AppLockScreen(
             onUnlockSuccess = { appLockManager.unlock() }
         )

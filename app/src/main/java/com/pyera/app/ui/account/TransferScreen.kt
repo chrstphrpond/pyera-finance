@@ -1,8 +1,14 @@
 package com.pyera.app.ui.account
 
+import com.pyera.app.ui.components.PyeraCard
+import com.pyera.app.ui.theme.tokens.ColorTokens
+import com.pyera.app.ui.theme.tokens.SpacingTokens
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -29,6 +35,8 @@ import androidx.navigation.NavController
 import com.pyera.app.data.local.entity.AccountEntity
 import com.pyera.app.data.local.entity.formattedBalance
 import com.pyera.app.ui.theme.*
+import com.pyera.app.ui.util.CurrencyFormatter
+import com.pyera.app.ui.util.pyeraBackground
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -72,41 +80,43 @@ fun TransferScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = DeepBackground,
-                    titleContentColor = TextPrimary,
-                    navigationIconContentColor = TextPrimary
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
         },
-        containerColor = DeepBackground
+        containerColor = Color.Transparent
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .pyeraBackground()
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp)
+                .padding(SpacingTokens.Medium)
         ) {
             // Error message
             error?.let { errorMessage ->
-                Card(
+                PyeraCard(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = ErrorContainer)
+                    containerColor = ErrorContainer,
+                    borderWidth = 0.dp
                 ) {
                     Text(
                         text = errorMessage,
-                        color = ColorError,
-                        modifier = Modifier.padding(16.dp)
+                        color = ColorTokens.Error500,
+                        modifier = Modifier.padding(SpacingTokens.Medium)
                     )
                 }
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(SpacingTokens.Medium))
             }
             
             // From Account
             Text(
                 text = "From",
                 style = MaterialTheme.typography.bodyMedium,
-                color = TextSecondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             AccountSelector(
@@ -125,8 +135,8 @@ fun TransferScreen(
                 Icon(
                     imageVector = Icons.Default.ArrowDownward,
                     contentDescription = null,
-                    tint = AccentGreen,
-                    modifier = Modifier.size(32.dp)
+                    tint = ColorTokens.Primary500,
+                    modifier = Modifier.size(SpacingTokens.ExtraLarge)
                 )
             }
             
@@ -136,7 +146,7 @@ fun TransferScreen(
             Text(
                 text = "To",
                 style = MaterialTheme.typography.bodyMedium,
-                color = TextSecondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             AccountSelector(
@@ -145,31 +155,31 @@ fun TransferScreen(
                 onClick = { showToAccountPicker = true }
             )
             
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Large))
             
             // Amount Input
             Text(
                 text = "Amount",
                 style = MaterialTheme.typography.bodyMedium,
-                color = TextSecondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             
             Surface(
-                color = SurfaceElevated,
-                shape = RoundedCornerShape(16.dp),
+                color = ColorTokens.SurfaceLevel2,
+                shape = RoundedCornerShape(SpacingTokens.Medium),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 20.dp, vertical = 16.dp),
+                        .padding(horizontal = 20.dp, vertical = SpacingTokens.Medium),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "₱",
+                        text = CurrencyFormatter.SYMBOL,
                         style = MaterialTheme.typography.headlineMedium.copy(
-                            color = AccentGreen,
+                            color = ColorTokens.Primary500,
                             fontWeight = FontWeight.Bold
                         ),
                         modifier = Modifier.padding(end = 12.dp)
@@ -185,7 +195,7 @@ fun TransferScreen(
                         },
                         modifier = Modifier.weight(1f),
                         textStyle = MaterialTheme.typography.headlineMedium.copy(
-                            color = TextPrimary,
+                            color = MaterialTheme.colorScheme.onBackground,
                             textAlign = TextAlign.Start
                         ),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
@@ -195,7 +205,7 @@ fun TransferScreen(
                                     Text(
                                         text = "0.00",
                                         style = MaterialTheme.typography.headlineMedium.copy(
-                                            color = TextSecondary
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     )
                                 }
@@ -209,25 +219,25 @@ fun TransferScreen(
             if (isAmountError) {
                 Text(
                     text = "Please enter a valid amount",
-                    color = ColorError,
+                    color = ColorTokens.Error500,
                     style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                    modifier = Modifier.padding(start = SpacingTokens.Medium, top = 4.dp)
                 )
             }
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Medium))
             
             // Date Picker
             Text(
                 text = "Date",
                 style = MaterialTheme.typography.bodyMedium,
-                color = TextSecondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             
             val dateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
             Surface(
-                color = SurfaceElevated,
+                color = ColorTokens.SurfaceLevel2,
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -236,31 +246,31 @@ fun TransferScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 14.dp),
+                        .padding(horizontal = SpacingTokens.Medium, vertical = 14.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
                         imageVector = Icons.Default.CalendarToday,
                         contentDescription = null,
-                        tint = AccentGreen,
+                        tint = ColorTokens.Primary500,
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
                         text = dateFormat.format(Date(selectedDate)),
                         style = MaterialTheme.typography.bodyLarge,
-                        color = TextPrimary,
+                        color = MaterialTheme.colorScheme.onBackground,
                         modifier = Modifier.weight(1f)
                     )
                     Text(
                         text = "Change",
                         style = MaterialTheme.typography.bodySmall,
-                        color = AccentGreen
+                        color = ColorTokens.Primary500
                     )
                 }
             }
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Medium))
             
             // Description
             OutlinedTextField(
@@ -271,18 +281,20 @@ fun TransferScreen(
                 modifier = Modifier.fillMaxWidth(),
                 maxLines = 2,
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = AccentGreen,
-                    unfocusedBorderColor = TextSecondary,
-                    focusedTextColor = TextPrimary,
-                    unfocusedTextColor = TextPrimary,
-                    focusedLabelColor = AccentGreen,
-                    unfocusedLabelColor = TextSecondary
+                    focusedBorderColor = ColorTokens.Primary500,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    focusedLabelColor = ColorTokens.Primary500,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             )
             
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.ExtraLarge))
             
             // Transfer Button
+            val accountsAreDistinct = fromAccount != null && toAccount != null && fromAccount.id != toAccount.id
+
             Button(
                 onClick = {
                     val amountVal = amount.toDoubleOrNull()
@@ -295,8 +307,8 @@ fun TransferScreen(
                     }
                     
                     viewModel.transferBetweenAccounts(
-                        fromAccountId = fromAccount!!.id,
-                        toAccountId = toAccount!!.id,
+                        fromAccountId = fromAccount.id,
+                        toAccountId = toAccount.id,
                         amount = amountVal,
                         description = description
                     ) {
@@ -306,22 +318,20 @@ fun TransferScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = AccentGreen),
-                enabled = !isLoading && 
-                         fromAccount != null && 
-                         toAccount != null && 
-                         amount.isNotBlank() &&
-                         fromAccount?.id != toAccount?.id
+                colors = ButtonDefaults.buttonColors(containerColor = ColorTokens.Primary500),
+                enabled = !isLoading &&
+                         accountsAreDistinct &&
+                         amount.isNotBlank()
             ) {
                 if (isLoading) {
                     CircularProgressIndicator(
-                        color = DeepBackground,
-                        modifier = Modifier.size(24.dp)
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.size(SpacingTokens.Large)
                     )
                 } else {
                     Text(
                         text = "Transfer",
-                        color = DeepBackground,
+                        color = MaterialTheme.colorScheme.onPrimary,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -334,7 +344,7 @@ fun TransferScreen(
                 Text(
                     text = "Available: ${account.formattedBalance()}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
             }
@@ -388,7 +398,7 @@ private fun AccountSelector(
     onClick: () -> Unit
 ) {
     Surface(
-        color = SurfaceElevated,
+        color = ColorTokens.SurfaceLevel2,
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier
             .fillMaxWidth()
@@ -397,7 +407,7 @@ private fun AccountSelector(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(SpacingTokens.Medium),
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (account != null) {
@@ -414,19 +424,19 @@ private fun AccountSelector(
                     )
                 }
                 
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(SpacingTokens.Medium))
                 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = account.name,
                         style = MaterialTheme.typography.bodyLarge,
-                        color = TextPrimary,
+                        color = MaterialTheme.colorScheme.onBackground,
                         fontWeight = FontWeight.Medium
                     )
                     Text(
                         text = account.formattedBalance(),
                         style = MaterialTheme.typography.bodySmall,
-                        color = TextSecondary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             } else {
@@ -434,22 +444,22 @@ private fun AccountSelector(
                     modifier = Modifier
                         .size(48.dp)
                         .clip(CircleShape)
-                        .background(SurfaceDark),
+                        .background(ColorTokens.SurfaceLevel1),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.AccountBalance,
                         contentDescription = null,
-                        tint = TextSecondary
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(SpacingTokens.Medium))
                 
                 Text(
                     text = placeholder,
                     style = MaterialTheme.typography.bodyLarge,
-                    color = TextSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -457,7 +467,7 @@ private fun AccountSelector(
             Icon(
                 imageVector = Icons.Default.ChevronRight,
                 contentDescription = "Select",
-                tint = TextSecondary
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -483,14 +493,14 @@ private fun AccountPickerDialog(
                     val isSelected = account.id == selectedAccount?.id
                     
                     Surface(
-                        color = if (isSelected) AccentGreen.copy(alpha = 0.2f) else SurfaceDark,
+                        color = if (isSelected) ColorTokens.Primary500.copy(alpha = 0.2f) else ColorTokens.SurfaceLevel1,
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable { onAccountSelected(account) }
                     ) {
                         Row(
-                            modifier = Modifier.padding(16.dp),
+                            modifier = Modifier.padding(SpacingTokens.Medium),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Box(
@@ -506,19 +516,19 @@ private fun AccountPickerDialog(
                                 )
                             }
                             
-                            Spacer(modifier = Modifier.width(16.dp))
+                            Spacer(modifier = Modifier.width(SpacingTokens.Medium))
                             
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = account.name,
                                     style = MaterialTheme.typography.bodyLarge,
-                                    color = TextPrimary,
+                                    color = MaterialTheme.colorScheme.onBackground,
                                     fontWeight = FontWeight.Medium
                                 )
                                 Text(
                                     text = account.formattedBalance(),
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = TextSecondary
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                             
@@ -526,7 +536,7 @@ private fun AccountPickerDialog(
                                 Icon(
                                     imageVector = Icons.Default.CheckCircle,
                                     contentDescription = "Selected",
-                                    tint = AccentGreen
+                                    tint = ColorTokens.Primary500
                                 )
                             }
                         }
@@ -536,10 +546,10 @@ private fun AccountPickerDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel", color = TextSecondary)
+                Text("Cancel", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         },
-        containerColor = SurfaceElevated
+        containerColor = ColorTokens.SurfaceLevel2
     )
 }
 
@@ -643,7 +653,7 @@ private fun TransferDatePickerDialog(
                     }
                 }
                 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(SpacingTokens.Medium))
                 
                 // Quick buttons
                 Row(
@@ -656,7 +666,7 @@ private fun TransferDatePickerDialog(
                         month = today.get(Calendar.MONTH)
                         day = today.get(Calendar.DAY_OF_MONTH)
                     }) {
-                        Text("Today", color = AccentGreen)
+                        Text("Today", color = ColorTokens.Primary500)
                     }
                     TextButton(onClick = {
                         val yesterday = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, -1) }
@@ -664,7 +674,7 @@ private fun TransferDatePickerDialog(
                         month = yesterday.get(Calendar.MONTH)
                         day = yesterday.get(Calendar.DAY_OF_MONTH)
                     }) {
-                        Text("Yesterday", color = AccentGreen)
+                        Text("Yesterday", color = ColorTokens.Primary500)
                     }
                 }
             }
@@ -677,16 +687,19 @@ private fun TransferDatePickerDialog(
                     newCalendar.set(Calendar.MILLISECOND, 0)
                     onDateSelected(newCalendar.timeInMillis)
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = AccentGreen)
+                colors = ButtonDefaults.buttonColors(containerColor = ColorTokens.Primary500)
             ) {
-                Text("OK", color = DeepBackground)
+                Text("OK", color = MaterialTheme.colorScheme.onPrimary)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel", color = TextSecondary)
+                Text("Cancel", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         },
-        containerColor = SurfaceElevated
+        containerColor = ColorTokens.SurfaceLevel2
     )
 }
+
+
+

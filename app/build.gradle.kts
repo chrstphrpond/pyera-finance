@@ -10,6 +10,12 @@ android {
     namespace = "com.pyera.app"
     compileSdk = 34
 
+    val certPin1 = project.findProperty("PYERA_CERT_PIN_1")?.toString()?.trim().orEmpty()
+    val certPin2 = project.findProperty("PYERA_CERT_PIN_2")?.toString()?.trim().orEmpty()
+    val geminiApiKey = project.findProperty("GEMINI_API_KEY")?.toString()?.trim().orEmpty()
+    val enableCertPinning = certPin1.isNotBlank() || certPin2.isNotBlank()
+    fun buildConfigString(value: String) = "\"${value.replace("\"", "\\\"")}\""
+
     defaultConfig {
         applicationId = "com.pyera.app"
         minSdk = 26
@@ -29,9 +35,20 @@ android {
     }
 
     buildTypes {
+        debug {
+            buildConfigField("boolean", "ENABLE_CERT_PINNING", enableCertPinning.toString())
+            buildConfigField("String", "CERT_PIN_1", buildConfigString(certPin1))
+            buildConfigField("String", "CERT_PIN_2", buildConfigString(certPin2))
+            buildConfigField("String", "GEMINI_API_KEY", buildConfigString(geminiApiKey))
+        }
+
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+            buildConfigField("boolean", "ENABLE_CERT_PINNING", enableCertPinning.toString())
+            buildConfigField("String", "CERT_PIN_1", buildConfigString(certPin1))
+            buildConfigField("String", "CERT_PIN_2", buildConfigString(certPin2))
+            buildConfigField("String", "GEMINI_API_KEY", buildConfigString(geminiApiKey))
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -107,6 +124,7 @@ dependencies {
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
+    implementation("androidx.compose.material:material")
     implementation(libs.androidx.material3)
     implementation(libs.material.icons.extended)
 
@@ -164,6 +182,14 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.mockito.kotlin)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.turbine)
+    
+    // WorkManager Testing
+    testImplementation("androidx.work:work-testing:2.9.0")
+    testImplementation("org.robolectric:robolectric:4.11.1")
+    testImplementation("io.mockk:mockk:1.13.8")
+    testImplementation("io.mockk:mockk-android:1.13.8")
+    testImplementation("androidx.test:core:1.5.0")
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
@@ -181,11 +207,6 @@ dependencies {
     
     // Google Sign-In
     implementation("com.google.android.gms:play-services-auth:20.7.0")
-    
-    // Glance Widgets
-    implementation("androidx.glance:glance:1.0.0")
-    implementation("androidx.glance:glance-appwidget:1.0.0")
-    implementation("androidx.glance:glance-material3:1.0.0")
     
     // For Excel export
     implementation("org.apache.poi:poi:5.2.3")

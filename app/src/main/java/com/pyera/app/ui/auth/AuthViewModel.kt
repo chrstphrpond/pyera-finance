@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.pyera.app.data.biometric.BiometricAuthManager
 import com.pyera.app.data.biometric.BiometricAuthResult
 import com.pyera.app.data.biometric.BiometricCapability
-import com.pyera.app.data.repository.AuthRepository
+import com.pyera.app.domain.repository.AuthRepository
 import com.pyera.app.ui.components.PasswordStrength
 import com.pyera.app.ui.components.calculatePasswordStrength
 import dagger.hilt.android.lifecycle.HiltViewModel

@@ -1,5 +1,8 @@
 package com.pyera.app.ui.transaction
 
+import com.pyera.app.ui.theme.tokens.ColorTokens
+import com.pyera.app.ui.theme.tokens.SpacingTokens
+
 import androidx.compose.animation.AnimatedVisibility
 
 import androidx.compose.animation.fadeIn
@@ -34,6 +37,7 @@ import com.pyera.app.ui.components.*
 import androidx.compose.ui.res.stringResource
 import com.pyera.app.R
 import com.pyera.app.ui.theme.*
+import com.pyera.app.ui.util.pyeraBackground
 
 
 /**
@@ -56,7 +60,8 @@ fun TransactionListScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     var showDeleteDialogId by rememberSaveable { mutableStateOf<Long?>(null) }
-    val showDeleteDialog = showDeleteDialogId?.let { id -> transactions.find { it.id == id } }
+    val showDeleteDialog = showDeleteDialogId?.let { id ->
+        state.transactions.find { it.id == id }
     }
 
     val swipeRefreshState = rememberSwipeRefreshState(
@@ -73,26 +78,26 @@ fun TransactionListScreen(
             isDestructive = true,
             onConfirm = {
                 viewModel.deleteTransaction(transaction)
-                showDeleteDialog = null
+                showDeleteDialogId = null
             },
-            onDismiss = { showDeleteDialog = null }
+            onDismiss = { showDeleteDialogId = null }
         )
     }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(DeepBackground)
+            .pyeraBackground()
     ) {
         // Top App Bar with Search and Filters
         Surface(
-            color = DeepBackground,
+            color = MaterialTheme.colorScheme.surface,
             shadowElevation = 4.dp
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
+                    .padding(SpacingTokens.Medium)
             ) {
                 // Header Row with Title and Sort
                 Row(
@@ -103,7 +108,7 @@ fun TransactionListScreen(
                     Text(
                         text = stringResource(R.string.transaction_list_title),
                         style = MaterialTheme.typography.headlineMedium,
-                        color = TextPrimary
+                        color = MaterialTheme.colorScheme.onBackground
                     )
 
                     // Sort Dropdown
@@ -113,7 +118,7 @@ fun TransactionListScreen(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
                 // Search Bar
                 SearchBar(
@@ -172,8 +177,8 @@ fun TransactionListScreen(
                 SwipeRefreshIndicator(
                     state = state,
                     refreshTriggerDistance = trigger,
-                    backgroundColor = SurfaceElevated,
-                    contentColor = NeonYellow
+                    backgroundColor = ColorTokens.SurfaceLevel2,
+                    contentColor = ColorTokens.Primary500
                 )
             },
             modifier = Modifier.fillMaxSize()
@@ -211,7 +216,7 @@ fun TransactionListScreen(
                             groupedTransactions = viewModel.getGroupedTransactions(),
                             categories = state.categories,
                             accounts = state.accounts,
-                            onDelete = { showDeleteDialog = it },
+                            onDelete = { showDeleteDialogId = it.id },
                             onEdit = onEditTransaction
                         )
                     }
@@ -231,20 +236,20 @@ private fun SearchBar(
     placeholder: String
 ) {
     Surface(
-        color = SurfaceElevated,
+        color = ColorTokens.SurfaceLevel2,
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(horizontal = SpacingTokens.Medium, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 imageVector = Icons.Default.Search,
                 contentDescription = null,
-                tint = TextSecondary,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(20.dp)
             )
 
@@ -254,7 +259,7 @@ private fun SearchBar(
                 if (query.isEmpty()) {
                     Text(
                         text = placeholder,
-                        color = TextSecondary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodyLarge
                     )
                 }
@@ -262,7 +267,7 @@ private fun SearchBar(
                     value = query,
                     onValueChange = onQueryChange,
                     modifier = Modifier.fillMaxWidth(),
-                    textStyle = MaterialTheme.typography.bodyLarge.copy(color = TextPrimary),
+                    textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground),
                     singleLine = true
                 )
             }
@@ -274,12 +279,12 @@ private fun SearchBar(
             ) {
                 IconButton(
                     onClick = { onQueryChange("") },
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(SpacingTokens.Large)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Clear,
                         contentDescription = stringResource(R.string.transaction_list_clear_search_content_desc),
-                        tint = TextSecondary
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -300,7 +305,7 @@ private fun TransactionGroupedList(
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+        contentPadding = PaddingValues(horizontal = SpacingTokens.Medium, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         groupedTransactions.forEach { (dateHeader, transactions) ->
@@ -345,7 +350,7 @@ private fun DateHeader(date: String) {
         style = MaterialTheme.typography.labelLarge.copy(
             fontSize = 14.sp
         ),
-        color = TextSecondary,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier.padding(vertical = 12.dp)
     )
 }
@@ -386,3 +391,5 @@ private fun EmptyStateWithFilters(
         )
     }
 }
+
+

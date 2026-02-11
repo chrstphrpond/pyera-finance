@@ -2,6 +2,7 @@ package com.pyera.app.data.security
 
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
+import com.pyera.app.domain.repository.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -11,10 +12,12 @@ import javax.inject.Singleton
 /**
  * Manages the app lock state and lifecycle.
  * Tracks app background/foreground to determine when to show the lock screen.
+ * Also handles session timeout for Firebase Auth.
  */
 @Singleton
 class AppLockManager @Inject constructor(
-    private val securityPreferences: SecurityPreferences
+    private val securityPreferences: SecurityPreferences,
+    private val authRepository: AuthRepository
 ) : DefaultLifecycleObserver {
 
     private val _isLocked = MutableStateFlow(false)
@@ -30,15 +33,17 @@ class AppLockManager @Inject constructor(
         _isAppLockEnabled.value = securityPreferences.isAppLockEnabled
     }
 
+    companion object {
+        const val SESSION_TIMEOUT_MS = 30 * 60 * 1000L // 30 minutes
+    }
+
     /**
      * Called when app goes to background
      */
     override fun onStop(owner: LifecycleOwner) {
         super.onStop(owner)
-        if (securityPreferences.isAppLockEnabled) {
-            isAppInBackground = true
-            securityPreferences.lastActiveTime = System.currentTimeMillis()
-        }
+        isAppInBackground = true
+        securityPreferences.lastActiveTime = System.currentTimeMillis()
     }
 
     /**
@@ -46,10 +51,27 @@ class AppLockManager @Inject constructor(
      */
     override fun onStart(owner: LifecycleOwner) {
         super.onStart(owner)
-        if (isAppInBackground && shouldLock()) {
-            lock()
+        if (isAppInBackground) {
+            // Check session timeout first
+            if (isSessionExpired()) {
+                // Sign out user due to session timeout
+                authRepository.logout()
+            } else if (shouldLock()) {
+                lock()
+            }
         }
         isAppInBackground = false
+    }
+
+    /**
+     * Check if the Firebase Auth session has expired (30 minutes of inactivity)
+     */
+    fun isSessionExpired(): Boolean {
+        // Only check if user is logged in
+        if (authRepository.currentUser == null) return false
+        
+        val elapsed = System.currentTimeMillis() - securityPreferences.lastActiveTime
+        return elapsed > SESSION_TIMEOUT_MS
     }
 
     /**
@@ -87,16 +109,39 @@ class AppLockManager @Inject constructor(
 
     /**
      * Verify PIN and unlock if correct
+     * Resets failed attempts on success, records failed attempt on failure
      * @return true if PIN is correct and app is unlocked
      */
     fun verifyAndUnlock(pin: String): Boolean {
+        // Check if locked out first
+        if (securityPreferences.isLockedOut()) {
+            return false
+        }
+        
         return if (securityPreferences.verifyPin(pin)) {
+            securityPreferences.resetAttempts()
             unlock()
             true
         } else {
+            securityPreferences.recordFailedAttempt()
             false
         }
     }
+
+    /**
+     * Check if the user is currently locked out from PIN entry
+     */
+    fun isLockedOut(): Boolean = securityPreferences.isLockedOut()
+
+    /**
+     * Get the remaining lockout time in milliseconds
+     */
+    fun getRemainingLockoutTime(): Long = securityPreferences.getRemainingLockoutTime()
+
+    /**
+     * Get the number of remaining PIN attempts before lockout
+     */
+    fun getRemainingAttempts(): Int = securityPreferences.getRemainingAttempts()
 
     /**
      * Enable app lock

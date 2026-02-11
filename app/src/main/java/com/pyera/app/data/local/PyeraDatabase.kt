@@ -20,6 +20,7 @@ import com.pyera.app.data.local.entity.BudgetEntity
 import com.pyera.app.data.local.entity.CategoryEntity
 import com.pyera.app.data.local.entity.DebtEntity
 import com.pyera.app.data.local.entity.InvestmentEntity
+import com.pyera.app.data.local.entity.NetWorthSnapshot
 import com.pyera.app.data.local.entity.RecurringTransactionEntity
 import com.pyera.app.data.local.entity.SavingsGoalEntity
 import com.pyera.app.data.local.entity.TransactionEntity
@@ -50,6 +51,8 @@ import com.pyera.app.data.local.entity.TransactionTemplateEntity
  *   - User-defined rules to automatically categorize transactions based on patterns
  * - v9: Added TransactionTemplateEntity for quick transaction templates
  *   - Save frequent transactions as templates for one-tap entry
+ * - v10: Added NetWorthSnapshot entity to the database schema
+ * - v11: Added accountId to RecurringTransactionEntity for explicit account tracking
  */
 @Database(
     entities = [
@@ -62,10 +65,11 @@ import com.pyera.app.data.local.entity.TransactionTemplateEntity
         InvestmentEntity::class,
         AccountEntity::class,
         RecurringTransactionEntity::class,
+        NetWorthSnapshot::class,
         TransactionRuleEntity::class,
         TransactionTemplateEntity::class
     ],
-    version = 9,
+    version = 11,
     exportSchema = false
 )
 abstract class PyeraDatabase : RoomDatabase() {

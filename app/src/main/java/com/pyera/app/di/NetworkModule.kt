@@ -8,6 +8,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.Cache
+import okhttp3.CertificatePinner
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -53,6 +54,11 @@ object NetworkModule {
      * Write timeout: 30 seconds
      */
     private const val WRITE_TIMEOUT_SECONDS = 30L
+    
+    /**
+     * Pinned host for certificate pinning
+     */
+    private const val PINNED_HOST = "api.moonshot.cn"
 
     /**
      * Provides OkHttp cache instance
@@ -91,7 +97,7 @@ object NetworkModule {
         cache: Cache,
         loggingInterceptor: HttpLoggingInterceptor
     ): OkHttpClient {
-        return OkHttpClient.Builder()
+        val builder = OkHttpClient.Builder()
             .cache(cache)
             .connectTimeout(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .readTimeout(READ_TIMEOUT_SECONDS, TimeUnit.SECONDS)
@@ -119,7 +125,26 @@ object NetworkModule {
                     .build()
             }
             .addInterceptor(loggingInterceptor)
-            .build()
+
+        val certificatePins = listOf(
+            BuildConfig.CERT_PIN_1,
+            BuildConfig.CERT_PIN_2
+        )
+            .map { it.trim() }
+            .filter { it.isNotBlank() }
+            .map { pin ->
+                if (pin.startsWith("sha256/")) pin else "sha256/$pin"
+            }
+
+        if (BuildConfig.ENABLE_CERT_PINNING && certificatePins.isNotEmpty()) {
+            val pinnerBuilder = CertificatePinner.Builder()
+            certificatePins.forEach { pin ->
+                pinnerBuilder.add(PINNED_HOST, pin)
+            }
+            builder.certificatePinner(pinnerBuilder.build())
+        }
+
+        return builder.build()
     }
 
     /**

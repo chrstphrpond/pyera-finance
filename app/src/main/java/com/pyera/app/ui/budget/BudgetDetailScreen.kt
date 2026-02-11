@@ -1,5 +1,8 @@
 package com.pyera.app.ui.budget
 
+import com.pyera.app.ui.theme.tokens.ColorTokens
+import com.pyera.app.ui.theme.tokens.SpacingTokens
+
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -38,12 +41,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,17 +61,11 @@ import com.pyera.app.data.local.entity.BudgetPeriod
 import com.pyera.app.data.local.entity.BudgetStatus
 import com.pyera.app.data.local.entity.BudgetWithSpending
 import com.pyera.app.ui.components.PyeraCard
-import com.pyera.app.ui.theme.AccentGreen
 import com.pyera.app.ui.theme.CardBackground
-import com.pyera.app.ui.theme.ColorError
-import com.pyera.app.ui.theme.ColorWarning
-import com.pyera.app.ui.theme.DeepBackground
 import com.pyera.app.ui.theme.ErrorContainer
 import com.pyera.app.ui.theme.SuccessContainer
-import com.pyera.app.ui.theme.TextPrimary
-import com.pyera.app.ui.theme.TextSecondary
-import com.pyera.app.ui.theme.TextTertiary
 import com.pyera.app.ui.theme.WarningContainer
+import com.pyera.app.ui.util.pyeraBackground
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -92,13 +91,13 @@ fun BudgetDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Budget Details", color = TextPrimary) },
+                title = { Text("Budget Details", color = MaterialTheme.colorScheme.onBackground) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint = TextPrimary
+                            tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 },
@@ -108,7 +107,7 @@ fun BudgetDetailScreen(
                             Icon(
                                 imageVector = Icons.Default.MoreVert,
                                 contentDescription = "Menu",
-                                tint = TextPrimary
+                                tint = MaterialTheme.colorScheme.onBackground
                             )
                         }
 
@@ -123,11 +122,11 @@ fun BudgetDetailScreen(
                                         Icon(
                                             imageVector = Icons.Default.Edit,
                                             contentDescription = null,
-                                            tint = AccentGreen,
+                                            tint = ColorTokens.Primary500,
                                             modifier = Modifier.size(20.dp)
                                         )
                                         Spacer(modifier = Modifier.width(8.dp))
-                                        Text("Edit", color = TextPrimary)
+                                        Text("Edit", color = MaterialTheme.colorScheme.onBackground)
                                     }
                                 },
                                 onClick = {
@@ -141,11 +140,11 @@ fun BudgetDetailScreen(
                                         Icon(
                                             imageVector = Icons.Default.Delete,
                                             contentDescription = null,
-                                            tint = ColorError,
+                                            tint = ColorTokens.Error500,
                                             modifier = Modifier.size(20.dp)
                                         )
                                         Spacer(modifier = Modifier.width(8.dp))
-                                        Text("Delete", color = ColorError)
+                                        Text("Delete", color = ColorTokens.Error500)
                                     }
                                 },
                                 onClick = {
@@ -157,26 +156,29 @@ fun BudgetDetailScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = DeepBackground
+                    containerColor = MaterialTheme.colorScheme.surface
                 )
             )
         },
-        containerColor = DeepBackground
+        containerColor = Color.Transparent
     ) { padding ->
         if (isLoading || budget == null) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
+                    .pyeraBackground()
                     .padding(padding),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator(color = AccentGreen)
+                CircularProgressIndicator(color = ColorTokens.Primary500)
             }
         } else {
             budget?.let { budgetData ->
                 BudgetDetailContent(
                     budget = budgetData,
-                    modifier = Modifier.padding(padding)
+                    modifier = Modifier
+                        .pyeraBackground()
+                        .padding(padding)
                 )
             }
         }
@@ -215,8 +217,8 @@ private fun BudgetDetailContent(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .padding(SpacingTokens.Medium),
+        verticalArrangement = Arrangement.spacedBy(SpacingTokens.Medium)
     ) {
         // Category Header Card
         CategoryHeaderCard(budget = budget)
@@ -228,7 +230,7 @@ private fun BudgetDetailContent(
         BudgetDetailsCard(budget = budget)
 
         // Status Card
-        StatusCard(status = budget.status, remaining = budget.remainingAmount)
+        StatusCard(status = budget.status)
     }
 }
 
@@ -239,7 +241,7 @@ private fun CategoryHeaderCard(budget: BudgetWithSpending) {
     ) {
         Row(
             modifier = Modifier
-                .padding(24.dp)
+                .padding(SpacingTokens.Large)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -264,14 +266,14 @@ private fun CategoryHeaderCard(budget: BudgetWithSpending) {
                 Text(
                     text = budget.categoryName,
                     style = MaterialTheme.typography.headlineSmall,
-                    color = TextPrimary,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = budget.period.name.lowercase()
                         .replaceFirstChar { it.uppercase() } + " Budget",
                     style = MaterialTheme.typography.bodyLarge,
-                    color = TextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -282,9 +284,9 @@ private fun CategoryHeaderCard(budget: BudgetWithSpending) {
 private fun ProgressOverviewCard(budget: BudgetWithSpending) {
     val progress = budget.progressPercentage.coerceIn(0f, 1f)
     val statusColor = when (budget.status) {
-        BudgetStatus.HEALTHY, BudgetStatus.ON_TRACK -> AccentGreen
-        BudgetStatus.WARNING -> ColorWarning
-        BudgetStatus.OVER_BUDGET -> ColorError
+        BudgetStatus.HEALTHY, BudgetStatus.ON_TRACK -> ColorTokens.Primary500
+        BudgetStatus.WARNING -> ColorTokens.Warning500
+        BudgetStatus.OVER_BUDGET -> ColorTokens.Error500
     }
 
     PyeraCard(
@@ -292,13 +294,13 @@ private fun ProgressOverviewCard(budget: BudgetWithSpending) {
     ) {
         Column(
             modifier = Modifier
-                .padding(24.dp)
+                .padding(SpacingTokens.Large)
                 .fillMaxWidth()
         ) {
             Text(
                 text = "Spending Progress",
                 style = MaterialTheme.typography.titleMedium,
-                color = TextPrimary,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.SemiBold
             )
 
@@ -314,11 +316,11 @@ private fun ProgressOverviewCard(budget: BudgetWithSpending) {
                         progress = { progress },
                         modifier = Modifier.size(140.dp),
                         color = statusColor,
-                        trackColor = TextTertiary.copy(alpha = 0.2f),
+                        trackColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f).copy(alpha = 0.2f),
                         strokeWidth = 12.dp
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
                     Text(
                         text = String.format("%.0f%%", budget.progressPercentage * 100),
@@ -330,22 +332,22 @@ private fun ProgressOverviewCard(budget: BudgetWithSpending) {
                     Text(
                         text = "of budget used",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = TextSecondary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Large))
 
             // Linear progress bar
             LinearProgressIndicator(
-                progress = progress,
+                progress = { progress },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(10.dp)
                     .clip(RoundedCornerShape(5.dp)),
                 color = statusColor,
-                trackColor = TextTertiary.copy(alpha = 0.2f)
+                trackColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f).copy(alpha = 0.2f)
             )
         }
     }
@@ -358,13 +360,13 @@ private fun BudgetDetailsCard(budget: BudgetWithSpending) {
     ) {
         Column(
             modifier = Modifier
-                .padding(24.dp)
+                .padding(SpacingTokens.Large)
                 .fillMaxWidth()
         ) {
             Text(
                 text = "Budget Breakdown",
                 style = MaterialTheme.typography.titleMedium,
-                color = TextPrimary,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.SemiBold
             )
 
@@ -374,39 +376,39 @@ private fun BudgetDetailsCard(budget: BudgetWithSpending) {
             BudgetDetailRow(
                 label = "Budget Limit",
                 amount = budget.amount,
-                color = AccentGreen
+                color = ColorTokens.Primary500
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
             // Spent Amount
             BudgetDetailRow(
                 label = "Amount Spent",
                 amount = budget.spentAmount,
-                color = if (budget.isOverBudget) ColorError else TextPrimary
+                color = if (budget.isOverBudget) ColorTokens.Error500 else MaterialTheme.colorScheme.onBackground
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
             // Remaining Amount
             BudgetDetailRow(
                 label = "Remaining",
                 amount = budget.remainingAmount,
                 color = when {
-                    budget.remainingAmount < 0 -> ColorError
-                    budget.remainingAmount < budget.amount * 0.2 -> ColorWarning
-                    else -> AccentGreen
+                    budget.remainingAmount < 0 -> ColorTokens.Error500
+                    budget.remainingAmount < budget.amount * 0.2 -> ColorTokens.Warning500
+                    else -> ColorTokens.Primary500
                 }
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
-            androidx.compose.material3.Divider(
-                color = TextTertiary.copy(alpha = 0.2f),
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f).copy(alpha = 0.2f),
                 thickness = 1.dp
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
             // Alert Threshold
             Row(
@@ -417,12 +419,12 @@ private fun BudgetDetailsCard(budget: BudgetWithSpending) {
                 Text(
                     text = "Alert Threshold",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = TextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
                     text = String.format("%.0f%%", budget.alertThreshold * 100),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = TextPrimary,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Medium
                 )
             }
@@ -444,7 +446,7 @@ private fun BudgetDetailRow(
         Text(
             text = label,
             style = MaterialTheme.typography.bodyLarge,
-            color = TextSecondary
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Text(
             text = formatCurrencyDetailed(amount),
@@ -457,31 +459,30 @@ private fun BudgetDetailRow(
 
 @Composable
 private fun StatusCard(
-    status: BudgetStatus,
-    remaining: Double
+    status: BudgetStatus
 ) {
     val (backgroundColor, iconColor, title, message) = when (status) {
         BudgetStatus.HEALTHY -> Quadruple(
             SuccessContainer,
-            AccentGreen,
+            ColorTokens.Primary500,
             "On Track",
             "You're managing your budget well! Keep it up."
         )
         BudgetStatus.ON_TRACK -> Quadruple(
             SuccessContainer,
-            AccentGreen,
+            ColorTokens.Primary500,
             "Looking Good",
             "You're within budget. Stay mindful of your spending."
         )
         BudgetStatus.WARNING -> Quadruple(
             WarningContainer,
-            ColorWarning,
+            ColorTokens.Warning500,
             "Approaching Limit",
             "You're close to your budget limit. Consider reducing spending."
         )
         BudgetStatus.OVER_BUDGET -> Quadruple(
             ErrorContainer,
-            ColorError,
+            ColorTokens.Error500,
             "Over Budget",
             "You've exceeded your budget. Review your expenses."
         )
@@ -507,11 +508,11 @@ private fun StatusCard(
                     imageVector = Icons.Default.Warning,
                     contentDescription = null,
                     tint = iconColor,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(SpacingTokens.Large)
                 )
             }
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(SpacingTokens.Medium))
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
@@ -524,7 +525,7 @@ private fun StatusCard(
                 Text(
                     text = message,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = TextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -542,24 +543,24 @@ private fun DeleteBudgetDialog(
         title = {
             Text(
                 text = "Delete Budget",
-                color = TextPrimary,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.Bold
             )
         },
         text = {
             Text(
                 text = "Are you sure you want to delete this budget? This action cannot be undone.",
-                color = TextSecondary
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         },
         confirmButton = {
             TextButton(onClick = onConfirm) {
-                Text("Delete", color = ColorError, fontWeight = FontWeight.SemiBold)
+                Text("Delete", color = ColorTokens.Error500, fontWeight = FontWeight.SemiBold)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel", color = TextSecondary)
+                Text("Cancel", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     )
@@ -576,3 +577,7 @@ private fun formatCurrencyDetailed(amount: Double): String {
     val formatter = java.text.NumberFormat.getCurrencyInstance(java.util.Locale.getDefault())
     return formatter.format(amount)
 }
+
+
+
+

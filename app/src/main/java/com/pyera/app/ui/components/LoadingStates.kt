@@ -29,18 +29,12 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.pyera.app.ui.theme.AccentGreen
-import com.pyera.app.ui.theme.CardBackground
-import com.pyera.app.ui.theme.CardBorder
-import com.pyera.app.ui.theme.DeepBackground
-import com.pyera.app.ui.theme.NeonYellow
-import com.pyera.app.ui.theme.SurfaceDark
-import com.pyera.app.ui.theme.SurfaceElevated
-import com.pyera.app.ui.theme.Spacing
-import com.pyera.app.ui.theme.TextSecondary
+import com.pyera.app.ui.theme.tokens.ColorTokens
+import com.pyera.app.ui.theme.tokens.SpacingTokens
+import com.pyera.app.ui.util.pyeraBackground
 
 /**
- * A centered circular progress indicator with the brand's AccentGreen color.
+ * A centered circular progress indicator with the brand's ColorTokens.Primary500 color.
  * Used for full-screen loading states.
  */
 @Composable
@@ -54,17 +48,17 @@ fun LoadingIndicator(
         verticalArrangement = Arrangement.Center
     ) {
         CircularProgressIndicator(
-            color = AccentGreen,
+            color = ColorTokens.Primary500,
             strokeWidth = 4.dp,
             modifier = Modifier.size(48.dp)
         )
 
         message?.let {
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Medium))
             Text(
                 text = it,
                 style = MaterialTheme.typography.bodyMedium,
-                color = AccentGreen.copy(alpha = 0.8f)
+                color = ColorTokens.Primary500.copy(alpha = 0.8f)
             )
         }
     }
@@ -78,9 +72,9 @@ fun SmallLoadingIndicator(
     modifier: Modifier = Modifier
 ) {
     CircularProgressIndicator(
-        color = AccentGreen,
+        color = ColorTokens.Primary500,
         strokeWidth = 2.dp,
-        modifier = modifier.size(24.dp)
+        modifier = modifier.size(SpacingTokens.Large)
     )
 }
 
@@ -93,9 +87,9 @@ fun ShimmerCard(
     modifier: Modifier = Modifier
 ) {
     val shimmerColors = listOf(
-        SurfaceElevated.copy(alpha = 0.6f),
-        SurfaceElevated.copy(alpha = 0.9f),
-        SurfaceElevated.copy(alpha = 0.6f)
+        ColorTokens.SurfaceLevel2.copy(alpha = 0.6f),
+        ColorTokens.SurfaceLevel2.copy(alpha = 0.9f),
+        ColorTokens.SurfaceLevel2.copy(alpha = 0.6f)
     )
 
     val transition = rememberInfiniteTransition(label = "shimmer")
@@ -122,7 +116,7 @@ fun ShimmerCard(
         modifier = modifier
             .fillMaxWidth()
             .height(80.dp)
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(SpacingTokens.Medium))
             .background(brush)
     )
 }
@@ -135,9 +129,9 @@ fun ShimmerListItem(
     modifier: Modifier = Modifier
 ) {
     val shimmerColors = listOf(
-        SurfaceElevated.copy(alpha = 0.6f),
-        SurfaceElevated.copy(alpha = 0.9f),
-        SurfaceElevated.copy(alpha = 0.6f)
+        ColorTokens.SurfaceLevel2.copy(alpha = 0.6f),
+        ColorTokens.SurfaceLevel2.copy(alpha = 0.9f),
+        ColorTokens.SurfaceLevel2.copy(alpha = 0.6f)
     )
 
     val transition = rememberInfiniteTransition(label = "shimmer_list")
@@ -163,7 +157,7 @@ fun ShimmerListItem(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .padding(SpacingTokens.Medium),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Avatar placeholder
@@ -174,7 +168,7 @@ fun ShimmerListItem(
                 .background(brush)
         )
 
-        Spacer(modifier = Modifier.width(16.dp))
+        Spacer(modifier = Modifier.width(SpacingTokens.Medium))
 
         // Text placeholders
         Column(
@@ -183,7 +177,7 @@ fun ShimmerListItem(
             Box(
                 modifier = Modifier
                     .fillMaxWidth(0.6f)
-                    .height(16.dp)
+                    .height(SpacingTokens.Medium)
                     .clip(RoundedCornerShape(4.dp))
                     .background(brush)
             )
@@ -199,13 +193,13 @@ fun ShimmerListItem(
             )
         }
 
-        Spacer(modifier = Modifier.width(16.dp))
+        Spacer(modifier = Modifier.width(SpacingTokens.Medium))
 
         // Amount placeholder
         Box(
             modifier = Modifier
                 .width(60.dp)
-                .height(16.dp)
+                .height(SpacingTokens.Medium)
                 .clip(RoundedCornerShape(4.dp))
                 .background(brush)
         )
@@ -223,14 +217,14 @@ fun ShimmerLoadingList(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .background(DeepBackground)
+            .pyeraBackground()
     ) {
         repeat(itemCount) {
             PyeraCard(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                containerColor = SurfaceDark
+                    .padding(horizontal = SpacingTokens.Medium, vertical = SpacingTokens.Small),
+                containerColor = ColorTokens.SurfaceLevel1
             ) {
                 ShimmerListItem()
             }
@@ -252,22 +246,22 @@ fun PyeraLoadingState(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(Spacing.XXLarge),
+            .padding(SpacingTokens.Large),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         CircularProgressIndicator(
-            color = NeonYellow,
+            color = ColorTokens.Primary500,
             strokeWidth = 4.dp,
             modifier = Modifier.size(48.dp)
         )
         
-        Spacer(modifier = Modifier.height(Spacing.Large))
+        Spacer(modifier = Modifier.height(SpacingTokens.Medium))
         
         Text(
             text = message,
             style = MaterialTheme.typography.bodyMedium,
-            color = TextSecondary,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = androidx.compose.ui.text.style.TextAlign.Center
         )
     }
@@ -281,9 +275,9 @@ fun ShimmerBalanceCard(
     modifier: Modifier = Modifier
 ) {
     val shimmerColors = listOf(
-        SurfaceElevated.copy(alpha = 0.6f),
-        SurfaceElevated.copy(alpha = 0.9f),
-        SurfaceElevated.copy(alpha = 0.6f)
+        ColorTokens.SurfaceLevel2.copy(alpha = 0.6f),
+        ColorTokens.SurfaceLevel2.copy(alpha = 0.9f),
+        ColorTokens.SurfaceLevel2.copy(alpha = 0.6f)
     )
 
     val transition = rememberInfiniteTransition(label = "shimmer_balance")
@@ -310,10 +304,10 @@ fun ShimmerBalanceCard(
         modifier = modifier
             .fillMaxWidth()
             .height(180.dp),
-        containerColor = SurfaceDark
+        containerColor = ColorTokens.SurfaceLevel1
     ) {
         Column(
-            modifier = Modifier.padding(20.dp)
+            modifier = Modifier.padding(SpacingTokens.MediumLarge)
         ) {
             // Label placeholder
             Box(
@@ -324,7 +318,7 @@ fun ShimmerBalanceCard(
                     .background(brush)
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Medium))
 
             // Balance placeholder
             Box(
@@ -335,7 +329,7 @@ fun ShimmerBalanceCard(
                     .background(brush)
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(SpacingTokens.Large))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -362,3 +356,6 @@ fun ShimmerBalanceCard(
         }
     }
 }
+
+
+

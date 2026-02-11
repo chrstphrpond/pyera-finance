@@ -1,5 +1,9 @@
 package com.pyera.app.ui.settings
 
+import com.pyera.app.ui.components.PyeraCard
+import com.pyera.app.ui.theme.tokens.ColorTokens
+import com.pyera.app.ui.theme.tokens.SpacingTokens
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -21,8 +25,6 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.SettingsSuggest
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -46,10 +48,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pyera.app.data.preferences.ThemeMode
 import com.pyera.app.ui.components.PyeraButton
-import com.pyera.app.ui.theme.NeonYellow
 import com.pyera.app.ui.theme.PyeraTheme
-import com.pyera.app.ui.theme.Spacing
-import com.pyera.app.ui.theme.SurfaceElevated
 import com.pyera.app.ui.theme.ThemeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -90,24 +89,23 @@ fun ThemeSettingsScreen(
             // Theme Preview Card
             ThemePreviewCard(themeMode = themeMode)
             
-            Spacer(modifier = Modifier.height(Spacing.Large))
+            Spacer(modifier = Modifier.height(SpacingTokens.Medium))
             
             // Theme Mode Selection
             Text(
                 text = "Theme Mode",
                 style = MaterialTheme.typography.labelLarge,
-                color = NeonYellow,
-                modifier = Modifier.padding(horizontal = Spacing.ScreenPadding, vertical = Spacing.Small)
+                color = ColorTokens.Primary500,
+                modifier = Modifier.padding(horizontal = SpacingTokens.MediumLarge, vertical = SpacingTokens.Small)
             )
             
-            Card(
+            PyeraCard(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = Spacing.ScreenPadding),
-                colors = CardDefaults.cardColors(
-                    containerColor = SurfaceElevated
-                ),
-                shape = RoundedCornerShape(12.dp)
+                    .padding(horizontal = SpacingTokens.MediumLarge),
+                cornerRadius = 12.dp,
+                containerColor = ColorTokens.SurfaceLevel2,
+                borderWidth = 0.dp
             ) {
                 Column {
                     ThemeModeOption(
@@ -120,7 +118,7 @@ fun ThemeSettingsScreen(
                     
                     HorizontalDivider(
                         color = colorScheme.outlineVariant,
-                        modifier = Modifier.padding(horizontal = Spacing.CardPadding)
+                        modifier = Modifier.padding(horizontal = SpacingTokens.MediumLarge)
                     )
                     
                     ThemeModeOption(
@@ -133,7 +131,7 @@ fun ThemeSettingsScreen(
                     
                     HorizontalDivider(
                         color = colorScheme.outlineVariant,
-                        modifier = Modifier.padding(horizontal = Spacing.CardPadding)
+                        modifier = Modifier.padding(horizontal = SpacingTokens.MediumLarge)
                     )
                     
                     ThemeModeOption(
@@ -146,14 +144,14 @@ fun ThemeSettingsScreen(
                 }
             }
             
-            Spacer(modifier = Modifier.height(Spacing.Large))
+            Spacer(modifier = Modifier.height(SpacingTokens.Medium))
             
             // Apply Button
             PyeraButton(
                 onClick = onNavigateBack,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = Spacing.ScreenPadding)
+                    .padding(horizontal = SpacingTokens.MediumLarge)
             ) {
                 Icon(
                     imageVector = Icons.Default.Check,
@@ -163,22 +161,21 @@ fun ThemeSettingsScreen(
                 Text("Apply")
             }
             
-            Spacer(modifier = Modifier.height(Spacing.XXXLarge))
+            Spacer(modifier = Modifier.height(SpacingTokens.ExtraLarge))
         }
     }
 }
 
 @Composable
 private fun ThemePreviewCard(themeMode: ThemeMode) {
-    Card(
+    PyeraCard(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = Spacing.ScreenPadding)
+            .padding(horizontal = SpacingTokens.MediumLarge)
             .height(180.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = SurfaceElevated
-        ),
-        shape = RoundedCornerShape(16.dp)
+        cornerRadius = SpacingTokens.Medium,
+        containerColor = ColorTokens.SurfaceLevel2,
+        borderWidth = 0.dp
     ) {
         PyeraTheme(themeMode = themeMode) {
             val colorScheme = MaterialTheme.colorScheme
@@ -189,7 +186,7 @@ private fun ThemePreviewCard(themeMode: ThemeMode) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(16.dp)
+                        .padding(SpacingTokens.Medium)
                 ) {
                     Text(
                         text = "Preview",
@@ -200,17 +197,16 @@ private fun ThemePreviewCard(themeMode: ThemeMode) {
                     Spacer(modifier = Modifier.height(12.dp))
                     
                     // Sample Card Preview
-                    Card(
+                    PyeraCard(
                         modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = colorScheme.surface
-                        ),
-                        shape = RoundedCornerShape(12.dp)
+                        cornerRadius = 12.dp,
+                        containerColor = colorScheme.surface,
+                        borderWidth = 0.dp
                     ) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(16.dp),
+                                .padding(SpacingTokens.Medium),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -242,7 +238,7 @@ private fun ThemePreviewCard(themeMode: ThemeMode) {
                                     imageVector = Icons.Default.Check,
                                     contentDescription = null,
                                     tint = colorScheme.primary,
-                                    modifier = Modifier.size(24.dp)
+                                    modifier = Modifier.size(SpacingTokens.Large)
                                 )
                             }
                         }
@@ -280,18 +276,18 @@ private fun ThemeModeOption(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(Spacing.CardPadding),
+            .padding(SpacingTokens.MediumLarge),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(Spacing.Medium)
+            horizontalArrangement = Arrangement.spacedBy(SpacingTokens.MediumSmall)
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = if (selected) NeonYellow else colorScheme.onSurfaceVariant
+                tint = if (selected) ColorTokens.Primary500 else colorScheme.onSurfaceVariant
             )
             
             Column {
@@ -312,9 +308,14 @@ private fun ThemeModeOption(
             selected = selected,
             onClick = onClick,
             colors = RadioButtonDefaults.colors(
-                selectedColor = NeonYellow,
+                selectedColor = ColorTokens.Primary500,
                 unselectedColor = colorScheme.onSurfaceVariant
             )
         )
     }
 }
+
+
+
+
+
