@@ -11,6 +11,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkAll
+import io.mockk.unmockkStatic
 import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -224,7 +225,7 @@ class NetWorthSnapshotWorkerTest {
         // Then
         verify { 
             mockWorkManager.enqueueUniquePeriodicWork(
-                NetWorthSnapshotWorker.WORK_NAME,
+                "net_worth_snapshot_work",
                 androidx.work.ExistingPeriodicWorkPolicy.KEEP,
                 any()
             )
@@ -262,7 +263,7 @@ class NetWorthSnapshotWorkerTest {
         NetWorthSnapshotWorker.cancel(context)
         
         // Then
-        verify { mockWorkManager.cancelUniqueWork(NetWorthSnapshotWorker.WORK_NAME) }
+        verify { mockWorkManager.cancelUniqueWork("net_worth_snapshot_work") }
         
         unmockkStatic(androidx.work.WorkManager::class)
     }

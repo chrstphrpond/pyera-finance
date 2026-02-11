@@ -13,6 +13,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkAll
+import io.mockk.unmockkStatic
 import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -250,7 +251,7 @@ class SyncWorkerTest {
         // Then
         verify { 
             mockWorkManager.enqueueUniquePeriodicWork(
-                SyncWorker.WORK_NAME,
+                "sync_work",
                 androidx.work.ExistingPeriodicWorkPolicy.KEEP,
                 any()
             )
@@ -270,7 +271,7 @@ class SyncWorkerTest {
         SyncWorker.cancel(context)
         
         // Then
-        verify { mockWorkManager.cancelUniqueWork(SyncWorker.WORK_NAME) }
+        verify { mockWorkManager.cancelUniqueWork("sync_work") }
         
         unmockkStatic(androidx.work.WorkManager::class)
     }

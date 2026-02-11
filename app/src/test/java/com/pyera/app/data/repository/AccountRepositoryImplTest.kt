@@ -1,5 +1,6 @@
 package com.pyera.app.data.repository
 
+import androidx.room.withTransaction
 import com.pyera.app.data.local.PyeraDatabase
 import com.pyera.app.data.local.dao.AccountDao
 import com.pyera.app.data.local.dao.TransactionDao
@@ -635,7 +636,8 @@ class AccountRepositoryImplTest {
 
         // Assert
         assertTrue(result.isSuccess)
-        assertEquals(3000.0, result.getOrNull(), 0.01)
+        val balance = requireNotNull(result.getOrNull())
+        assertEquals(3000.0, balance, 0.01)
     }
 
     @Test

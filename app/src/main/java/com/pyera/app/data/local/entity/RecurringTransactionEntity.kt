@@ -51,12 +51,12 @@ data class RecurringTransactionEntity(
     val id: Long = 0,
     val amount: Double,
     val type: TransactionType, // INCOME or EXPENSE
-    val categoryId: Long?,
-    val accountId: Long?,
+    val categoryId: Long? = null,
+    val accountId: Long? = null,
     val description: String,
     val frequency: RecurringFrequency, // DAILY, WEEKLY, BIWEEKLY, MONTHLY, QUARTERLY, YEARLY
     val startDate: Long, // Epoch timestamp
-    val endDate: Long?, // Epoch timestamp, null = never ends
+    val endDate: Long? = null, // Epoch timestamp, null = never ends
     val nextDueDate: Long, // Epoch timestamp
     val isActive: Boolean = true,
     val createdAt: Long = System.currentTimeMillis()

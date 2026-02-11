@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import androidx.work.ListenableWorker
 import androidx.work.WorkerParameters
-import androidx.work.testing.TestWorkerBuilder
 import com.google.firebase.auth.FirebaseUser
 import com.pyera.app.data.local.entity.RecurringFrequency
 import com.pyera.app.data.local.entity.RecurringTransactionEntity
@@ -16,9 +15,9 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.mockkObject
 import io.mockk.mockkStatic
 import io.mockk.unmockkAll
+import io.mockk.unmockkStatic
 import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -33,8 +32,6 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.io.IOException
-import java.util.concurrent.Executor
-import java.util.concurrent.Executors
 
 @ExperimentalCoroutinesApi
 @RunWith(RobolectricTestRunner::class)
@@ -47,13 +44,11 @@ class RecurringTransactionWorkerTest {
     private val authRepository: AuthRepository = mockk(relaxed = true)
     private val mockUser: FirebaseUser = mockk(relaxed = true)
     private val testDispatcher = StandardTestDispatcher()
-    private lateinit var executor: Executor
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         context = ApplicationProvider.getApplicationContext()
-        executor = Executors.newSingleThreadExecutor()
         WorkerTestFixtures.resetCounter()
         
         // Setup default mock behavior
@@ -64,16 +59,6 @@ class RecurringTransactionWorkerTest {
     @After
     fun tearDown() {
         unmockkAll()
-    }
-
-    private fun createWorker(): RecurringTransactionWorker {
-        return TestWorkerBuilder<RecurringTransactionWorker>(
-            context = context,
-            executor = executor
-        ).build().apply {
-            // Inject mocks using reflection or constructor injection
-            // Since we can't easily inject with Hilt in tests, we'll create a testable version
-        }
     }
 
     private fun createTestWorker(
@@ -291,7 +276,7 @@ class RecurringTransactionWorkerTest {
         // Then
         verify { 
             mockWorkManager.enqueueUniquePeriodicWork(
-                RecurringTransactionWorker.WORK_NAME,
+                "recurring_transaction_work",
                 androidx.work.ExistingPeriodicWorkPolicy.KEEP,
                 any()
             )
@@ -311,7 +296,7 @@ class RecurringTransactionWorkerTest {
         RecurringTransactionWorker.cancel(context)
         
         // Then
-        verify { mockWorkManager.cancelUniqueWork(RecurringTransactionWorker.WORK_NAME) }
+        verify { mockWorkManager.cancelUniqueWork("recurring_transaction_work") }
         
         unmockkStatic(androidx.work.WorkManager::class)
     }

@@ -296,10 +296,10 @@ class BudgetViewModelTest {
         // Then
         viewModel.budgetSummary.test {
             val result = awaitItem()
-            assertNotNull(result)
-            assertEquals(5, result?.totalBudgets)
-            assertEquals(5000.0, result?.totalBudgetAmount, 0.01)
-            assertEquals(2000.0, result?.totalSpent, 0.01)
+            val summary = requireNotNull(result)
+            assertEquals(5, summary.totalBudgets)
+            assertEquals(5000.0, summary.totalBudgetAmount, 0.01)
+            assertEquals(2000.0, summary.totalSpent, 0.01)
         }
     }
 

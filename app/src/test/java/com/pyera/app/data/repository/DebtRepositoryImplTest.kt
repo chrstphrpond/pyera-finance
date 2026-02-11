@@ -585,6 +585,6 @@ class DebtRepositoryImplTest {
         // Assert
         coVerify(exactly = 2) { debtDao.insertDebt(any()) }
         coVerify { debtDao.updateDebt(match { it.isPaid }) }
-        coVerify { debtDao.deleteDebt(match { it.id == 2L }) }
+        coVerify { debtDao.deleteDebt(match { it.id == 2 }) }
     }
 }

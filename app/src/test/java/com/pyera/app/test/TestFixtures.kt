@@ -11,7 +11,11 @@ import com.pyera.app.data.local.entity.CategoryEntity
 import com.pyera.app.data.local.entity.DebtEntity
 import com.pyera.app.data.local.entity.SavingsGoalEntity
 import com.pyera.app.data.local.entity.TransactionEntity
+import com.pyera.app.domain.model.BudgetPeriod as DomainBudgetPeriod
+import com.pyera.app.domain.model.BudgetWithSpending as DomainBudgetWithSpending
+import com.pyera.app.domain.model.Transaction as DomainTransaction
 import com.google.firebase.auth.FirebaseUser
+import org.mockito.kotlin.doReturn
 
 // ==================== Transaction Fixtures ====================
 
@@ -68,6 +72,82 @@ fun createExpenseTransaction(
         date = date,
         type = "EXPENSE",
         categoryId = categoryId
+    )
+}
+
+// ==================== Domain Model Fixtures ====================
+
+fun transaction(
+    id: Long = 1,
+    amount: Double = 100.0,
+    note: String = "Test Transaction",
+    date: Long = System.currentTimeMillis(),
+    type: String = "EXPENSE",
+    categoryId: Int? = 1,
+    accountId: Long = 1,
+    userId: String = "test_user",
+    isTransfer: Boolean = false,
+    transferAccountId: Long? = null,
+    createdAt: Long = System.currentTimeMillis(),
+    updatedAt: Long = System.currentTimeMillis(),
+    receiptImagePath: String? = null,
+    receiptCloudUrl: String? = null,
+    hasReceipt: Boolean = false
+): DomainTransaction {
+    return DomainTransaction(
+        id = id,
+        amount = amount,
+        note = note,
+        date = date,
+        type = type,
+        categoryId = categoryId,
+        accountId = accountId,
+        userId = userId,
+        isTransfer = isTransfer,
+        transferAccountId = transferAccountId,
+        createdAt = createdAt,
+        updatedAt = updatedAt,
+        receiptImagePath = receiptImagePath,
+        receiptCloudUrl = receiptCloudUrl,
+        hasReceipt = hasReceipt
+    )
+}
+
+fun budgetWithSpending(
+    id: Int = 1,
+    userId: String = "test_user",
+    categoryId: Int = 1,
+    categoryName: String = "Food",
+    categoryColor: Int = 0xFF4CAF50.toInt(),
+    categoryIcon: String? = "icon",
+    amount: Double = 1000.0,
+    spentAmount: Double = 200.0,
+    remainingAmount: Double = amount - spentAmount,
+    progressPercentage: Float = if (amount == 0.0) 0f else (spentAmount / amount).toFloat(),
+    period: DomainBudgetPeriod = DomainBudgetPeriod.MONTHLY,
+    startDate: Long = System.currentTimeMillis(),
+    isActive: Boolean = true,
+    alertThreshold: Float = 0.8f,
+    isOverBudget: Boolean = spentAmount > amount,
+    daysRemaining: Int = 15
+): DomainBudgetWithSpending {
+    return DomainBudgetWithSpending(
+        id = id,
+        userId = userId,
+        categoryId = categoryId,
+        categoryName = categoryName,
+        categoryColor = categoryColor,
+        categoryIcon = categoryIcon,
+        amount = amount,
+        period = period,
+        startDate = startDate,
+        isActive = isActive,
+        alertThreshold = alertThreshold,
+        spentAmount = spentAmount,
+        remainingAmount = remainingAmount,
+        progressPercentage = progressPercentage,
+        isOverBudget = isOverBudget,
+        daysRemaining = daysRemaining
     )
 }
 

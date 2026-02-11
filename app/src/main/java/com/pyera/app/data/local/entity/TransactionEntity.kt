@@ -40,7 +40,7 @@ data class TransactionEntity(
     val note: String,
     val date: Long, // Epoch timestamp
     val type: String, // "INCOME" or "EXPENSE"
-    val categoryId: Int?, // Reference to CategoryEntity (kept as Int for consistency)
+    val categoryId: Int? = null, // Reference to CategoryEntity (kept as Int for consistency)
     val accountId: Long, // Link to the account this transaction belongs to
     val userId: String, // User who owns this transaction
     val isTransfer: Boolean = false, // Flag for transfer transactions

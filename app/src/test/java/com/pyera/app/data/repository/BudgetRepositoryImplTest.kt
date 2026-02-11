@@ -20,6 +20,7 @@ import io.mockk.impl.annotations.MockK
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.*
 import org.junit.Before
@@ -476,7 +477,7 @@ class BudgetRepositoryImplTest {
         // Assert
         val expectedEnd = start + 24 * 60 * 60 * 1000L - 1
         assertEquals(startDate, start)
-        assertEquals(expectedEnd, end, 1000L) // Allow 1 second tolerance
+        assertTrue(kotlin.math.abs(end - expectedEnd) <= 1000L) // Allow 1 second tolerance
     }
 
     @Test

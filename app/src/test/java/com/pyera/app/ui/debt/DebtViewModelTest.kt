@@ -211,7 +211,7 @@ class DebtViewModelTest {
         coVerify {
             debtRepository.updateDebt(
                 match { debt ->
-                    debt.id == 1L &&
+                    debt.id == 1 &&
                     debt.isPaid &&
                     debt.name == "Unpaid"
                 }
@@ -240,7 +240,7 @@ class DebtViewModelTest {
         coVerify {
             debtRepository.updateDebt(
                 match { updated ->
-                    updated.id == 5L &&
+                    updated.id == 5 &&
                     updated.name == "Test" &&
                     updated.amount == 1000.0 &&
                     updated.type == "PAYABLE" &&
@@ -279,7 +279,7 @@ class DebtViewModelTest {
         advanceUntilIdle()
         
         // Then
-        coVerify(exactly = 1) { debtRepository.deleteDebt(match { it.id == 10L }) }
+        coVerify(exactly = 1) { debtRepository.deleteDebt(match { it.id == 10 }) }
     }
 
     // ==================== Update Debt Tests ====================
@@ -319,7 +319,7 @@ class DebtViewModelTest {
         coVerify {
             debtRepository.updateDebt(
                 match { debt ->
-                    debt.id == 1L &&
+                    debt.id == 1 &&
                     debt.name == "Modified" &&
                     debt.amount == 600.0
                 }

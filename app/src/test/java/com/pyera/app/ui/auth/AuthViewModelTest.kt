@@ -5,6 +5,7 @@ import com.google.firebase.auth.FirebaseUser
 import com.pyera.app.data.biometric.BiometricAuthManager
 import com.pyera.app.data.biometric.BiometricAuthResult
 import com.pyera.app.domain.repository.AuthRepository
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -96,7 +97,7 @@ class AuthViewModelTest {
     @Test
     fun `login sets Loading state initially`() = runTest(testDispatcher) {
         // Given
-        every { authRepository.login(any(), any()) } returns Result.success(mockFirebaseUser)
+        coEvery { authRepository.login(any(), any()) } returns Result.success(mockFirebaseUser)
         viewModel = createViewModel()
         
         // When
@@ -112,7 +113,7 @@ class AuthViewModelTest {
     @Test
     fun `login sets Success state on successful login`() = runTest(testDispatcher) {
         // Given
-        every { authRepository.login(any(), any()) } returns Result.success(mockFirebaseUser)
+        coEvery { authRepository.login(any(), any()) } returns Result.success(mockFirebaseUser)
         every { biometricAuthManager.isBiometricAvailable() } returns false
         viewModel = createViewModel()
         
@@ -130,7 +131,7 @@ class AuthViewModelTest {
     @Test
     fun `login sets Error state on failure`() = runTest(testDispatcher) {
         // Given
-        every { authRepository.login(any(), any()) } returns Result.failure(Exception("Invalid credentials"))
+        coEvery { authRepository.login(any(), any()) } returns Result.failure(Exception("Invalid credentials"))
         viewModel = createViewModel()
         
         // When
@@ -148,7 +149,7 @@ class AuthViewModelTest {
     @Test
     fun `login shows biometric prompt when available and not enabled`() = runTest(testDispatcher) {
         // Given
-        every { authRepository.login(any(), any()) } returns Result.success(mockFirebaseUser)
+        coEvery { authRepository.login(any(), any()) } returns Result.success(mockFirebaseUser)
         every { biometricAuthManager.isBiometricAvailable() } returns true
         every { authRepository.isBiometricEnabled() } returns false
         viewModel = createViewModel()
@@ -170,7 +171,7 @@ class AuthViewModelTest {
     @Test
     fun `register sets Loading state initially`() = runTest(testDispatcher) {
         // Given
-        every { authRepository.register(any(), any(), any()) } returns Result.success(mockFirebaseUser)
+        coEvery { authRepository.register(any(), any(), any()) } returns Result.success(mockFirebaseUser)
         viewModel = createViewModel()
         
         // When
@@ -186,7 +187,7 @@ class AuthViewModelTest {
     @Test
     fun `register sets Success state on successful registration`() = runTest(testDispatcher) {
         // Given
-        every { authRepository.register(any(), any(), any()) } returns Result.success(mockFirebaseUser)
+        coEvery { authRepository.register(any(), any(), any()) } returns Result.success(mockFirebaseUser)
         viewModel = createViewModel()
         
         // When
@@ -203,7 +204,7 @@ class AuthViewModelTest {
     @Test
     fun `register sets Error state on failure`() = runTest(testDispatcher) {
         // Given
-        every { authRepository.register(any(), any(), any()) } returns Result.failure(Exception("Email already exists"))
+        coEvery { authRepository.register(any(), any(), any()) } returns Result.failure(Exception("Email already exists"))
         viewModel = createViewModel()
         
         // When
@@ -223,7 +224,7 @@ class AuthViewModelTest {
     @Test
     fun `signInWithGoogle sets Success state on success`() = runTest(testDispatcher) {
         // Given
-        every { authRepository.signInWithGoogle(any()) } returns Result.success(mockFirebaseUser)
+        coEvery { authRepository.signInWithGoogle(any()) } returns Result.success(mockFirebaseUser)
         viewModel = createViewModel()
         
         // When
@@ -240,7 +241,7 @@ class AuthViewModelTest {
     @Test
     fun `signInWithGoogle sets Error state on failure`() = runTest(testDispatcher) {
         // Given
-        every { authRepository.signInWithGoogle(any()) } returns Result.failure(Exception("Google sign-in failed"))
+        coEvery { authRepository.signInWithGoogle(any()) } returns Result.failure(Exception("Google sign-in failed"))
         viewModel = createViewModel()
         
         // When
@@ -598,7 +599,7 @@ class AuthViewModelTest {
     @Test
     fun `clearError resets auth state to Idle`() = runTest(testDispatcher) {
         // Given
-        every { authRepository.login(any(), any()) } returns Result.failure(Exception("Error"))
+        coEvery { authRepository.login(any(), any()) } returns Result.failure(Exception("Error"))
         viewModel = createViewModel()
         viewModel.login("test@example.com", "wrong")
         advanceUntilIdle()

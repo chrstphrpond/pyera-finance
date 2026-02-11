@@ -59,8 +59,8 @@ class CurrencyValidatorAmountParameterizedTest(
             arrayOf("abc", null, false, "letters"),
             arrayOf("10.10.10", null, false, "multiple decimals"),
             arrayOf("10,50", null, false, "comma decimal"),
-            arrayOf("$100", null, false, "dollar sign"),
-            arrayOf("100$", null, false, "trailing dollar"),
+            arrayOf("\$100", null, false, "dollar sign"),
+            arrayOf("100\$", null, false, "trailing dollar"),
             arrayOf("€50", null, false, "euro symbol"),
             arrayOf("£30", null, false, "pound symbol"),
             arrayOf("ten", null, false, "spelled out"),
@@ -154,7 +154,7 @@ class CurrencyValidatorCodeParameterizedTest(
             arrayOf("usD", false, false, "mixed case"),
             arrayOf("123", false, false, "numbers"),
             arrayOf("US1", false, false, "with number"),
-            arrayOf("U$D", false, false, "with symbol"),
+            arrayOf("U\$D", false, false, "with symbol"),
             arrayOf("U S", false, false, "with space"),
             arrayOf("XXX", false, false, "invalid ISO code"),
             arrayOf("YYY", false, false, "fake code"),
@@ -220,8 +220,8 @@ class CurrencyValidatorFormatParameterizedTest(
             
             // Characters
             arrayOf("100a", false, "with letter"),
-            arrayOf("$100", false, "dollar sign"),
-            arrayOf("100$", false, "trailing dollar"),
+            arrayOf("\$100", false, "dollar sign"),
+            arrayOf("100\$", false, "trailing dollar"),
             
             // Spaces
             arrayOf("100 000", false, "middle space"),
@@ -258,23 +258,23 @@ class CurrencyValidatorNonParameterizedTest {
 
     @Test
     fun `parseAmount handles currency symbols`() {
-        assertEquals(100.0, CurrencyValidator.parseAmount("$100") ?: 0.0, 0.001)
+        assertEquals(100.0, CurrencyValidator.parseAmount("\$100") ?: 0.0, 0.001)
         assertEquals(100.0, CurrencyValidator.parseAmount("€100") ?: 0.0, 0.001)
-        assertEquals(100.5, CurrencyValidator.parseAmount("$100.50") ?: 0.0, 0.001)
+        assertEquals(100.5, CurrencyValidator.parseAmount("\$100.50") ?: 0.0, 0.001)
     }
 
     @Test
     fun `parseAmount returns null for invalid input`() {
         assertNull(CurrencyValidator.parseAmount(""))
         assertNull(CurrencyValidator.parseAmount("abc"))
-        assertNull(CurrencyValidator.parseAmount("$"))
+        assertNull(CurrencyValidator.parseAmount("\$"))
     }
 
     @Test
     fun `formatForDisplay formats correctly`() {
         val formatted = CurrencyValidator.formatForDisplay(100.5, "USD", Locale.US)
         assertTrue(formatted.contains("100.50") || formatted.contains("100.5"))
-        assertTrue(formatted.contains("$") || formatted.contains("USD"))
+        assertTrue(formatted.contains("\$") || formatted.contains("USD"))
     }
 
     @Test
@@ -348,7 +348,7 @@ class CurrencyValidatorNonParameterizedTest {
         assertTrue(shortResult is ValidationUtils.ValidationResult.Error)
         assertEquals("Currency code must be 3 characters", (shortResult as ValidationUtils.ValidationResult.Error).message)
         
-        val invalidResult = CurrencyValidator.validateCurrencyCode("U$D")
+        val invalidResult = CurrencyValidator.validateCurrencyCode("U\$D")
         assertTrue(invalidResult is ValidationUtils.ValidationResult.Error)
         assertEquals("Currency code must be letters only", (invalidResult as ValidationUtils.ValidationResult.Error).message)
     }
