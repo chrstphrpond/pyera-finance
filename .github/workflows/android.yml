@@ -59,6 +59,12 @@ jobs:
                       {
                         "current_key": "DUMMY_API_KEY"
                       }
+                    ],
+                    "oauth_client": [
+                      {
+                        "client_id": "000000000000-dummyclientid.apps.googleusercontent.com",
+                        "client_type": 3
+                      }
                     ]
                   }
                 ],
@@ -176,6 +182,12 @@ jobs:
                     "api_key": [
                       {
                         "current_key": "DUMMY_API_KEY"
+                      }
+                    ],
+                    "oauth_client": [
+                      {
+                        "client_id": "000000000000-dummyclientid.apps.googleusercontent.com",
+                        "client_type": 3
                       }
                     ]
                   }
