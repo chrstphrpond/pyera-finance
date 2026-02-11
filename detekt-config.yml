@@ -16,27 +16,6 @@ processors:
   active: true
   exclude:
     - 'DetektProgressListener'
-  
-console-reports:
-  active: true
-  exclude:
-    - 'ProjectStatisticsReport'
-    - 'ComplexityReport'
-    - 'NotificationReport'
-    - 'FindingsReport'
-    - 'FileBasedFindingsReport'
-  include:
-    - 'LiteFindingsReport'
-
-output-reports:
-  active: true
-  exclude:
-    - 'TxtOutputReport'
-    - 'XmlOutputReport'
-    - 'MdOutputReport'
-  include:
-    - 'HtmlOutputReport'
-    - 'SarifOutputReport'
 
 # Comments rules
 comments:
@@ -329,7 +308,6 @@ naming:
     active: true
     parameterPattern: '[a-z][A-Za-z0-9]*'
     excludeClassPattern: '$^'
-    ignoreOverridden: true
   InvalidPackageDeclaration:
     active: true
     rootPackage: 'com.pyera'
@@ -414,7 +392,7 @@ potential-bugs:
     active: true
   IgnoredReturnValue:
     active: true
-    restrictToAnnotatedMethods: true
+    restrictToConfig: true
     returnValueAnnotations:
       - '*.CheckResult'
       - '*.CheckReturnValue'
@@ -430,20 +408,16 @@ potential-bugs:
   LateinitUsage:
     active: true
     excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**']
-    excludeAnnotatedProperties: []
+    ignoreAnnotated: []
     ignoreOnClassesPattern: ''
   MapGetWithNotNullAssertionOperator:
     active: true
   MissingPackageDeclaration:
     active: true
     excludes: ['**/*.kts']
-  MissingWhenCase:
-    active: true
   NullCheckOnMutableProperty:
     active: true
   NullableToStringCall:
-    active: true
-  RedundantElseInWhen:
     active: true
   UnconditionalJumpStatementInLoop:
     active: true
@@ -499,8 +473,6 @@ style:
     maxDestructuringEntries: 3
   EqualsNullCall:
     active: true
-  EqualsOnSignature:
-    active: true
   ExplicitCollectionElementAccessMethod:
     active: true
   ExplicitItLambdaParameter:
@@ -510,7 +482,7 @@ style:
     includeLineWrapping: false
   ForbiddenComment:
     active: true
-    values:
+    comments:
       - 'TODO:'
       - 'FIXME:'
       - 'STOPSHIP:'
@@ -524,11 +496,6 @@ style:
     methods:
       - 'kotlin.io.println'
       - 'kotlin.io.print'
-  ForbiddenPublicDataClass:
-    active: true
-    ignorePackages:
-      - '*.internal'
-      - '*.internal.*'
   ForbiddenSuppress:
     active: true
     rules: []
@@ -536,13 +503,12 @@ style:
     active: true
     ignoreOverridden: false
     ignoreUsageInGenerics: false
-  FunInterfaceConstructorReference:
-    active: true
   FunctionOnlyReturningConstant:
     active: true
     ignoreOverridableFunction: true
-    excludedFunctions: 'describeContents'
-    excludeAnnotatedFunction:
+    excludedFunctions:
+      - 'describeContents'
+    ignoreAnnotated:
       - 'dagger.Provides'
   LoopWithTooManyJumpStatements:
     active: true
@@ -608,8 +574,6 @@ style:
     active: true
   OptionalUnit:
     active: true
-  OptionalWhenBraces:
-    active: true
   PreferToOverPairSyntax:
     active: true
   ProtectedMemberInFinalClass:
@@ -634,9 +598,6 @@ style:
     active: true
   SpacingBetweenPackageAndImports:
     active: true
-  StringShouldBeRawString:
-    active: true
-    excludedFunctions: []
   ThrowsCount:
     active: true
     max: 2
@@ -646,7 +607,7 @@ style:
     active: true
   UnderscoresInNumericLiterals:
     active: true
-    acceptableDecimalLength: 5
+    acceptableLength: 5
   UnnecessaryAbstractClass:
     active: true
   UnnecessaryAnnotationUseSiteTarget:
@@ -690,7 +651,7 @@ style:
   UseDataClass:
     active: true
     allowVars: false
-    excludeAnnotatedClasses: ['Entity', 'Serializable', 'Parcelable']
+    ignoreAnnotated: ['Entity', 'Serializable', 'Parcelable']
   UseEmptyCounterpart:
     active: true
   UseIfEmptyOrIfBlank:
